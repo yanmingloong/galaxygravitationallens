@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+build/
+dist/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Scientific data (kept out of git; stored in the internal research project)
+*.fits
+*.fits.gz
+*.fits.fz
+*.hdf5
+*.h5
+*.npz
+*.npy
+
+# Fitting products (regenerable)
+outputs/
+results/
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Temp / logs
+*.log
+*.tmp
+*~
+
+# Internal exploration archives (not part of the reusable library)
+_archive/

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-盘星系引力透镜样本库 — 统一配置
+盘星系引力透镜样本库 — 统一配置 Disk lens sample library — unified config
 ===================================
 路径、Schema 常量、Tier 规则、排序规则。
 所有脚本从此文件导入，避免硬编码。

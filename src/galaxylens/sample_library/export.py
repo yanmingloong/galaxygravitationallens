@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase E — 建模导出
+Phase E — 建模导出 Phase E — modeling export
 ====================
 从 04_enriched/ 读取最新丰富星表，按 Tier 过滤，导出给 PyAutoLens/AGAMA 使用。
 

@@ -1,4 +1,5 @@
 """galaxylens 配置模块：路径解析 + YAML 配置加载。
+galaxylens config module: path resolution + YAML config loading.
 
 - paths.py    环境变量路径解析（数据根 / SExtractor / TinyTim）
 - schema.py   配置 dataclass（LensConfig / BandConfig）

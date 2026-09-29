@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-盘星系引力透镜样本库 — 全流程编排
+盘星系引力透镜样本库 — 全流程编排 Disk lens sample library — full-pipeline orchestration
 ====================================
 一条命令跑通 Phase B→C→D→E。
 

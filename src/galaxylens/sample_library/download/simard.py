@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 一次性下载 Simard+2011 全星表并缓存到本地 (v2 — 修正列名)。
+One-shot download of the Simard+2011 full catalog, cached locally (v2 — fixed column names).
 
 Simard+2011 (J/ApJS/196/11/table3): ~1.1M SDSS 星系
 VizieR 实际列名 (不是文档假设的):

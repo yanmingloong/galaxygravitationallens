@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase A — 从 VizieR 下载 SLACS/CASTLES/CLASS 星表
+Phase A — 从 VizieR 下载 SLACS/CASTLES/CLASS 星表 Phase A — download SLACS/CASTLES/CLASS catalogs from VizieR
 ===================================================
 使用 astroquery 从 VizieR 拉取三个巡天的透镜星表，
 存入 01_raw/{slacs,castles,class}/。

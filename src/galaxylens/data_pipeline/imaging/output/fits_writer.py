@@ -1,5 +1,5 @@
 """
-FITS 标准化输出
+FITS 标准化输出 Standardized FITS output
 ===============
 将处理后的 SCI/Noise/PSF/Mask 写入标准 FITS 文件。
 

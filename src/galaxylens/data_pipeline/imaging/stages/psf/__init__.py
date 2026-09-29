@@ -1,4 +1,4 @@
-"""PSF 构建（拆分为子模块）。
+"""PSF 构建（拆分为子模块）。 PSF construction (split into sub-modules).
 
 子模块:
   - stars.py    场星检测与筛选

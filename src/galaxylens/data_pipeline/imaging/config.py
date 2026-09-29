@@ -1,4 +1,5 @@
 """透镜参数配置（兼容层，从 galaxylens.config 加载 YAML）。
+Lens parameter config (compatibility layer, loading YAML from galaxylens.config).
 
 原为硬编码 dict，现改为从 configs/{disk,slacs}/*.yaml 加载，
 返回 LensConfig dataclass。本文件保留原接口名供 data_pipeline 内部调用。

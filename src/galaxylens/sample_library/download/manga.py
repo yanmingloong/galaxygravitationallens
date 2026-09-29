@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase A — MaNGA SILO 透镜候选体星表
+Phase A — MaNGA SILO 透镜候选体星表 Phase A — MaNGA SILO lens candidate catalog
 ======================================
 SDSS-IV MaNGA IFU 巡天的 Spectroscopic Identification of Lensing Objects (SILO)。
 从 MaNGA ~10,000 星系中通过 IFU 光谱探测背景发射线发现强透镜候选体。

@@ -1,5 +1,5 @@
 """
-HST 图像加载器
+HST 图像加载器 HST image loaders
 ==============
 统一加载 DRC/FLT/FLC/DRZ 产品的 SCI + WHT + WCS。
 

@@ -1,4 +1,5 @@
 """PyAutoLens 风格的成像数据预览图（可选，需 autolens）。
+PyAutoLens-style imaging data preview (optional, requires autolens).
 
 把预处理产出的 sci/noise/psf FITS 画成 PyAutoLens 三联预览图，
 供快速检查数据质量。

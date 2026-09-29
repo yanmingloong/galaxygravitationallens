@@ -1,5 +1,5 @@
 """
-诊断可视化
+诊断可视化 Diagnostic visualization
 ==========
 生成处理结果的诊断图，包括 4-panel 总览和 PSF 剖面。
 

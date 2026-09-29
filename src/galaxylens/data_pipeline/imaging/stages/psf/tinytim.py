@@ -1,4 +1,5 @@
 """TinyTim PSF：Massey 栅格（ACS）+ 直接编译（WFPC2 等）。
+TinyTim PSF: Massey grid (ACS) + direct compilation (WFPC2 etc.).
 
 参考 dinos_i pipeline: https://github.com/cytan1/dinos-i
 """

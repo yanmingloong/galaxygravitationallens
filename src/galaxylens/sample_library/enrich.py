@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase D — 参数丰富
+Phase D — 参数丰富 Phase D — parameter enrichment
 ====================
 为 Tier 0/1/2 候选体查询外部参数（sigma, theta_E, Sersic 等），
 生成带版本号的丰富星表。

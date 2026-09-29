@@ -1,4 +1,4 @@
-"""场星检测与筛选（用于 PSF 构建）。"""
+"""场星检测与筛选（用于 PSF 构建）。 Field star detection & filtering (for PSF construction)."""
 from __future__ import annotations
 from typing import List, Tuple, Optional
 

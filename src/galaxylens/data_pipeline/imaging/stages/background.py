@@ -1,5 +1,5 @@
 """
-背景估计与减除
+背景估计与减除 Background estimation & subtraction
 ==============
 从图像边缘区域估计天空背景，然后减除。
 

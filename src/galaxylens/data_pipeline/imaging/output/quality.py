@@ -1,5 +1,5 @@
 """
-定量质量评估
+定量质量评估 Quantitative quality assessment
 ============
 对处理后的数据自动计算质量指标并给出评级。
 

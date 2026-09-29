@@ -1,4 +1,4 @@
-"""处理参数默认值（全局常量）。"""
+"""处理参数默认值（全局常量）。 Processing parameter defaults (global constants)."""
 from __future__ import annotations
 
 from typing import Dict

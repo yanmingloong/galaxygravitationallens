@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-盘星系引力透镜样本库 — 共享工具函数
+盘星系引力透镜样本库 — 共享工具函数 Disk lens sample library — shared utilities
 =====================================
 名称归一化、坐标匹配、去重逻辑。
 """

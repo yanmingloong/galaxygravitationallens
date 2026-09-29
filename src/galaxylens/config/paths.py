@@ -1,4 +1,5 @@
 """路径解析：数据根目录与外部工具路径，全部由环境变量指定。
+Path resolution: data root and external tool paths, all specified via environment variables.
 
 环境变量清单:
   GALAXYLENS_DATA_ROOT        数据根目录（含 raw/ 与 processed_v2/，必需）

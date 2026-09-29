@@ -1,5 +1,5 @@
 """
-WCS 天文裁剪
+WCS 天文裁剪 WCS astrometric cutout
 ===========
 根据透镜天球坐标裁剪图像到指定视场。
 

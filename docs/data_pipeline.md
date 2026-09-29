@@ -1,8 +1,9 @@
-# Data Pipeline 使用指引
+# Data Pipeline 使用指引 Usage guide
 
 观测数据生产管线：把 HST 原始数据（MAST 下载的 FITS）预处理成 PyAutoLens 就绪的标准化产物（sci / noise / psf / mask）。
+Observational data production pipeline: preprocess raw HST data (MAST-downloaded FITS) into PyAutoLens-ready standardized products (sci / noise / psf / mask).
 
-## 1. 概述
+## 1. 概述 Overview
 
 ```
 data_pipeline/
@@ -19,7 +20,7 @@ data_pipeline/
 
 **设计原则**：数据生产（data_pipeline）与数据消费（lensfit）分离。本模块只做"raw → processed"，产出标准化的 FITS；拟合引擎 lensfit 消费这些产物。因此本模块**只依赖 astropy/photutils**，不依赖 autolens。
 
-## 2. 环境配置
+## 2. 环境配置 Environment configuration
 
 ### 2.1 数据根目录（必需）
 
@@ -55,7 +56,7 @@ export TINYTIM_BREATHING_CSV=/path/to/Hubble_dspace.csv  # HST 呼吸模型
 pip install -e ".[data]"
 ```
 
-## 3. 快速开始
+## 3. 快速开始 Quick start
 
 ```python
 from galaxylens.data_pipeline.imaging.preprocess_master import process_lens
@@ -65,7 +66,7 @@ from galaxylens.data_pipeline.imaging.paths import get_processed_root
 process_lens("J2141-0001", version_tag="v1", output_base=get_processed_root())
 ```
 
-## 4. 命令行用法
+## 4. 命令行用法 CLI usage
 
 ```bash
 # 处理单个透镜
@@ -85,7 +86,7 @@ python -m galaxylens.data_pipeline.imaging.preprocess_master \
     --lens J1630+4520 --dry-run
 ```
 
-## 5. 处理流程（每个波段）
+## 5. 处理流程（每个波段）Processing flow (per band)
 
 1. `file_discovery` — 查找源文件（FLC 优先 → FLT/DRC/DRZ 回退）
 2. `loaders` — 加载 SCI + WHT + WCS
@@ -99,7 +100,7 @@ python -m galaxylens.data_pipeline.imaging.preprocess_master \
 10. `alignment` — 跨波段对齐（多波段时）
 11. `output` — FITS 写入 + 诊断图 + 日志 + 质量评估（8 项评级）
 
-## 6. PSF 构建（stages/psf 包）
+## 6. PSF 构建（stages/psf 包）PSF construction (stages/psf package)
 
 拆分为子模块：
 
@@ -114,7 +115,7 @@ python -m galaxylens.data_pipeline.imaging.preprocess_master \
 
 自动选择策略：ePSF 与 TinyTim 各生成候选 → EE50 ∈ [0.8, 3.0]px 且椭率 < 0.15 硬门槛 → 达标 ePSF 优先 → TinyTim 保底 → Moffat 兜底。
 
-## 7. 教程：处理一个透镜的完整流程
+## 7. 教程：处理一个透镜的完整流程 Tutorial: full preprocessing of one lens
 
 ```python
 import os
@@ -134,7 +135,7 @@ print(f"产物目录: {out}")
 # 产物含 *_sci.fits / *_noise.fits / *_psf.fits / *_starmask.fits / processing_log.json
 ```
 
-## 8. 环境变量速查
+## 8. 环境变量速查 Environment variable reference
 
 | 环境变量 | 用途 | 必需 |
 |---|---|---|

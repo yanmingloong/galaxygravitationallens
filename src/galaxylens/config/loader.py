@@ -1,4 +1,4 @@
-"""YAML 配置加载 → dataclass。"""
+"""YAML 配置加载 → dataclass。 YAML config loading → dataclass."""
 from __future__ import annotations
 
 from pathlib import Path

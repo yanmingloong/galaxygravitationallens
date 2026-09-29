@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase C — 盘星系识别
+Phase C — 盘星系识别 Phase C — disk galaxy classification
 =====================
 读取 Phase B 的 master.csv，对每个透镜系统分配 Tier 0/1/2/3/X。
 输出: 03_identified/master_classified.csv

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase A — GLUE 候选体星表获取与统计
+Phase A — GLUE 候选体星表获取与统计 Phase A — GLUE candidate catalog fetch & statistics
 ======================================
 GLUE (Gravitational Lensing from UNIONS and Euclid) 发布在 Storfer+2025。
 本脚本验证 GLUE 数据的存在性、输出统计、帮助获取最新数据。

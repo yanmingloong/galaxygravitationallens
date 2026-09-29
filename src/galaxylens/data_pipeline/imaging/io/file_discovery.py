@@ -1,5 +1,5 @@
 """
-HST 源文件查找
+HST 源文件查找 HST source file discovery
 ==============
 根据透镜ID和波段，在 MAST_download 目录中定位正确的 FITS 文件。
 

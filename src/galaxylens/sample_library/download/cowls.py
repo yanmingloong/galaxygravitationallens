@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase A — JWST COWLS 透镜候选体星表
+Phase A — JWST COWLS 透镜候选体星表 Phase A — JWST COWLS lens candidate catalog
 ======================================
 COSMOS-Web Lens Survey (COWLS): JWST NIRCam 最深成像发现 100+ 强透镜候选体。
 

@@ -1,4 +1,4 @@
-"""解析 PSF：Moffat / 圆形 Gaussian / 椭圆 Gaussian。"""
+"""解析 PSF：Moffat / 圆形 Gaussian / 椭圆 Gaussian。 Analytic PSF: Moffat / circular Gaussian / elliptical Gaussian."""
 from __future__ import annotations
 from typing import Tuple
 

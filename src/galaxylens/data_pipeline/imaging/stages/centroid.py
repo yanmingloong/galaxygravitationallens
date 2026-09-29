@@ -1,5 +1,5 @@
 """
-2D 高斯中心微调
+2D 高斯中心微调 2D Gaussian centroid refinement
 ==============
 用二维高斯拟合 refine 透镜中心位置，纠正 WCS 指向误差。
 

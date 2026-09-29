@@ -1,4 +1,4 @@
-"""配置 dataclass 定义。"""
+"""配置 dataclass 定义。 Config dataclass definitions."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field

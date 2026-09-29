@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Phase A — lenscat.org 星表获取与统计
+Phase A — lenscat.org 星表获取与统计 Phase A — lenscat.org catalog fetch & statistics
 ======================================
 lenscat.org 是 30+ 巡天的聚合星表，提供 CSV 导出。
 本脚本支持:

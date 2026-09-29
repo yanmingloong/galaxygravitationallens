@@ -1,5 +1,5 @@
 """
-HST 透镜数据预处理总调度
+HST 透镜数据预处理总调度 HST lens data preprocessing master scheduler
 ========================
 按样本和版本配置，自动化执行完整预处理管线。
 

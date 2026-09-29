@@ -1,4 +1,5 @@
 """兼容层：re-export galaxylens.config.paths。
+Compatibility layer: re-exports galaxylens.config.paths.
 
 保留本文件是为了不破坏 data_pipeline/imaging 内既有 import 路径；
 权威实现见 galaxylens.config.paths。

@@ -1,4 +1,4 @@
-"""photutils EPSFBuilder 超采样 ePSF 构建（Anderson & King 2000）。"""
+"""photutils EPSFBuilder 超采样 ePSF 构建（Anderson & King 2000）。 photutils EPSFBuilder oversampled ePSF construction (Anderson & King 2000)."""
 from __future__ import annotations
 from typing import Optional, Tuple, List
 

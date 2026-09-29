@@ -1,4 +1,4 @@
-"""PSF 质量度量：EE50（半光半径）与二阶矩椭率。"""
+"""PSF 质量度量：EE50（半光半径）与二阶矩椭率。 PSF quality metrics: EE50 (half-light radius) and second-moment ellipticity."""
 from __future__ import annotations
 from typing import Tuple
 

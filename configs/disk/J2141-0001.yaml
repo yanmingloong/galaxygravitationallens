@@ -1,0 +1,16 @@
+name: SDSS J2141-0001
+sample: SWELLS
+ra: 325.47781
+dec: -0.02008
+zl: 0.138
+zs: 0.7127
+bands:
+  F814W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05
+  F450W:
+    instrument: WFPC2/PC
+    pixel_scale: 0.0455
+  F606W:
+    instrument: WFPC2/PC
+    pixel_scale: 0.0455

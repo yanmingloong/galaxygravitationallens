@@ -1,0 +1,19 @@
+name: SDSS J1032+5322
+sample: SWELLS
+ra: 158.14933
+dec: 53.37636
+zl: 0.133
+zs: 0.44
+bands:
+  F814W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05
+  F450W:
+    instrument: WFPC2/PC
+    pixel_scale: 0.0455
+  F606W:
+    instrument: WFPC2/PC
+    pixel_scale: 0.0455
+  F160W:
+    instrument: WFC3/IR
+    pixel_scale: 0.128

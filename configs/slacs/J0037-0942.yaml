@@ -1,0 +1,16 @@
+name: SDSS J0037-0942
+sample: SLACS
+ra: 9.47173
+dec: -9.7056
+zl: 0.195
+zs: 0.632
+bands:
+  F435W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05
+  F555W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05
+  F814W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05

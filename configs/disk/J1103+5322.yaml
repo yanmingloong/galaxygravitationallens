@@ -1,0 +1,10 @@
+name: SDSS J1103+5322
+sample: SWELLS
+ra: 165.8625
+dec: 53.37
+zl: 0.158
+zs: 0.733
+bands:
+  F814W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05

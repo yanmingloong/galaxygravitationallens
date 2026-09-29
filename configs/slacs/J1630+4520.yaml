@@ -1,0 +1,16 @@
+name: SDSS J1630+4520
+sample: SLACS
+ra: 247.61733
+dec: 45.3434
+zl: 0.248
+zs: 0.793
+bands:
+  F435W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05
+  F555W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05
+  F814W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05

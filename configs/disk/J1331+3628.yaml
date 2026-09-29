@@ -1,0 +1,16 @@
+name: SDSS J1331+3628
+sample: SWELLS
+ra: 202.918
+dec: 36.47
+zl: 0.112
+zs: 0.557
+bands:
+  F814W:
+    instrument: WFPC2/PC
+    pixel_scale: 0.0455
+  F606W:
+    instrument: WFPC2/PC
+    pixel_scale: 0.0455
+  F450W:
+    instrument: WFPC2/PC
+    pixel_scale: 0.0455

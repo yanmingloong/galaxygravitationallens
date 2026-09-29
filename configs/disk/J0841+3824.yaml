@@ -1,0 +1,20 @@
+name: SDSS J0841+3824
+sample: SWELLS
+ra: 130.37004
+dec: 38.40492
+zl: 0.116
+zs: 0.657
+center_offset_arcsec: [0.0, -4.5]
+bands:
+  F814W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05
+  F450W:
+    instrument: WFPC2/PC
+    pixel_scale: 0.0455
+  F606W:
+    instrument: WFPC2/PC
+    pixel_scale: 0.0455
+  F160W:
+    instrument: WFC3/IR
+    pixel_scale: 0.128

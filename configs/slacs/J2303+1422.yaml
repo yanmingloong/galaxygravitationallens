@@ -1,0 +1,16 @@
+name: SDSS J2303+1422
+sample: SLACS
+ra: 345.84053
+dec: 14.37165
+zl: 0.155
+zs: 0.517
+bands:
+  F435W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05
+  F555W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05
+  F814W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05

@@ -1,0 +1,13 @@
+name: SDSS J0955+0101
+sample: SWELLS
+ra: 148.89583
+dec: 1.01694
+zl: 0.111
+zs: 0.316
+bands:
+  F814W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05
+  F435W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05

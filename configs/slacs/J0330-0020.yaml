@@ -1,0 +1,16 @@
+name: SDSS J0330-0020
+sample: SLACS
+ra: 52.55056
+dec: -0.34774
+zl: 0.351
+zs: 1.103
+bands:
+  F435W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05
+  F555W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05
+  F814W:
+    instrument: ACS/WFC
+    pixel_scale: 0.05

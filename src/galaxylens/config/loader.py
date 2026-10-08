@@ -1,4 +1,4 @@
-"""YAML 配置加载 → dataclass。 YAML config loading → dataclass."""
+"""YAML config loading → dataclass."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -11,19 +11,19 @@ from galaxylens.config.schema import BandConfig, LensConfig
 
 
 def _find_yaml(lens_id: str) -> Path:
-    """在 configs/{disk,slacs}/ 下定位透镜的 YAML 文件。"""
+    """Locate the lens YAML file under configs/{disk,slacs}/."""
     cfg_dir = get_config_dir()
     for sample in ("disk", "slacs"):
         p = cfg_dir / sample / f"{lens_id}.yaml"
         if p.exists():
             return p
     raise FileNotFoundError(
-        f"找不到透镜 {lens_id} 的配置 YAML（在 {cfg_dir}/disk 或 slacs/）"
+        f"Config YAML for lens {lens_id} not found (under {cfg_dir}/disk or slacs/)"
     )
 
 
 def load_lens_config(lens_id: str) -> LensConfig:
-    """加载单个透镜配置。"""
+    """Load a single lens configuration."""
     p = _find_yaml(lens_id)
     data = yaml.safe_load(p.read_text(encoding="utf-8"))
     bands = {b: BandConfig(**v) for b, v in data["bands"].items()}
@@ -44,7 +44,7 @@ SAMPLE_TO_DIR = {"SWELLS": "disk", "SLACS": "slacs"}
 
 
 def list_lenses(sample: Optional[str] = None) -> List[str]:
-    """列出所有或指定样本的透镜 ID。"""
+    """List the lens IDs of all samples or a specified sample."""
     cfg_dir = get_config_dir()
     dirs = [SAMPLE_TO_DIR.get(sample, sample)] if sample else ["disk", "slacs"]
     lenses = []
@@ -56,12 +56,12 @@ def list_lenses(sample: Optional[str] = None) -> List[str]:
 
 
 def get_bands_for_lens(lens_id: str) -> List[str]:
-    """获取透镜的可用波段列表。"""
+    """Get the list of available bands for a lens."""
     return list(load_lens_config(lens_id).bands.keys())
 
 
 def get_pixel_scale(lens_id: str, band: str) -> float:
-    """获取透镜+波段的像元尺度。"""
+    """Get the pixel scale for a lens and band."""
     cfg = load_lens_config(lens_id)
     band_cfg = cfg.bands.get(band)
     return band_cfg.pixel_scale if band_cfg is not None else 0.05

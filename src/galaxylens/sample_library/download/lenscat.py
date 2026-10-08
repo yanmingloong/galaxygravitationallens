@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-Phase A — lenscat.org 星表获取与统计 Phase A — lenscat.org catalog fetch & statistics
+Phase A — lenscat.org catalog fetch & statistics
 ======================================
-lenscat.org 是 30+ 巡天的聚合星表，提供 CSV 导出。
-本脚本支持:
-- 自动从 lenscat.org 下载最新 CSV（需要网络）
-- 统计类型/分级/红移分布
-- 保存 lenscat_catalog.csv 到 01_raw/lenscat/
+lenscat.org is an aggregated catalog of 30+ surveys, providing CSV export.
+This script supports:
+- Automatically downloading the latest CSV from lenscat.org (requires network)
+- Statistics on type/grading/redshift distributions
+- Saving lenscat_catalog.csv to 01_raw/lenscat/
 
-用法:
-    python -m galaxylens.sample_library.download.lenscat              # 统计已有数据
-    python -m galaxylens.sample_library.download.lenscat --fetch      # 从 lenscat.org 下载最新 CSV
-    python -m galaxylens.sample_library.download.lenscat --input custom.csv  # 统计指定文件
+Usage:
+    python -m galaxylens.sample_library.download.lenscat              # statistics on existing data
+    python -m galaxylens.sample_library.download.lenscat --fetch      # download the latest CSV from lenscat.org
+    python -m galaxylens.sample_library.download.lenscat --input custom.csv  # statistics on a specified file
 """
 
 import os
@@ -23,11 +23,11 @@ from ..config import RAW_DIR, RAW_SOURCES
 
 LENSCAT_DIR = os.path.join(RAW_DIR, "lenscat")
 LENSCAT_PATH = RAW_SOURCES["lenscat"]["files"]["catalog"]
-LENSCAT_URL = "https://lenscat.org/catalog.csv"  # 标准导出 URL
+LENSCAT_URL = "https://lenscat.org/catalog.csv"  # standard export URL
 
 
 def download_lenscat(force=False):
-    """从 lenscat.org 下载最新星表"""
+    """Download the latest catalog from lenscat.org"""
     import requests
     import shutil
 
@@ -58,7 +58,7 @@ def download_lenscat(force=False):
 
 
 def stats_lenscat(input_path=None):
-    """统计 lenscat 星表"""
+    """Statistics for the lenscat catalog"""
     import pandas as pd
 
     path = input_path or LENSCAT_PATH

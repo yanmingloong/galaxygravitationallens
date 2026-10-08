@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """
-Phase A — GLUE 候选体星表获取与统计 Phase A — GLUE candidate catalog fetch & statistics
+Phase A — GLUE candidate catalog fetch & statistics
 ======================================
-GLUE (Gravitational Lensing from UNIONS and Euclid) 发布在 Storfer+2025。
-本脚本验证 GLUE 数据的存在性、输出统计、帮助获取最新数据。
+GLUE (Gravitational Lensing from UNIONS and Euclid) published in Storfer+2025.
+This script verifies the existence of the GLUE data, outputs statistics, and helps obtain the latest data.
 
-用法:
-    python -m galaxylens.sample_library.download.glue              # 统计已有数据
-    python -m galaxylens.sample_library.download.glue --validate   # 验证文件完整性
-    python -m galaxylens.sample_library.download.glue --input custom.csv  # 统计指定文件
+Usage:
+    python -m galaxylens.sample_library.download.glue              # statistics on existing data
+    python -m galaxylens.sample_library.download.glue --validate   # validate file integrity
+    python -m galaxylens.sample_library.download.glue --input custom.csv  # statistics on a specified file
 
-注意: GLUE 数据来自合作组/论文，无公开自动下载 URL。
-      如果文件缺失，需手动从论文补充材料获取。
+Note: GLUE data comes from the collaboration/paper; there is no public automatic download URL.
+      If the file is missing, obtain it manually from the paper's supplementary material.
 """
 
 import os
@@ -24,9 +24,9 @@ from ..config import RAW_DIR, RAW_SOURCES
 GLUE_DIR = os.path.join(RAW_DIR, "glue")
 GLUE_PATH = RAW_SOURCES["GLUE"]["files"]["candidates"]
 
-# GLUE 论文信息
+# GLUE paper information
 GLUE_REF = "Storfer et al. 2025, arXiv:XXXX.XXXXX"
-GLUE_DOI = "https://ui.adsabs.harvard.edu/abs/2025arXiv...Storfer"  # 待确认
+GLUE_DOI = "https://ui.adsabs.harvard.edu/abs/2025arXiv...Storfer"  # TBD
 GLUE_EXPECTED_COLS = [
     "sys_name", "ra", "dec", "grade", "type",
     "mag_g", "mag_r", "mag_i", "mag_z",
@@ -35,7 +35,7 @@ GLUE_EXPECTED_COLS = [
 
 
 def stats_glue(input_path=None):
-    """统计 GLUE 候选体星表"""
+    """Statistics for the GLUE candidate catalog"""
     import pandas as pd
 
     path = input_path or GLUE_PATH
@@ -92,7 +92,7 @@ def stats_glue(input_path=None):
 
 
 def validate_glue(input_path=None):
-    """验证 GLUE 数据完整性"""
+    """Validate GLUE data integrity"""
     import pandas as pd
 
     path = input_path or GLUE_PATH

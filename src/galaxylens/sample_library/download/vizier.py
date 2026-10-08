@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
-Phase A — 从 VizieR 下载 SLACS/CASTLES/CLASS 星表 Phase A — download SLACS/CASTLES/CLASS catalogs from VizieR
+Phase A — download SLACS/CASTLES/CLASS catalogs from VizieR
 ===================================================
-使用 astroquery 从 VizieR 拉取三个巡天的透镜星表，
-存入 01_raw/{slacs,castles,class}/。
+Use astroquery to pull the lens catalogs of three surveys from VizieR,
+storing them in 01_raw/{slacs,castles,class}/.
 
-用法:
-    python -m galaxylens.sample_library.download.vizier              # 下载所有（跳过已有）
-    python -m galaxylens.sample_library.download.vizier --force      # 强制覆盖已有
-    python -m galaxylens.sample_library.download.vizier --check      # 只检查，不下载
-    python -m galaxylens.sample_library.download.vizier --source slacs  # 只下载指定源
+Usage:
+    python -m galaxylens.sample_library.download.vizier              # download all (skip existing)
+    python -m galaxylens.sample_library.download.vizier --force      # force overwrite existing
+    python -m galaxylens.sample_library.download.vizier --check      # only check, don't download
+    python -m galaxylens.sample_library.download.vizier --source slacs  # download only a specified source
 """
 
 import os
@@ -42,7 +42,7 @@ CATALOGS = {
 
 
 def download_catalog(key, cfg, force=False):
-    """下载单个星表到 01_raw/{subdir}/{filename}"""
+    """Download a single catalog to 01_raw/{subdir}/{filename}"""
     from astroquery.vizier import Vizier
 
     out_dir = os.path.join(RAW_DIR, cfg["subdir"])
@@ -93,7 +93,7 @@ def download_catalog(key, cfg, force=False):
 
 
 def check_catalog(key, cfg):
-    """检查星表是否存在且可读"""
+    """Check whether the catalog exists and is readable"""
     out_path = os.path.join(RAW_DIR, cfg["subdir"], cfg["filename"])
     if not os.path.exists(out_path):
         print(f"  ✗ MISSING: {out_path}")

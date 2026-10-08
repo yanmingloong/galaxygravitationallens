@@ -1,10 +1,9 @@
-"""galaxylens 配置模块：路径解析 + YAML 配置加载。
-galaxylens config module: path resolution + YAML config loading.
+"""galaxylens config module: path resolution + YAML config loading.
 
-- paths.py    环境变量路径解析（数据根 / SExtractor / TinyTim）
-- schema.py   配置 dataclass（LensConfig / BandConfig）
-- loader.py   YAML 加载 → dataclass
-- defaults.py 处理参数默认值
+- paths.py    environment-variable path resolution (data root / SExtractor / TinyTim)
+- schema.py   config dataclasses (LensConfig / BandConfig)
+- loader.py   YAML loading → dataclass
+- defaults.py processing parameter defaults
 """
 from galaxylens.config.paths import (  # noqa: F401
     get_data_root, get_raw_root, get_processed_root, get_config_dir,

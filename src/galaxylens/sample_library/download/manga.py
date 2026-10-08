@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
 """
-Phase A — MaNGA SILO 透镜候选体星表 Phase A — MaNGA SILO lens candidate catalog
+Phase A — MaNGA SILO lens candidate catalog
 ======================================
-SDSS-IV MaNGA IFU 巡天的 Spectroscopic Identification of Lensing Objects (SILO)。
-从 MaNGA ~10,000 星系中通过 IFU 光谱探测背景发射线发现强透镜候选体。
+The Spectroscopic Identification of Lensing Objects (SILO) from the SDSS-IV MaNGA IFU survey.
+Strong-lens candidates are discovered by detecting background emission lines in IFU spectra from ~10,000 MaNGA galaxies.
 
-参考:
-- Talbot+2018 (MNRAS 477): 首批 38 候选体，来自 2,812 MaNGA 星系
-- Talbot+2022 (MNRAS 515, 4953): 扩展至 94 候选体 (8 likely + 17 probable + 69 possible)
+References:
+- Talbot+2018 (MNRAS 477): first 38 candidates, from 2,812 MaNGA galaxies
+- Talbot+2022 (MNRAS 515, 4953): expanded to 94 candidates (8 likely + 17 probable + 69 possible)
 - SDSS DR17 VAC: https://data.sdss.org/sas/dr17/manga/spectro/lensing/silo/
 
-亮点:
-- >50% 候选体 θE > 1.7"（比 SLACS 更大）
-- IFU 二维运动学可用 (MaNGA DAP: σ, V/σ maps)
-- 适合 lensing+dynamics 联合建模
+Highlights:
+- >50% of candidates have θE > 1.7" (larger than SLACS)
+- IFU 2D kinematics available (MaNGA DAP: σ, V/σ maps)
+- Suitable for joint lensing+dynamics modeling
 
-用法:
-    python -m galaxylens.sample_library.download.manga              # 统计已有数据
-    python -m galaxylens.sample_library.download.manga --fetch      # 从 SDSS SAS 下载
-    python -m galaxylens.sample_library.download.manga --force      # 覆盖已有
+Usage:
+    python -m galaxylens.sample_library.download.manga              # Summarize existing data
+    python -m galaxylens.sample_library.download.manga --fetch      # Download from SDSS SAS
+    python -m galaxylens.sample_library.download.manga --force      # Overwrite existing
 """
 
 import os
@@ -31,7 +31,7 @@ MANGA_DIR = os.path.join(RAW_DIR, "manga")
 MANGA_PATH_CSV = os.path.join(MANGA_DIR, "manga_silo_candidates.csv")
 MANGA_PATH_FITS = os.path.join(MANGA_DIR, "silo_manga_detections.fits")
 
-# SDSS DR17 SILO VAC — 直接可下载的 FITS 文件
+# SDSS DR17 SILO VAC — directly downloadable FITS file
 MANGA_FITS_URL = (
     "https://data.sdss.org/sas/dr17/manga/spectro/lensing/silo/"
     "v3_1_1/1.0.4/silo_manga_detections-1.0.4.fits"
@@ -46,7 +46,7 @@ MANGA_DOI = "https://doi.org/10.1093/mnras/stac2233"
 
 
 def download_manga(force=False):
-    """从 SDSS SAS 下载 MaNGA SILO FITS 文件并转为 CSV"""
+    """Download the MaNGA SILO FITS file from SDSS SAS and convert it to CSV"""
     import requests
 
     target = MANGA_PATH_CSV if MANGA_PATH_CSV else MANGA_PATH_FITS
@@ -105,7 +105,7 @@ def download_manga(force=False):
 
 
 def stats_manga():
-    """统计 MaNGA SILO 星表"""
+    """Summarize the MaNGA SILO catalog"""
     import pandas as pd
 
     path = MANGA_PATH_CSV

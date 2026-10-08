@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-盘星系引力透镜样本库 — 统一配置 Disk lens sample library — unified config
+Disk lens sample library — unified config
 ===================================
-路径、Schema 常量、Tier 规则、排序规则。
-所有脚本从此文件导入，避免硬编码。
+Paths, schema constants, tier rules, and sorting rules.
+All scripts import from this file to avoid hardcoding.
 """
 
 import os
@@ -11,28 +11,28 @@ import os
 from galaxylens.config.paths import get_sample_library_root
 
 # ================================================================
-# 项目根目录
+# Project root directory
 # ================================================================
 PROJECT_ROOT = str(get_sample_library_root())
 
-# 各阶段输出目录
+# Output directories for each stage
 DIR_RAW = os.path.join(PROJECT_ROOT, "01_raw")
 DIR_MERGED = os.path.join(PROJECT_ROOT, "02_merged")
 DIR_IDENTIFIED = os.path.join(PROJECT_ROOT, "03_identified")
 DIR_ENRICHED = os.path.join(PROJECT_ROOT, "04_enriched")
 DIR_EXPORTS = os.path.join(PROJECT_ROOT, "05_exports")
 
-# 主星表路径
+# Main catalog paths
 MASTER_PATH = os.path.join(DIR_MERGED, "master.csv")
 MASTER_CLASSIFIED_PATH = os.path.join(DIR_IDENTIFIED, "master_classified.csv")
 
 # ================================================================
-# 统一 Schema（48 字段，按类别分组）
+# Unified schema (48 fields, grouped by category)
 # ================================================================
 
-# 需导出的字段列表（按建模优先级排序）
+# Fields to export (ordered by modeling priority)
 SCHEMA_COLUMNS = [
-    # ── 建模核心参数 ★★★ ──
+    # ── Modeling core parameters ★★★ ──
     "sample_id",
     "name",
     "ra_deg",
@@ -47,7 +47,7 @@ SCHEMA_COLUMNS = [
     "sigma_err",
     "theta_E_arcsec",
     "theta_E_err",
-    # ── 结构参数 ★★☆ ──
+    # ── Structural parameters ★★☆ ──
     "logMstar_total",
     "logMstar_total_err",
     "B_D_ratio",
@@ -62,7 +62,7 @@ SCHEMA_COLUMNS = [
     "q_disk",
     "n_bulge",
     "PA_disk_deg",
-    # ── 测光与光谱 ★☆☆ ──
+    # ── Photometry and spectroscopy ★☆☆ ──
     "mag_r",
     "mag_g",
     "mag_i",
@@ -70,7 +70,7 @@ SCHEMA_COLUMNS = [
     "Halpha_flux",
     "spec_class",
     "spec_sn",
-    # ── 元数据 ──
+    # ── Metadata ──
     "source_catalog",
     "source_ref",
     "cross_refs",
@@ -86,14 +86,14 @@ SCHEMA_COLUMNS = [
     "notes",
 ]
 
-# 建模核心参数列（前 14 个）
+# Modeling core parameter columns (first 14)
 MODELING_CORE_COLS = SCHEMA_COLUMNS[:14]
 
 # ================================================================
-# 数据源配置（Phase A 产出的原始文件路径）
+# Data source config (raw file paths produced in Phase A)
 # ================================================================
 
-# 指向新 01_raw/ 目录
+# Point to the new 01_raw/ directory
 RAW_DIR = os.path.join(PROJECT_ROOT, "01_raw")
 
 RAW_SOURCES = {
@@ -157,10 +157,10 @@ RAW_SOURCES = {
 }
 
 # ================================================================
-# Tier 分类规则
+# Tier classification rules
 # ================================================================
 
-# Tier 0: 已确认盘星系（论文支撑 + B/D 分解）
+# Tier 0: confirmed disk galaxies (paper-supported + B/D decomposition)
 TIER0_NAMES = [
     # SWELLS A-grade (known disk lenses from Auger+2011)
     "SDSS J0820+4847", "SDSS J0903+5116", "SDSS J0904+5112",
@@ -174,30 +174,30 @@ TIER0_NAMES = [
     "SDSS J2111-0114", "SDSS J2300+0022", "SDSS J2341+0000",
 ]
 
-# Tier X 关键词（排除：椭圆、星系团、类星体）
+# Tier X keywords (exclusions: ellipticals, galaxy clusters, quasars)
 TIER_X_LENS_TYPES = {"DEV", "group", "cluster", "QSO", "elliptical", "deV"}
 TIER_X_SPEC_CLASSES = {"QSO", "STAR"}
 
 # ================================================================
-# 去重参数
+# Deduplication parameters
 # ================================================================
-DEDUP_COORD_RADIUS_ARCSEC = 2.0   # 坐标匹配半径
+DEDUP_COORD_RADIUS_ARCSEC = 2.0   # coordinate matching radius
 
 # ================================================================
-# 排序规则
+# Sorting rules
 # ================================================================
 SORT_ORDER = [
-    ("disk_tier",   True),    # Tier 0 最前
+    ("disk_tier",   True),    # Tier 0 first
     ("grade",       True),    # A > B > C > X
-    ("sigma_km_s",  False),   # 有 σ 的优先（NULL 排最后）
+    ("sigma_km_s",  False),   # prioritize those with σ (NULL last)
     ("theta_E_arcsec", False),
 ]
 
-# Grade 排序值
+# Grade sort values
 GRADE_ORDER = {"A": 0, "B": 1, "C": 2, "X": 3}
 
 # ================================================================
-# 丰富化参数配置
+# Enrichment parameter config
 # ================================================================
 
 # Simard+2011 VizieR catalog
@@ -210,7 +210,7 @@ AUGER2009_VIZIER_ID = "J/ApJ/705/1099"
 SDSS_SKYSERVER_URL = "https://skyserver.sdss.org/dr17/SkyServerWS/SearchTools/SqlSearch"
 
 # ================================================================
-# 验证
+# Validation
 # ================================================================
 for d in [DIR_RAW, DIR_MERGED, DIR_IDENTIFIED, DIR_ENRICHED, DIR_EXPORTS]:
     os.makedirs(d, exist_ok=True)

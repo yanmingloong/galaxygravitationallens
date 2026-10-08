@@ -1,4 +1,4 @@
-"""galaxylens 引力透镜建模库：盘星系与椭圆星系的强引力透镜建模。
+"""galaxylens: gravitational lens modeling library for strong lensing of disk and elliptical galaxies.
 
 galaxylens: strong gravitational lens modeling for disk and elliptical galaxies.
 """

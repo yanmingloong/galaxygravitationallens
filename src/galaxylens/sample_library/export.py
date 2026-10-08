@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Phase E — 建模导出 Phase E — modeling export
+Phase E — modeling export
 ====================
-从 04_enriched/ 读取最新丰富星表，按 Tier 过滤，导出给 PyAutoLens/AGAMA 使用。
+Read the latest enriched catalog from 04_enriched/, filter by Tier, and export for use with PyAutoLens/AGAMA.
 
-导出子集:
-- modeling_input_tier0.csv  — Tier 0 确认盘星系（可直接建模）
-- modeling_input_tier01.csv — Tier 0+1（高置信候选）
-- modeling_input_sample.csv — Tier 0+1+2（样本统计用）
-- modeling_input_elliptical.csv — 椭圆透镜对照组
+Export subsets:
+- modeling_input_tier0.csv  — Tier 0 confirmed disk galaxies (ready for modeling)
+- modeling_input_tier01.csv — Tier 0+1 (high-confidence candidates)
+- modeling_input_sample.csv — Tier 0+1+2 (for sample statistics)
+- modeling_input_elliptical.csv — elliptical lens comparison group
 """
 
 import os
@@ -24,20 +24,20 @@ from .enrich import current_enriched_path
 
 
 # ================================================================
-# 导出函数
+# Export functions
 # ================================================================
 
 def export_modeling_subsets(input_path: str = None,
                             output_dir: str = DIR_EXPORTS) -> dict:
     """
-    导出建模子集。
+    Export modeling subsets.
 
     Args:
-        input_path: enriched CSV 路径（默认取最新版）
-        output_dir: 输出目录
+        input_path: enriched CSV path (default: latest version)
+        output_dir: output directory
 
     Returns:
-        dict: {子集名: (路径, 行数)}
+        dict: {subset name: (path, row count)}
     """
     if input_path is None:
         input_path = current_enriched_path()
@@ -88,7 +88,7 @@ def export_modeling_subsets(input_path: str = None,
         results["sample"] = (path, len(tier012))
         print(f"\n  Tier 0+1+2 (full sample):  {len(tier012):>4d} → modeling_input_sample.csv")
 
-    # ── 椭圆对照组 ──
+    # ── Elliptical comparison group ──
     ellipticals = df[df["lens_type_label"].str.upper().isin(
         ["DEV", "ELLIPTICAL", "DEVAUCOULEURS", "ELL"]
     )].copy()
@@ -99,7 +99,7 @@ def export_modeling_subsets(input_path: str = None,
         results["elliptical"] = (path, len(ellipticals))
         print(f"\n  Elliptical comparison:     {len(ellipticals):>4d} → modeling_input_elliptical.csv")
 
-    # ── 全量建模核心字段导出 ──
+    # ── Full catalog core field export ──
     full = _select_export_cols(df, core_only=True)
     path = os.path.join(output_dir, "modeling_input_full.csv")
     full.to_csv(path, index=False)
@@ -110,11 +110,11 @@ def export_modeling_subsets(input_path: str = None,
 
 
 def _select_export_cols(df: pd.DataFrame, core_only: bool = False) -> pd.DataFrame:
-    """选择导出列：只保留 schema 中有意义的列（去掉全空列）。"""
+    """Select export columns: keep only meaningful schema columns (drop all-empty columns)."""
     cols = MODELING_CORE_COLS if core_only else SCHEMA_COLUMNS
     available = [c for c in cols if c in df.columns]
     result = df[available].copy()
-    # 去掉全空列
+    # Drop all-empty columns
     result = result.dropna(axis=1, how="all")
     return result
 

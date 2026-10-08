@@ -1,11 +1,12 @@
-"""PyAutoLens 风格的成像数据预览图（可选，需 autolens）。
+"""PyAutoLens-style imaging data preview (optional, requires autolens).
 PyAutoLens-style imaging data preview (optional, requires autolens).
 
-把预处理产出的 sci/noise/psf FITS 画成 PyAutoLens 三联预览图，
-供快速检查数据质量。
+Plot the preprocessed sci/noise/psf FITS as a PyAutoLens triple preview
+for quick data-quality checks.
 
-此模块依赖 autolens，因此放在 lensfit/plotting/ 而非 data_pipeline/
-（data_pipeline 只依赖 astropy/photutils，保持依赖干净）。
+This module depends on autolens, so it lives under lensfit/plotting/ rather
+than data_pipeline/ (data_pipeline only depends on astropy/photutils, keeping
+dependencies clean).
 """
 
 from __future__ import annotations
@@ -25,20 +26,20 @@ def plot_imaging_preview(
     output_path: Optional[Path] = None,
     cutout_size_arcsec: float = 15.0,
 ) -> None:
-    """用 PyAutoLens 绘制 sci/noise/psf 三联预览图。
+    """Plot a sci/noise/psf triple preview with PyAutoLens.
 
     Args:
-        sci_path: SCI FITS 路径
-        noise_path: 噪声图 FITS 路径
-        psf_path: PSF FITS 路径
-        pixel_scale: 像元尺度 (arcsec/pix)
-        starmask: 恒星 mask 数组（可选，用于叠加到圆形 mask 上）
-        output_path: 输出 PNG 路径（默认与 sci_path 同目录、同 stem）
-        cutout_size_arcsec: 裁剪视场直径 (角秒)
+        sci_path: SCI FITS path
+        noise_path: noise map FITS path
+        psf_path: PSF FITS path
+        pixel_scale: pixel scale (arcsec/pix)
+        starmask: stellar mask array (optional, combined onto the circular mask)
+        output_path: output PNG path (defaults to same directory and stem as sci_path)
+        cutout_size_arcsec: cutout field-of-view diameter (arcsec)
     """
     import autolens as al
 
-    # 构造 PyAutoLens Imaging 数据集
+    # Construct the PyAutoLens Imaging dataset
     dataset = al.Imaging.from_fits(
         data_path=sci_path,
         noise_map_path=noise_path,
@@ -46,7 +47,7 @@ def plot_imaging_preview(
         pixel_scales=pixel_scale,
     )
 
-    # 圆形 mask + 恒星 mask 合并
+    # Combine circular mask + stellar mask
     shape_native = starmask.shape if starmask is not None else dataset.shape_native
     circ_mask = al.Mask2D.circular(
         shape_native=shape_native,
@@ -59,13 +60,13 @@ def plot_imaging_preview(
     combined_mask = al.Mask2D(mask=circ_native, pixel_scales=pixel_scale)
     dataset = dataset.apply_mask(mask=combined_mask)
 
-    # 输出路径
+    # Output path
     if output_path is None:
         output_path = sci_path.with_suffix("")
     output_dir = output_path.parent
     output_stem = output_path.name
 
-    # 绘制 subplot（sci / noise / psf / mask）
+    # Plot the subplot (sci / noise / psf / mask)
     from autoarray.plot.mat_plot.output import Output
     from autoarray.plot.mat_plot.two_d import MatPlot2D
 

@@ -1,4 +1,4 @@
-"""配置 dataclass 定义。 Config dataclass definitions."""
+"""Config dataclass definitions."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -7,14 +7,14 @@ from typing import Dict, Tuple
 
 @dataclass
 class BandConfig:
-    """单个波段的仪器与像元尺度配置。"""
+    """Instrument and pixel-scale configuration for a single band."""
     instrument: str
     pixel_scale: float
 
 
 @dataclass
 class LensConfig:
-    """单个透镜的完整配置。"""
+    """Complete configuration for a single lens."""
     lens_id: str
     name: str
     sample: str          # "SWELLS" / "SLACS"

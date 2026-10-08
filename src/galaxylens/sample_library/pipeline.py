@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-盘星系引力透镜样本库 — 全流程编排 Disk lens sample library — full-pipeline orchestration
+Disk lens sample library — full-pipeline orchestration
 ====================================
-一条命令跑通 Phase B→C→D→E。
+Run the full Phase B→C→D→E flow with a single command.
 
-用法:
-    python pipeline.py              # 全流程（无网络查询）
-    python pipeline.py --network    # 含 SDSS/VizieR 查询
-    python pipeline.py --from phase_c  # 从指定 Phase 开始
-    python pipeline.py --add sample.csv --source paper  # 新增样本
+Usage:
+    python pipeline.py              # Full pipeline (no network queries)
+    python pipeline.py --network    # Include SDSS/VizieR queries
+    python pipeline.py --from phase_c  # Start from the specified phase
+    python pipeline.py --add sample.csv --source paper  # Add new samples
 """
 
 import os
@@ -28,16 +28,16 @@ from .export import export_modeling_subsets
 
 
 def run_full_pipeline(query_network: bool = False, start_from: str = "phase_b"):
-    """运行完整 B→C→D→E 流程。"""
+    """Run the full B→C→D→E pipeline."""
 
     print("╔" + "═" * 58 + "╗")
-    print("║  盘星系引力透镜样本库 — 全流程构建                ║")
+    print("║  Disk lens sample library — full-pipeline build          ║")
     print("╚" + "═" * 58 + "╝")
     print(f"Project: {PROJECT_ROOT}")
     print(f"Network queries: {'ON' if query_network else 'OFF'}")
     print()
 
-    # ── Phase B: 标准化去重 ──
+    # ── Phase B: Standardize & deduplicate ──
     if start_from in ("phase_b",):
         print("█ Phase B: Build Master Catalog")
         print("─" * 60)
@@ -52,7 +52,7 @@ def run_full_pipeline(query_network: bool = False, start_from: str = "phase_b"):
             return
         master = pd.read_csv(MASTER_PATH)
 
-    # ── Phase C: 盘星系识别 ──
+    # ── Phase C: Disk galaxy identification ──
     if start_from in ("phase_b", "phase_c"):
         print(f"\n█ Phase C: Classify Disk Lenses")
         print("─" * 60)
@@ -64,7 +64,7 @@ def run_full_pipeline(query_network: bool = False, start_from: str = "phase_b"):
             return
         classified = pd.read_csv(MASTER_CLASSIFIED_PATH)
 
-    # ── Phase D: 参数丰富 ──
+    # ── Phase D: Parameter enrichment ──
     if start_from in ("phase_b", "phase_c", "phase_d"):
         print(f"\n█ Phase D: Enrich Parameters")
         print("─" * 60)
@@ -78,7 +78,7 @@ def run_full_pipeline(query_network: bool = False, start_from: str = "phase_b"):
             return
         enriched = pd.read_csv(epath)
 
-    # ── Phase E: 建模导出 ──
+    # ── Phase E: Modeling export ──
     if start_from in ("phase_b", "phase_c", "phase_d", "phase_e"):
         print(f"\n█ Phase E: Export Modeling Subsets")
         print("─" * 60)
@@ -104,11 +104,11 @@ def run_full_pipeline(query_network: bool = False, start_from: str = "phase_b"):
 
 def add_new_sample(filepath: str, source: str = "manual"):
     """
-    增量添加新样本。
+    Incrementally add new samples.
 
     Args:
-        filepath: 新样本 CSV（需至少含 name, ra_deg, dec_deg 列）
-        source: 来源标签
+        filepath: New sample CSV (must contain at least name, ra_deg, dec_deg columns)
+        source: Source label
     """
     print(f"Adding new sample: {filepath} (source: {source})")
 
@@ -118,20 +118,20 @@ def add_new_sample(filepath: str, source: str = "manual"):
 
     new = pd.read_csv(filepath)
 
-    # 确保基本列存在
+    # Ensure required columns exist
     required = ["name", "ra_deg", "dec_deg"]
     missing = [c for c in required if c not in new.columns]
     if missing:
         print(f"ERROR: Missing required columns: {missing}")
         return
 
-    # 填充 schema 列
+    # Fill in schema columns
     for col in SCHEMA_COLUMNS:
         if col not in new.columns:
             new[col] = None
     new["source_catalog"] = source
 
-    # 加载已有 master
+    # Load existing master
     if not os.path.exists(MASTER_PATH):
         print("No existing master catalog. Running full build first.")
         new.to_csv(MASTER_PATH, index=False)
@@ -142,24 +142,24 @@ def add_new_sample(filepath: str, source: str = "manual"):
     print(f"  Existing master: {len(master)} systems")
     print(f"  New entries:     {len(new)} systems")
 
-    # 去重
+    # Deduplicate
     from .build import deduplicate
     combined = pd.concat([master, new[SCHEMA_COLUMNS]], ignore_index=True)
     combined = deduplicate(combined)
     print(f"  After dedup:     {len(combined)} systems")
 
-    # 保存
+    # Save
     combined.to_csv(MASTER_PATH, index=False)
     print(f"\n  Updated: {MASTER_PATH}")
 
-    # 重新分类
+    # Re-classify
     from .classify import classify_master
     classify_master()
 
-    # 重新丰富
+    # Re-enrich
     enrich(query_network=False)
 
-    # 导出
+    # Export
     export_modeling_subsets()
 
     print("\nIncremental update complete.")

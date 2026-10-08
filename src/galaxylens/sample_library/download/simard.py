@@ -1,27 +1,26 @@
 #!/usr/bin/env python3
 """
-一次性下载 Simard+2011 全星表并缓存到本地 (v2 — 修正列名)。
 One-shot download of the Simard+2011 full catalog, cached locally (v2 — fixed column names).
 
-Simard+2011 (J/ApJS/196/11/table3): ~1.1M SDSS 星系
-VizieR 实际列名 (不是文档假设的):
-  _RA, _DE     — 坐标 (J2000 deg)
+Simard+2011 (J/ApJS/196/11/table3): ~1.1M SDSS galaxies
+Actual VizieR column names (not as assumed in the documentation):
+  _RA, _DE     — coordinates (J2000 deg)
   ng, e_ng     — Sersic index
-  e, e_e       — 椭圆率 e = 1 - b/a
-  phi, e_phi   — 位置角 (deg)
-  Rhlr         — r-band 半光半径 (kpc)
-  Rchl_r       — r-band 圆半光半径 (kpc)
-  Scale        — kpc/arcsec 转换因子
+  e, e_e       — ellipticity e = 1 - b/a
+  phi, e_phi   — position angle (deg)
+  Rhlr         — r-band half-light radius (kpc)
+  Rchl_r       — r-band circular half-light radius (kpc)
+  Scale        — kpc/arcsec conversion factor
   objID        — SDSS object ID
 
-映射到 schema:
+Mapping to schema:
   n_sersic      ← ng
   n_sersic_err  ← e_ng
-  q_disk        ← 1 - e   (轴比 b/a)
+  q_disk        ← 1 - e   (axis ratio b/a)
   PA_disk_deg   ← phi
   Re_arcsec     ← Rhlr / Scale  (kpc → arcsec)
 
-首次下载 ~18 分钟, ~50MB CSV。缓存后 enrich.py 自动使用。
+First download ~18 min, ~50MB CSV. enrich.py uses the cache automatically afterwards.
 """
 
 import os, sys, time
@@ -38,7 +37,7 @@ VIZIER_ID = "J/ApJS/196/11/table3"
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 def main():
-    """下载 Simard+2011 全星表并缓存（一次性，~18 分钟，50MB）。"""
+    """Download the Simard+2011 full catalog and cache it (one-shot, ~18 min, 50MB)."""
     print(f"Downloading Simard+2011 ({VIZIER_ID})...")
     print(f"  ~1.1M galaxies, estimated 15-20 minutes")
     t0 = time.time()
@@ -57,7 +56,7 @@ def main():
         print(f"  Downloaded {n_total} rows in {time.time()-t0:.0f}s")
         print(f"  Actual columns: {list(table.columns)}")
 
-        # 目标列 (VizieR name → cache name)
+        # Target columns (VizieR name → cache name)
         COLUMN_MAP = {
             "_RA":      "RA_deg",
             "_DE":      "DE_deg",
@@ -78,14 +77,14 @@ def main():
             "rgMag":    "M_r_abs",
         }
 
-        # 检查哪些列实际存在
+        # Check which columns actually exist
         available = {k: v for k, v in COLUMN_MAP.items() if k in table.colnames}
         missing = [k for k in COLUMN_MAP if k not in table.colnames]
         print(f"  Found {len(available)}/{len(COLUMN_MAP)} columns")
         if missing:
             print(f"  Missing: {missing}")
 
-        # 逐行转换
+        # Convert row by row
         rows = []
         batch_report = 100_000
         for i, row in enumerate(table):
@@ -102,20 +101,20 @@ def main():
                 except (KeyError, ValueError, TypeError):
                     pass
 
-            # 只保留有坐标的行
+            # Keep only rows with coordinates
             if "RA_deg" in d and "DE_deg" in d:
                 rows.append(d)
 
         df = pd.DataFrame(rows)
         print(f"  Converted {len(df)} valid galaxies (dropped {n_total - len(df)} without coordinates)")
 
-        # 派生字段: q_disk = 1 - e, Re_arcsec = Re_kpc / scale
+        # Derived fields: q_disk = 1 - e, Re_arcsec = Re_kpc / scale
         if "ellipticity" in df.columns:
             df["q_disk"] = 1.0 - df["ellipticity"]
         if "Re_kpc" in df.columns and "scale_kpc_per_arcsec" in df.columns:
             df["Re_arcsec"] = df["Re_kpc"] / df["scale_kpc_per_arcsec"]
 
-        # 确保数值类型
+        # Ensure numeric types
         for col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
 
@@ -125,7 +124,7 @@ def main():
         print(f"  Final columns: {list(df.columns)}")
         print(f"  Galaxies: {len(df)}")
 
-        # 统计
+        # Statistics
         print(f"\n  Quick stats:")
         for col in ["n_sersic", "q_disk", "Re_arcsec", "PA_deg"]:
             if col in df.columns:

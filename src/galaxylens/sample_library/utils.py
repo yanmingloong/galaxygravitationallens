@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-盘星系引力透镜样本库 — 共享工具函数 Disk lens sample library — shared utilities
+Disk lens sample library — shared utility functions
 =====================================
-名称归一化、坐标匹配、去重逻辑。
+Name normalization, coordinate matching, and deduplication logic.
 """
 
 import re
@@ -15,18 +15,18 @@ from .config import DEDUP_COORD_RADIUS_ARCSEC
 
 
 # ================================================================
-# 名称归一化
+# Name normalization
 # ================================================================
 
 def normalize_name(name: str) -> str:
     """
-    将透镜名称归一化为统一的比较形式。
+    Normalize a lens name into a unified comparison form.
 
-    规则:
-    - 转小写
-    - 去掉所有空格、下划线
-    - 去掉 "SDSS " / "SDSS" 前缀（比较用）
-    - 去掉 +/- 符号（J2141-0001 → j21410001）
+    Rules:
+    - Convert to lowercase
+    - Remove all spaces and underscores
+    - Remove the "SDSS " / "SDSS" prefix (for comparison)
+    - Remove +/- signs (J2141-0001 → j21410001)
 
     Examples:
         "SDSS J0820+4847" → "j08204847"
@@ -34,33 +34,33 @@ def normalize_name(name: str) -> str:
         "J0820+4847"      → "j08204847"
     """
     name = str(name).lower().strip()
-    # 去掉空格和下划线
+    # Remove spaces and underscores
     name = name.replace(" ", "").replace("_", "")
-    # 去 SDSS 前缀
+    # Remove SDSS prefix
     name = re.sub(r'^sdssj?', 'j', name)
-    # 确保以 j 开头
+    # Ensure it starts with j
     if not name.startswith('j'):
         name = 'j' + name
-    # 去 +/- 符号
+    # Remove +/- signs
     name = name.replace('+', '').replace('-', '')
     return name
 
 
 def names_match(name1: str, name2: str) -> bool:
-    """判断两个名称是否指同一系统。"""
+    """Return whether two names refer to the same system."""
     return normalize_name(name1) == normalize_name(name2)
 
 
 # ================================================================
-# 坐标匹配
+# Coordinate matching
 # ================================================================
 
 def coord_match(ra1, dec1, ra2, dec2) -> float:
     """
-    计算两组坐标的角距离（arcsec）。
+    Compute the angular separation (arcsec) between two sets of coordinates.
 
     Returns:
-        float: 角距离 (arcsec)；若任一为 NaN 返回 inf
+        float: angular separation (arcsec); returns inf if any input is NaN
     """
     if any(pd.isna(v) for v in [ra1, dec1, ra2, dec2]):
         return float('inf')
@@ -72,15 +72,15 @@ def coord_match(ra1, dec1, ra2, dec2) -> float:
 def find_matches(catalog_a: pd.DataFrame, catalog_b: pd.DataFrame,
                  radius_arcsec: float = DEDUP_COORD_RADIUS_ARCSEC) -> list:
     """
-    用 astropy 做批量坐标交叉匹配。
+    Perform bulk coordinate cross-matching using astropy.
 
     Args:
-        catalog_a: 源星表（待匹配），至少含 ra_deg, dec_deg
-        catalog_b: 目标星表（已有），至少含 ra_deg, dec_deg
-        radius_arcsec: 匹配半径
+        catalog_a: source catalog (to match), must contain ra_deg, dec_deg
+        catalog_b: target catalog (existing), must contain ra_deg, dec_deg
+        radius_arcsec: matching radius
 
     Returns:
-        list of (idx_a, idx_b, sep_arcsec) 匹配对
+        list of (idx_a, idx_b, sep_arcsec) matched pairs
     """
     if len(catalog_a) == 0 or len(catalog_b) == 0:
         return []
@@ -100,12 +100,12 @@ def find_matches(catalog_a: pd.DataFrame, catalog_b: pd.DataFrame,
 
 
 # ================================================================
-# 去重仲裁
+# Deduplication arbitration
 # ================================================================
 
 SOURCE_PRIORITY = {
-    "SWELLS": 0,   # 最高 — 有 B/D 分解
-    "SLACS": 1,    # 论文验证
+    "SWELLS": 0,   # highest — has B/D decomposition
+    "SLACS": 1,    # paper-verified
     "CASTLES": 2,
     "lenscat": 3,
     "GLUE": 4,
@@ -115,15 +115,15 @@ DEFAULT_PRIORITY = 99
 
 def resolve_duplicate(existing: pd.Series, new: pd.Series) -> pd.Series:
     """
-    去重仲裁：两行指同一系统时，选择保留哪一行。
+    Deduplication arbitration: decide which row to keep when two rows refer to the same system.
 
-    规则:
-    1. 按 source_catalog 优先级
-    2. 同源按 grade (A > B > C)
-    3. 合并 cross_refs（跨源对照名）
+    Rules:
+    1. By source_catalog priority
+    2. Same source: by grade (A > B > C)
+    3. Merge cross_refs (cross-source reference names)
 
     Returns:
-        pd.Series: 合并后的最佳行
+        pd.Series: the best merged row
     """
     existing_pri = SOURCE_PRIORITY.get(str(existing.get("source_catalog", "")), DEFAULT_PRIORITY)
     new_pri = SOURCE_PRIORITY.get(str(new.get("source_catalog", "")), DEFAULT_PRIORITY)
@@ -133,7 +133,7 @@ def resolve_duplicate(existing: pd.Series, new: pd.Series) -> pd.Series:
     elif new_pri < existing_pri:
         keep, other = new.copy(), existing
     else:
-        # 同源：比较 grade
+        # Same source: compare grade
         from .config import GRADE_ORDER
         eg = GRADE_ORDER.get(str(existing.get("grade", "")), 99)
         ng = GRADE_ORDER.get(str(new.get("grade", "")), 99)
@@ -142,7 +142,7 @@ def resolve_duplicate(existing: pd.Series, new: pd.Series) -> pd.Series:
         else:
             keep, other = new.copy(), existing
 
-    # 合并 cross_refs
+    # Merge cross_refs
     refs = set()
     for r in [existing.get("name", ""), new.get("name", ""),
               existing.get("cross_refs", ""), new.get("cross_refs", "")]:
@@ -154,11 +154,11 @@ def resolve_duplicate(existing: pd.Series, new: pd.Series) -> pd.Series:
 
 
 # ================================================================
-# 辅助函数
+# Helper functions
 # ================================================================
 
 def safe_float(val, default=np.nan):
-    """安全转换为 float。"""
+    """Safely convert to float."""
     if pd.isna(val):
         return default
     try:
@@ -168,5 +168,5 @@ def safe_float(val, default=np.nan):
 
 
 def flag_if_present(val, flag_true: str, flag_false: str = "") -> str:
-    """有值返回 flag_true，无值返回 flag_false。"""
+    """Return flag_true if a value is present, otherwise flag_false."""
     return flag_true if pd.notna(val) and str(val).strip() not in ("", "-", "nan") else flag_false

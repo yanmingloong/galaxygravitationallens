@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-Phase D — 参数丰富 Phase D — parameter enrichment
+Phase D — parameter enrichment
 ====================
-为 Tier 0/1/2 候选体查询外部参数（sigma, theta_E, Sersic 等），
-生成带版本号的丰富星表。
+Query external parameters (sigma, theta_E, Sersic, etc.) for Tier 0/1/2 candidates,
+and generate a versioned enriched catalog.
 
-查询源:
-- SDSS DR17: 速度弥散度、恒星质量、光谱分类
+Query sources:
+- SDSS DR17: velocity dispersion, stellar mass, spectral classification
 - Simard+2011: Sérsic n, b/a, Re, PA
-- 文献/星表: Einstein 半径
+- Literature/catalogs: Einstein radius
 
-输出: 04_enriched/tier012_v{N}.csv
+Output: 04_enriched/tier012_v{N}.csv
 """
 
 import os
@@ -28,11 +28,11 @@ from .classify import classify_tier, reclassify, sort_catalog
 
 
 # ================================================================
-# 版本管理
+# Version management
 # ================================================================
 
 def get_latest_version() -> int:
-    """扫描 04_enriched/ 目录，返回当前最大版本号。"""
+    """Scan the 04_enriched/ directory and return the current maximum version number."""
     if not os.path.exists(DIR_ENRICHED):
         return 0
     versions = []
@@ -47,12 +47,12 @@ def get_latest_version() -> int:
 
 
 def next_version() -> int:
-    """返回下一个版本号。"""
+    """Return the next version number."""
     return get_latest_version() + 1
 
 
 def current_enriched_path(version: int = None) -> str:
-    """返回当前（或最新）enriched CSV 路径。"""
+    """Return the current (or latest) enriched CSV path."""
     if version is None:
         version = get_latest_version()
     if version == 0:
@@ -61,16 +61,18 @@ def current_enriched_path(version: int = None) -> str:
 
 
 # ================================================================
-# 参数丰富
+# Parameter enrichment
 # ================================================================
 
 def enrich_from_existing(df: pd.DataFrame,
                           old_enriched_path: str = None) -> pd.DataFrame:
     """
-    从已有的旧版 enriched CSV 中填补参数（向量化版本）。
+    Fill in parameters from an existing older enriched CSV (vectorized version).
 
-    如果旧版中某个系统有 sigma/theta_E/M* 而新版没有，直接合并过来。
-    用于增量更新——新版本的未知字段从旧版本继承。
+    If a system has sigma/theta_E/M* in the old version but not in the new one,
+    merge them in directly.
+    Used for incremental updates — unknown fields in the new version are
+    inherited from the old version.
     """
     if old_enriched_path is None:
         old_enriched_path = current_enriched_path()
@@ -84,7 +86,7 @@ def enrich_from_existing(df: pd.DataFrame,
 
     from .utils import normalize_name
 
-    # 要继承的字段
+    # Fields to inherit
     inherit_cols = [
         "sigma_km_s", "sigma_err", "sigma_flag",
         "theta_E_arcsec", "theta_E_err",
@@ -97,28 +99,28 @@ def enrich_from_existing(df: pd.DataFrame,
         "notes",
     ]
 
-    # 向量化名称归一化
+    # Vectorized name normalization
     df["_name_norm"] = df["name"].apply(normalize_name)
     old["_name_norm"] = old["name"].apply(normalize_name)
 
-    # 如果旧版有重复名称，只保留第一个非 NaN 值
-    # (同一天体可能出现在多个源中)
+    # If the old version has duplicate names, keep only the first non-NaN value
+    # (the same object may appear in multiple sources)
     old = old.drop_duplicates(subset=["_name_norm"], keep="first")
 
-    # 只在目标为 NaN 的列上继承
+    # Only inherit on columns where the target is NaN
     inherited = 0
     for col in inherit_cols:
         if col not in old.columns or col not in df.columns:
             continue
-        # 构建旧版 lookup: normalized_name -> value
+        # Build old-version lookup: normalized_name -> value
         old_lookup = old.set_index("_name_norm")[col].dropna()
         if len(old_lookup) == 0:
             continue
-        # 找目标中该列为 NaN 的行
+        # Find rows where this column is NaN in the target
         need_fill = df[col].isna()
         if not need_fill.any():
             continue
-        # 对需要填充的行，查找旧版值
+        # For rows that need filling, look up the old-version values
         fill_mask = need_fill & df["_name_norm"].isin(old_lookup.index)
         if fill_mask.any():
             df.loc[fill_mask, col] = df.loc[fill_mask, "_name_norm"].map(old_lookup)
@@ -132,13 +134,13 @@ def enrich_from_existing(df: pd.DataFrame,
 
 def enrich_sdss(df: pd.DataFrame, query_tiers=(1, 2)) -> pd.DataFrame:
     """
-    对指定 Tier 的系统查询 SDSS DR17 参数。
+    Query SDSS DR17 parameters for systems of the specified Tier.
 
-    查询源: SDSS SkyServer SQL API (HTTP, 无需 astroquery)
-    查询内容:
+    Query source: SDSS SkyServer SQL API (HTTP, no astroquery required)
+    Query content:
       1. SpecObj — z, class, snMedian_r
       2. stellarMassPCAWiscBC03 — logMass (Chabrier IMF)
-      3. GalSpecLine — sigma, sigmaErr (速度弥散度)
+      3. GalSpecLine — sigma, sigmaErr (velocity dispersion)
     4. Photoz table (for photometric redshift if spec-z missing)
 
     Uses astropy for coordinate cross-matching.
@@ -451,14 +453,15 @@ def enrich_sdss(df: pd.DataFrame, query_tiers=(1, 2)) -> pd.DataFrame:
 
 def enrich_simard2011(df: pd.DataFrame, query_tiers=(1, 2)) -> pd.DataFrame:
     """
-    对指定 Tier 的系统查询 Simard+2011 Sérsic 参数。
+    Query Simard+2011 Sérsic parameters for systems of the specified Tier.
 
-    查询源: VizieR J/ApJS/196/11/table3 (~1.1M SDSS galaxies)
-    方法:
-      1. 尝试通过 astroquery.vizier 下载全星表并缓存
-      2. 若 astroquery 不可用，尝试 SDSS CAS PhotoObj fallback (fracDev, modelMag)
+    Query source: VizieR J/ApJS/196/11/table3 (~1.1M SDSS galaxies)
+    Methods:
+      1. Try to download and cache the full catalog via astroquery.vizier
+      2. If astroquery is unavailable, try the SDSS CAS PhotoObj fallback
+         (fracDev, modelMag)
 
-    填入字段: n_sersic, n_sersic_err, Re_arcsec, q_disk, PA_disk_deg
+    Fields filled in: n_sersic, n_sersic_err, Re_arcsec, q_disk, PA_disk_deg
     """
     targets = df[df["disk_tier"].isin(query_tiers)]
     if len(targets) == 0:
@@ -512,7 +515,7 @@ def enrich_simard2011(df: pd.DataFrame, query_tiers=(1, 2)) -> pd.DataFrame:
                                     d[col] = float(val)
                             except (KeyError, ValueError, TypeError):
                                 pass
-                        # 派生: q_disk = 1 - e, Re_arcsec = Rhlr / Scale
+                        # Derive: q_disk = 1 - e, Re_arcsec = Rhlr / Scale
                         if "e" in d:
                             d["q_disk"] = 1.0 - d["e"]
                         if "Rhlr" in d and "Scale" in d and d["Scale"] > 0:
@@ -737,10 +740,12 @@ def enrich_simard2011(df: pd.DataFrame, query_tiers=(1, 2)) -> pd.DataFrame:
 
 def enrich_simard2011_photoobj(df: pd.DataFrame, query_tiers=(1, 2)) -> pd.DataFrame:
     """
-    SDSS PhotoObj 快速丰富 — 仅查询 SDSS 测光参数（无需 VizieR）。
+    SDSS PhotoObj fast enrichment — query only SDSS photometric parameters
+    (no VizieR required).
 
-    填入: mag_r, mag_g, mag_i, g_r_color, Re_arcsec (petroR50), n_bulge (fracDev)
-    对 Tier 1+2 逐个查询 SDSS SkyServer PhotoObj 表。
+    Fill in: mag_r, mag_g, mag_i, g_r_color, Re_arcsec (petroR50),
+    n_bulge (fracDev)
+    Query the SDSS SkyServer PhotoObj table per object for Tier 1+2.
     """
     targets = df[df["disk_tier"].isin(query_tiers)]
     if len(targets) == 0:
@@ -815,12 +820,13 @@ def enrich_simard2011_photoobj(df: pd.DataFrame, query_tiers=(1, 2)) -> pd.DataF
 
 def enrich_theta_e(df: pd.DataFrame) -> pd.DataFrame:
     """
-    从文献/星表数据填入 Einstein 半径。
+    Fill in Einstein radii from literature/catalog data.
 
-    策略:
-      1. 从 lenscat 原始数据提取 theta_E (lenscat 包含大量已知透镜的 Einstein 半径)
-      2. 从已知文献值填入 (SWELLS, SLACS, CASTLES)
-      3. 从旧版 enriched v8 继承
+    Strategy:
+      1. Extract theta_E from lenscat raw data (lenscat contains Einstein
+         radii for many known lenses)
+      2. Fill in from known literature values (SWELLS, SLACS, CASTLES)
+      3. Inherit from the older enriched v8
     """
     print(f"\n  ── Einstein radius enrichment ──")
 
@@ -908,22 +914,23 @@ def enrich_theta_e(df: pd.DataFrame) -> pd.DataFrame:
 
 
 # ================================================================
-# 主流程
+# Main workflow
 # ================================================================
 
 def enrich(input_path: str = MASTER_CLASSIFIED_PATH,
            query_network: bool = False,
            verbose: bool = True) -> pd.DataFrame:
     """
-    Phase D 主入口。
+    Phase D main entry point.
 
     Args:
-        input_path: 分类后的星表路径
-        query_network: 是否尝试网络查询（当前环境通常为 False）
-        verbose: 打印详细日志
+        input_path: path to the classified catalog
+        query_network: whether to attempt network queries (usually False in the
+            current environment)
+        verbose: print detailed logs
 
     Returns:
-        pd.DataFrame: 丰富后的星表
+        pd.DataFrame: the enriched catalog
     """
     if not os.path.exists(input_path):
         print(f"ERROR: {input_path} not found. Run classify.py first.")
@@ -939,19 +946,20 @@ def enrich(input_path: str = MASTER_CLASSIFIED_PATH,
     print(f"Output: tier012_v{version}.csv")
     print(f"Previous: {'v' + str(old_version) if old_path else 'none'}")
 
-    # ── 1. 从旧版本继承已有参数 ──
+    # ── 1. Inherit existing parameters from the old version ──
     df = enrich_from_existing(df, old_path)
 
-    # ── 2. 可选：网络查询 ──
+    # ── 2. Optional: network queries ──
     if query_network:
         df = enrich_sdss(df)
-        # Simard+2011: 首次需下载 ~1.1M 星系 (~50MB, 5-10min)，之后使用缓存
-        # 若缓存已存在，直接使用；否则跳过并提示
+        # Simard+2011: first run downloads ~1.1M galaxies (~50MB, 5-10min);
+        # afterwards uses the cache
+        # If the cache already exists, use it directly; otherwise skip and prompt
         if os.path.exists(os.path.join(PROJECT_ROOT, "01_raw", "simard2011", "simard2011_cache.csv")):
             df = enrich_simard2011(df)
         else:
             print(f"\n  Simard+2011 cache not found. Run once with --download-simard to download.", flush=True)
-        # PhotoObj 补充
+        # PhotoObj supplement
         df = enrich_simard2011_photoobj(df)
     else:
         print(f"\n  Network queries skipped (query_network=False)")
@@ -960,16 +968,16 @@ def enrich(input_path: str = MASTER_CLASSIFIED_PATH,
     # ── 3. theta_E ──
     df = enrich_theta_e(df)
 
-    # ── 4. 重新分类（Phase C↔D 反馈） ──
+    # ── 4. Reclassify (Phase C↔D feedback) ──
     df = reclassify(df)
     df = sort_catalog(df)
 
-    # ── 5. 保存 ──
+    # ── 5. Save ──
     os.makedirs(DIR_ENRICHED, exist_ok=True)
     output_path = os.path.join(DIR_ENRICHED, f"tier012_v{version}.csv")
     df.to_csv(output_path, index=False)
 
-    # ── 6. 更新 latest 符号链接 ──
+    # ── 6. Update the latest symlink ──
     latest_link = os.path.join(DIR_ENRICHED, "tier012_latest.csv")
     try:
         os.remove(latest_link)
@@ -982,7 +990,7 @@ def enrich(input_path: str = MASTER_CLASSIFIED_PATH,
         import shutil
         shutil.copy2(output_path, latest_link)
 
-    # ── 7. 统计 ──
+    # ── 7. Statistics ──
     if verbose:
         print(f"\n{'='*50}")
         print(f"Enriched v{version} summary:")

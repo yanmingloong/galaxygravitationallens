@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
 """
-Phase A — JWST COWLS 透镜候选体星表 Phase A — JWST COWLS lens candidate catalog
+Phase A — JWST COWLS lens candidate catalog
 ======================================
-COSMOS-Web Lens Survey (COWLS): JWST NIRCam 最深成像发现 100+ 强透镜候选体。
+COSMOS-Web Lens Survey (COWLS): 100+ strong lens candidates discovered in the deepest JWST NIRCam imaging.
 
-参考:
-- COWLS I (Mercier+2025, MNRAS 543, 203): 发现 >100 候选体
-- COWLS II (Mahler+2025, MNRAS 544, L8): 17 壮观透镜详析
-- COWLS III (Hogg+2025): 预测 ~100 透镜
+References:
+- COWLS I (Mercier+2025, MNRAS 543, 203): found >100 candidates
+- COWLS II (Mahler+2025, MNRAS 544, L8): detailed analysis of 17 spectacular lenses
+- COWLS III (Hogg+2025): predicted ~100 lenses
 - GitHub: https://github.com/Jammy2211/COWLS_COSMOS_Web_Lens_Survey
 
-数据:
-- catalogue.csv: 439 候选体（含视觉评分、红移、θE、星等、放大率）
-- 每个候选体有独立文件夹（JWST FITS + PyAutoLens 建模结果）
+Data:
+- catalogue.csv: 439 candidates (with visual scores, redshift, θE, magnitudes, magnification)
+- Each candidate has a separate folder (JWST FITS + PyAutoLens modeling results)
 
-用法:
-    python -m galaxylens.sample_library.download.cowls              # 统计已有数据
-    python -m galaxylens.sample_library.download.cowls --fetch      # 从 GitHub 下载 catalogue.csv
-    python -m galaxylens.sample_library.download.cowls --force      # 覆盖已有
+Usage:
+    python -m galaxylens.sample_library.download.cowls              # statistics on existing data
+    python -m galaxylens.sample_library.download.cowls --fetch      # download catalogue.csv from GitHub
+    python -m galaxylens.sample_library.download.cowls --force      # overwrite existing
 """
 
 import os
@@ -39,7 +39,7 @@ COWLS_REF = "Mercier+2025, MNRAS 543, 203; Mahler+2025, MNRAS 544, L8"
 
 
 def download_cowls(force=False):
-    """从 GitHub 下载 COWLS catalogue.csv"""
+    """Download COWLS catalogue.csv from GitHub"""
     import requests
 
     if os.path.exists(COWLS_PATH) and not force:
@@ -74,7 +74,7 @@ def download_cowls(force=False):
 
 
 def stats_cowls():
-    """统计 COWLS 星表"""
+    """Statistics for the COWLS catalog"""
     import pandas as pd
 
     if not os.path.exists(COWLS_PATH):

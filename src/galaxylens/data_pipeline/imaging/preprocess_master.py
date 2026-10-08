@@ -88,6 +88,8 @@ def process_band(
     log: ProcessingLog,
     dry_run: bool = False,
     psf_method: str = None,
+    use_bug_noise: bool = False,
+    use_rescaled: bool = False,
 ) -> Optional[dict]:
     """处理单个透镜的单个波段。
 
@@ -240,6 +242,7 @@ def process_band(
     noise = compute_noise(
         sci_bgsub, wht, exp.product_type,
         bg_rms=bg_rms, n_exposures=n_exp, calibrate=calibrate,
+        use_bug_noise=use_bug_noise, use_rescaled=use_rescaled,
     )
     print(f"    Noise: median={np.median(noise):.5f} (method based on {exp.product_type})", flush=True)
 
@@ -374,6 +377,8 @@ def process_lens(
     bands: Optional[List[str]] = None,
     dry_run: bool = False,
     psf_method: str = None,
+    use_bug_noise: bool = False,
+    use_rescaled: bool = False,
 ) -> Optional[Path]:
     """处理一个透镜的所有可用波段。
 
@@ -408,7 +413,7 @@ def process_lens(
 
     for band in bands:
         try:
-            result = process_band(lens_id, band, version_tag, output_base, log, dry_run, psf_method)
+            result = process_band(lens_id, band, version_tag, output_base, log, dry_run, psf_method, use_bug_noise, use_rescaled)
             if result is not None:
                 band_results[band] = result
         except Exception as e:
@@ -535,6 +540,9 @@ Examples:
                         help="强制PSF方法 (默认自动: ePSF -> TinyTim -> Moffat)")
     parser.add_argument("--dry-run", action="store_true",
                         help="仅列出将处理的文件，不实际运行")
+    parser.add_argument("--noise-method", type=str, default="all",
+                        choices=["whtonly", "rescaled", "bugnoise", "all"],
+                        help="噪声方法 (default: all，一次生成三版本；version-tag 需含 {noise} 占位符)")
 
     args = parser.parse_args()
 
@@ -553,19 +561,37 @@ Examples:
 
     output_base = get_processed_root()
 
+    NOISE_METHODS = {
+        "whtonly": (False, False),
+        "rescaled": (False, True),
+        "bugnoise": (True, False),
+    }
+    methods = list(NOISE_METHODS.keys()) if args.noise_method == "all" else [args.noise_method]
+
+    if args.noise_method == "all" and "{noise}" not in args.version_tag:
+        print(f"  ⚠ --noise-method all 需要 --version-tag 含 {{noise}} 占位符（如 v2_flc_{{noise}}_tinytim_inpaint），回退单版本 whtonly", flush=True)
+        methods = ["whtonly"]
+
+    print(f"  Noise methods: {methods}", flush=True)
+
     for lens in lenses:
-        try:
-            process_lens(
-                lens,
-                version_tag=args.version_tag,
-                output_base=output_base,
-                bands=args.bands,
-                dry_run=args.dry_run,
-                psf_method=args.psf_method,
-            )
-        except Exception as e:
-            print(f"\n  ❌ {lens} FAILED: {e}", flush=True)
-            traceback.print_exc()
+        for method in methods:
+            use_bug, use_resc = NOISE_METHODS[method]
+            version_tag = args.version_tag.format(noise=method) if args.noise_method == "all" else args.version_tag
+            try:
+                process_lens(
+                    lens,
+                    version_tag=version_tag,
+                    output_base=output_base,
+                    bands=args.bands,
+                    dry_run=args.dry_run,
+                    psf_method=args.psf_method,
+                    use_bug_noise=use_bug,
+                    use_rescaled=use_resc,
+                )
+            except Exception as e:
+                print(f"\n  ❌ {lens} [{method}] FAILED: {e}", flush=True)
+                traceback.print_exc()
 
     print(f"\n{'=' * 60}")
     print(f"  All {len(lenses)} lens(es) processed")

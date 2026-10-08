@@ -195,6 +195,86 @@ def noise_from_wht_poisson_calibrated(
 
 
 # ══════════════════════════════════════════════════════════════════════
+# Method 3.5: pure WHT + global rescaling (Barnabè-style, disk-galaxy FLC)
+# ══════════════════════════════════════════════════════════════════════
+
+def noise_from_wht_rescaled(
+    wht_data: np.ndarray,
+    sci_bgsub: np.ndarray,
+    min_bg_pixels: int = 20,
+) -> np.ndarray:
+    """Pure WHT noise × single global rescaling factor (Barnabè+2012 style).
+
+    Pure WHT noise (σ = 1/√WHT) is physically correct but too small for
+    disk-galaxy Nautilus fits: model systematic errors (≳16 e⁻/s) dwarf the
+    measurement noise (≈0.35 e⁻/s), blowing up χ²/px to ≈2167. Barnabè+2012
+    rescales the noise by a single global factor so that reduced χ² ≈ 1. This
+    preprocessing-stage approximation uses the background region to estimate
+    that factor:
+
+        scale = σ_sci_bg / median(noise_raw_bg)
+
+    Unlike the signal-dependent bug noise (√(1/WHT + SCI)), this method scales
+    the whole map uniformly and adds no double-counted Poisson term — matching
+    Barnabè's single-factor assumption.
+
+    Algorithm:
+      1. noise_raw = 1/√WHT (pure WHT, no Poisson term)
+      2. Two-pass sigma-clipping to identify background pixels
+      3. scale = σ_sci_bg / median(noise_raw_bg)
+      4. noise_final = noise_raw × scale (uniform upscale)
+
+    Args:
+        wht_data: WHT weight map.
+        sci_bgsub: Background-subtracted science image.
+        min_bg_pixels: Minimum background pixels; below this, skip calibration.
+
+    Returns:
+        Globally rescaled noise σ-map (2D float32).
+
+    References:
+        Barnabè+2012 (SWELLS IV, mnras0423-1073): global rescaling to reduced χ²~1
+    """
+    # Step 1: pure WHT noise (no Poisson term)
+    noise_raw = noise_from_wht(wht_data).astype(np.float64)
+
+    # Step 2: first-pass sigma-clipping (MAD-based)
+    sci_flat = sci_bgsub.ravel()
+    med_sci = float(np.median(sci_flat))
+    mad_sci = float(np.median(np.abs(sci_flat - med_sci)))
+    sigma_est = mad_sci * 1.4826
+
+    lo = med_sci - 3.0 * sigma_est
+    hi = med_sci + 5.0 * sigma_est
+    bg1 = (sci_bgsub > lo) & (sci_bgsub < hi)
+
+    if bg1.sum() < min_bg_pixels:
+        return noise_raw.astype(np.float32)
+
+    # Step 3: second-pass sigma-clipping
+    bg1_sci = sci_bgsub[bg1]
+    bg_med1 = float(np.median(bg1_sci))
+    bg_std1 = float(np.std(bg1_sci))
+    bg2 = np.abs(sci_bgsub - bg_med1) < 2.5 * bg_std1
+    bg_final = bg1 & bg2
+
+    if bg_final.sum() < min_bg_pixels:
+        return noise_raw.astype(np.float32)
+
+    # Step 4: global rescaling factor
+    sci_std_bg = float(np.std(sci_bgsub[bg_final]))
+    noise_med_bg = float(np.median(noise_raw[bg_final]))
+
+    if noise_med_bg < 1e-15 or sci_std_bg < 1e-15:
+        return noise_raw.astype(np.float32)
+
+    scale = np.clip(sci_std_bg / noise_med_bg, 0.01, 100.0)
+    noise = noise_raw * scale
+
+    return noise.astype(np.float32)
+
+
+# ══════════════════════════════════════════════════════════════════════
 # 方法 4: Poisson + 读出噪声 (无 WHT 回退)
 # ══════════════════════════════════════════════════════════════════════
 
@@ -266,6 +346,8 @@ def compute_noise(
     bg_rms: float = 0.0,
     n_exposures: int = 1,
     calibrate: bool = True,
+    use_bug_noise: bool = False,
+    use_rescaled: bool = False,
 ) -> np.ndarray:
     """根据产品类型自动选择噪声方法。
 
@@ -276,13 +358,22 @@ def compute_noise(
         bg_rms: 背景 RMS (用于无 WHT 回退)
         n_exposures: 曝光数 (>1 时会堆叠缩放)
         calibrate: 对 DRC/DRZ 是否做经验标定
+        use_bug_noise: FLT/FLC 用信号相关 bug noise √(1/WHT+SCI)（吸收模型残差）
+        use_rescaled: FLT/FLC 用纯 WHT × 全局 rescaling 因子（Barnabè 式）
 
     Returns:
         噪声图 σ-map (2D float32)
     """
     if wht_data is not None:
         if product_type in ("FLT", "FLC"):
-            noise = noise_from_wht(wht_data, n_exposures=n_exposures)
+            if use_bug_noise:
+                # Signal-dependent bug noise: σ = √(1/WHT + SCI), absorbs model residuals.
+                noise = noise_from_wht_plus_poisson(wht_data, sci_bgsub)
+            elif use_rescaled:
+                # Global rescaling: pure WHT × single factor (Barnabè-style).
+                noise = noise_from_wht_rescaled(wht_data, sci_bgsub)
+            else:
+                noise = noise_from_wht(wht_data, n_exposures=n_exposures)
         elif product_type in ("DRC", "DRZ"):
             if calibrate:
                 noise = noise_from_wht_poisson_calibrated(wht_data, sci_bgsub)

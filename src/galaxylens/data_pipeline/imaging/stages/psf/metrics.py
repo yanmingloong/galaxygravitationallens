@@ -1,4 +1,4 @@
-"""PSF 质量度量：EE50（半光半径）与二阶矩椭率。 PSF quality metrics: EE50 (half-light radius) and second-moment ellipticity."""
+"""PSF quality metrics: EE50 (half-light radius) and second-moment ellipticity."""
 from __future__ import annotations
 from typing import Tuple
 
@@ -6,9 +6,9 @@ import numpy as np
 
 
 def psf_ee50(psf: np.ndarray) -> Tuple[float, float]:
-    """归一化 PSF 的 EE50 (半光半径, px) 与高斯近似 FWHM。
+    """EE50 (half-light radius, px) of a normalized PSF and its Gaussian-approximate FWHM.
 
-    2D 高斯下 EE50 = FWHM / 2, 故 FWHM_est = 2 * EE50。
+    For a 2D Gaussian, EE50 = FWHM / 2, so FWHM_est = 2 * EE50.
 
     Returns:
         (ee50_px, fwhm_est_px)
@@ -29,7 +29,7 @@ def psf_ee50(psf: np.ndarray) -> Tuple[float, float]:
     return float(ee50), 2.0 * float(ee50)
 
 def psf_ellipticity(psf: np.ndarray) -> float:
-    """归一化 PSF 的二阶矩椭率 e = sqrt(e1^2 + e2^2)。"""
+    """Second-moment ellipticity of a normalized PSF, e = sqrt(e1^2 + e2^2)."""
     d = np.asarray(psf, dtype=float)
     d = np.maximum(d, 0)
     total = d.sum()

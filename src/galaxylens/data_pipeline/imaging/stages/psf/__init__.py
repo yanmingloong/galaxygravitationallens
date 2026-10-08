@@ -1,14 +1,15 @@
-"""PSF 构建（拆分为子模块）。 PSF construction (split into sub-modules).
+"""PSF construction (split into sub-modules).
 
-子模块:
-  - stars.py    场星检测与筛选
-  - metrics.py  EE50 / 椭率度量
-  - epsf.py     photutils ePSF 构建
-  - analytic.py Moffat / Gaussian 解析 PSF
-  - tinytim.py  TinyTim（Massey 栅格 + 直接编译）
+Sub-modules:
+  - stars.py    Field-star detection and selection
+  - metrics.py  EE50 / ellipticity metrics
+  - epsf.py     photutils ePSF construction
+  - analytic.py Moffat / Gaussian analytic PSF
+  - tinytim.py  TinyTim (Massey grid + direct compilation)
 
-本文件提供 build_psf 自动选优入口，并 re-export 所有公开函数，
-保持 `from ...stages.psf import ...` 的调用方式不变。
+This module provides the build_psf automatic selection entry point and
+re-exports all public functions, keeping the
+`from ...stages.psf import ...` call style unchanged.
 """
 from __future__ import annotations
 from typing import Optional, List, Tuple
@@ -43,32 +44,34 @@ def build_psf(
     detector_pos: Optional[Tuple[int, int]] = None,
     instrument: Optional[str] = None,
 ) -> Tuple[np.ndarray, str]:
-    """自动选择并构建 PSF (对比选优)。
+    """Automatically select and build the PSF (comparative selection).
 
-    自动选择 (psf_method=None 时):
-      1. 生成候选: ePSF (经验, 捕捉真实像差) + TinyTim Massey (物理保底)
-      2. 算指标: EE50 + 二阶矩椭率
-      3. 硬门槛筛除: EE50 ∈ [0.8, 3.0]px 且椭率 < 0.15
-      4. 选优: 达标 ePSF 优先 -> 达标 TinyTim(保底) -> Moffat 兜底
-    指定 psf_method 则跳过自动选择。
+    Automatic selection (when psf_method=None):
+      1. Generate candidates: ePSF (empirical, captures real aberrations)
+         + TinyTim Massey (physical fallback)
+      2. Compute metrics: EE50 + second-moment ellipticity
+      3. Hard-threshold filtering: EE50 ∈ [0.8, 3.0]px and ellipticity < 0.15
+      4. Selection: passing ePSF preferred -> passing TinyTim (fallback)
+         -> Moffat as last resort
+    Specifying psf_method skips automatic selection.
 
     Args:
-        data: 背景减除后的科学图像
-        field_stars: 场星列表 [(x, y, flux), ...]
-        psf_fwhm_pix: PSF FWHM 估计 (像素)
-        pixel_scale: 像元尺度 (arcsec/pixel)
-        prefer_epsf: 是否优先尝试 ePSF
-        psf_method: 强制指定方法 ("epsf", "moffat", "gaussian", "gaussian_ell",
-                    "tinytim_massey", "tinytim_direct")
-        band: 波段 (TinyTim 需要)
-        date_obs: 观测日期 (TinyTim 聚焦修正需要)
-        detector_pos: 探测器像素 (TinyTim 位置映射需要)
-        instrument: 仪器名 (TinyTim direct 需要)
+        data: Background-subtracted science image
+        field_stars: List of field stars [(x, y, flux), ...]
+        psf_fwhm_pix: Estimated PSF FWHM (pixels)
+        pixel_scale: Pixel scale (arcsec/pixel)
+        prefer_epsf: Whether to prefer trying ePSF
+        psf_method: Force a specific method ("epsf", "moffat", "gaussian",
+                    "gaussian_ell", "tinytim_massey", "tinytim_direct")
+        band: Band (required by TinyTim)
+        date_obs: Observation date (required by TinyTim focus correction)
+        detector_pos: Detector pixel (required by TinyTim position mapping)
+        instrument: Instrument name (required by TinyTim direct)
 
     Returns:
         (psf_array, source_label)
     """
-    # ── 强制指定方法 ──
+    # ── Force a specific method ──
     if psf_method == "epsf":
         if len(field_stars) > 0:
             result = build_epsf(data, field_stars)
@@ -121,10 +124,10 @@ def build_psf(
                 print(f"  PSF: TinyTim Direct ({label})", flush=True)
                 return psf, label
 
-    # ── 自动对比选优 (TinyTim 保底 + ePSF 候选, EE50/椭率门槛) ──
+    # ── Automatic comparative selection (TinyTim fallback + ePSF candidate, EE50/ellipticity threshold) ──
     candidates = []  # [(name, psf, label, ee50, ell, valid)]
 
-    # 1. ePSF (经验候选, 捕捉真实像差)
+    # 1. ePSF (empirical candidate, captures real aberrations)
     if prefer_epsf and len(field_stars) > 0:
         result = build_epsf(data, field_stars)
         if result is not None:
@@ -136,7 +139,7 @@ def build_psf(
             print(f"  PSF candidate ePSF ({n_used} stars): EE50={ee50:.2f}px, "
                   f"ell={ell:.3f} -> {'OK' if ok else 'REJECT'}", flush=True)
 
-    # 2. TinyTim Massey (物理保底, 不依赖场星)
+    # 2. TinyTim Massey (physical fallback, independent of field stars)
     if band and band in MASSEY_AVAILABLE_BANDS:
         result = build_tinytim_massey_psf(
             band=band, date_obs=date_obs or "",
@@ -151,7 +154,7 @@ def build_psf(
             print(f"  PSF candidate TinyTim Massey: EE50={ee50:.2f}px, "
                   f"ell={ell:.3f} -> {'OK' if ok else 'REJECT'}", flush=True)
 
-    # 3. 选优: 达标 ePSF 优先(捕捉真实像差) -> 达标 TinyTim(保底)
+    # 3. Selection: passing ePSF preferred (captures real aberrations) -> passing TinyTim (fallback)
     for pref in ("epsf", "tinytim_massey"):
         for name, psf, label, ee50, ell, ok in candidates:
             if name == pref and ok:
@@ -159,7 +162,7 @@ def build_psf(
                       flush=True)
                 return psf, label
 
-    # 4. Moffat 兜底 (无达标候选)
+    # 4. Moffat fallback (no passing candidate)
     fwhm_as = psf_fwhm_pix * pixel_scale
     psf, label = build_moffat_psf(fwhm_arcsec=fwhm_as, pixel_scale=pixel_scale)
     print(f"  PSF: Moffat fallback (FWHM={fwhm_as:.2f}\", beta=3.0)", flush=True)

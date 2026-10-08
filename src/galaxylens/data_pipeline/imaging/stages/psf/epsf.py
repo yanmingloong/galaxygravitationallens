@@ -1,4 +1,4 @@
-"""photutils EPSFBuilder 超采样 ePSF 构建（Anderson & King 2000）。 photutils EPSFBuilder oversampled ePSF construction (Anderson & King 2000)."""
+"""photutils EPSFBuilder oversampled ePSF construction (Anderson & King 2000)."""
 from __future__ import annotations
 from typing import Optional, Tuple, List
 
@@ -18,20 +18,21 @@ def build_epsf(
     oversampling: int = 4,
     maxiters: int = 10,
 ) -> Optional[Tuple[np.ndarray, str, int]]:
-    """使用 photutils EPSFBuilder 构建超采样有效 PSF。
+    """Build an oversampled effective PSF using photutils EPSFBuilder.
 
-    基于 Anderson & King (2000) 方法，迭代构建 ePSF 并精修星像质心。
-    最终降采样回探测器像素尺度。
+    Based on Anderson & King (2000), iteratively constructs the ePSF and
+    refines the stellar centroids, then downsamples back to the detector
+    pixel scale.
 
     Args:
-        data: 背景减除后的 2D 图像
-        star_coords: 场星坐标列表 [(x, y, flux), ...]
-        stamp_size: 输出 PSF 尺寸 (奇数像素)
-        oversampling: 超采样因子 (默认 4)
-        maxiters: 最大迭代次数 (默认 10)
+        data: 2D image after background subtraction
+        star_coords: list of field star coordinates [(x, y, flux), ...]
+        stamp_size: output PSF size (odd number of pixels)
+        oversampling: oversampling factor (default 4)
+        maxiters: maximum number of iterations (default 10)
 
     Returns:
-        (psf_normalized, source_label, n_stars_used) 或 None (失败时)
+        (psf_normalized, source_label, n_stars_used) or None (on failure)
     """
     if len(star_coords) == 0:
         return None

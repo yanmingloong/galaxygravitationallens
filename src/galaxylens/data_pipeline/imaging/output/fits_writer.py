@@ -1,18 +1,18 @@
 """
-FITS 标准化输出 Standardized FITS output
+Standardized FITS output
 ===============
-将处理后的 SCI/Noise/PSF/Mask 写入标准 FITS 文件。
+Write the processed SCI/Noise/PSF/Mask to standard FITS files.
 
-功能:
-  1. 按统一命名规范写入 FITS 文件
+Features:
+  1. Write FITS files following the unified naming convention
   2. SCI → float32, Noise → float32, PSF → float32, Mask → uint8
-  3. 自动创建输出目录
+  3. Automatically create the output directory
 
-命名规范:
+Naming convention:
   {short_name}_{band_lower}_{type}.fits
-  例: j2141_f814w_sci.fits, 1630+4520_f435w_noise.fits
+  e.g.: j2141_f814w_sci.fits, 1630+4520_f435w_noise.fits
 
-使用示例:
+Usage example:
   >>> from galaxylens.data_pipeline.imaging.output.fits_writer import write_processed_band
   >>> write_processed_band(output_dir, "J2141-0001", "F814W", sci=sci, noise=noise, psf=psf)
 """
@@ -25,19 +25,19 @@ from astropy.io import fits
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 命名工具
+# Naming utilities
 # ══════════════════════════════════════════════════════════════════════
 
 def make_short_name(lens_id: str) -> str:
-    """将透镜ID转换为短文件名前缀。
+    """Convert a lens ID into a short filename prefix.
 
     Args:
-        lens_id: 如 "J2141-0001", "J1630+4520"
+        lens_id: e.g. "J2141-0001", "J1630+4520"
 
     Returns:
-        短名: 如 "j21410001", "1630+4520"
+        Short name: e.g. "j21410001", "1630+4520"
     """
-    # 去除 SDSS/SDSSJ 前缀
+    # Strip the SDSS/SDSSJ prefix
     name = lens_id
     for prefix in ["SDSSJ", "SDSS_", "SDSS"]:
         if name.startswith(prefix):
@@ -47,21 +47,21 @@ def make_short_name(lens_id: str) -> str:
 
 
 def make_prefix(lens_id: str, band: str) -> str:
-    """生成输出文件名前缀。
+    """Generate the output filename prefix.
 
     Args:
-        lens_id: 透镜标识符
-        band: 波段名 (如 "F814W")
+        lens_id: Lens identifier
+        band: Band name (e.g. "F814W")
 
     Returns:
-        前缀: 如 "1630+4520_f814w"
+        Prefix: e.g. "1630+4520_f814w"
     """
     short = lens_id.replace("SDSSJ", "").replace("SDSS_", "")
     return f"{short.lower()}_{band.lower()}"
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 写入接口
+# Writing interface
 # ══════════════════════════════════════════════════════════════════════
 
 def write_processed_band(
@@ -74,20 +74,20 @@ def write_processed_band(
     starmask: np.ndarray,
     cr_mask: np.ndarray | None = None,
 ) -> dict[str, Path]:
-    """将一个透镜+波段的处理结果写入 FITS 文件。
+    """Write the processed results for one lens + band to FITS files.
 
     Args:
-        output_dir: 输出目录 (如 processed/J2141-0001/v2_flc_whtonly/)
-        lens_id: 透镜标识符
-        band: 波段名
-        sci: 背景减除后的科学图像
-        noise: 噪声图 σ-map
-        psf: 归一化 PSF kernel
-        starmask: 恒星 mask (Boolean)
-        cr_mask: 宇宙线 mask (Boolean, 可选)
+        output_dir: Output directory (e.g. processed/J2141-0001/v2_flc_whtonly/)
+        lens_id: Lens identifier
+        band: Band name
+        sci: Background-subtracted science image
+        noise: Noise map σ-map
+        psf: Normalized PSF kernel
+        starmask: Star mask (Boolean)
+        cr_mask: Cosmic-ray mask (Boolean, optional)
 
     Returns:
-        {type: filepath} 字典
+        {type: filepath} dictionary
 
     Output files:
         {prefix}_sci.fits, {prefix}_noise.fits, {prefix}_psf.fits,
@@ -132,15 +132,15 @@ def write_combined_starmask(
     lens_id: str,
     starmask: np.ndarray,
 ) -> Path:
-    """写入合并后的恒星 mask（所有波段 OR）。
+    """Write the combined star mask (OR over all bands).
 
     Args:
-        output_dir: 输出目录
-        lens_id: 透镜标识符
-        starmask: 合并后的 Boolean mask
+        output_dir: Output directory
+        lens_id: Lens identifier
+        starmask: Combined Boolean mask
 
     Returns:
-        输出文件路径
+        Output file path
     """
     output_dir.mkdir(parents=True, exist_ok=True)
     short = make_short_name(lens_id)

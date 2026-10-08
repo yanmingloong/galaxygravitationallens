@@ -1,17 +1,17 @@
 """
-2D 高斯中心微调 2D Gaussian centroid refinement
+2D Gaussian centroid refinement
 ==============
-用二维高斯拟合 refine 透镜中心位置，纠正 WCS 指向误差。
+Refine the lens center position via 2D Gaussian fitting, correcting the WCS pointing error.
 
-功能:
-  1. 对裁剪后图像的中心区域做 2D Gaussian 拟合
-  2. 返回精修后的亚像素 centroid
+Features:
+  1. Perform a 2D Gaussian fit on the central region of the cropped image
+  2. Return the refined sub-pixel centroid
 
-原理:
-  透镜星系中心是图像最亮的区域，用 Gaussian 拟合其亮度峰
-  得到的 (x0, y0) 比 WCS 指向更准确。
+Principle:
+  The lens galaxy center is the brightest region of the image; fitting its brightness peak
+  with a Gaussian yields an (x0, y0) that is more accurate than the WCS pointing.
 
-使用示例:
+Example:
   >>> from galaxylens.data_pipeline.imaging.stages.centroid import fit_centroid
   >>> cx_fit, cy_fit = fit_centroid(sci_cut, sci_cut.shape[1]//2, sci_cut.shape[0]//2)
   >>> print(f"Offset: ({cx_fit-cx:+.1f}, {cy_fit-cy:+.1f}) px")
@@ -25,7 +25,7 @@ from scipy.optimize import curve_fit
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 内部：2D Gaussian 模型
+# Internal: 2D Gaussian model
 # ══════════════════════════════════════════════════════════════════════
 
 def _gaussian_2d(
@@ -38,7 +38,7 @@ def _gaussian_2d(
     theta: float,
     offset: float,
 ) -> np.ndarray:
-    """二维椭圆高斯函数。"""
+    """Two-dimensional elliptical Gaussian function."""
     x, y = xy
     a = (np.cos(theta)**2) / (2 * sigma_x**2) + (np.sin(theta)**2) / (2 * sigma_y**2)
     b = -(np.sin(2 * theta)) / (4 * sigma_x**2) + (np.sin(2 * theta)) / (4 * sigma_y**2)
@@ -49,7 +49,7 @@ def _gaussian_2d(
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 公开接口
+# Public interface
 # ══════════════════════════════════════════════════════════════════════
 
 def fit_centroid(
@@ -58,37 +58,37 @@ def fit_centroid(
     cy: float,
     box_size: int = 20,
 ) -> Tuple[float, float]:
-    """用二维高斯拟合中心亮度峰值，返回亚像素 centroid。
+    """Fit the central brightness peak with a 2D Gaussian and return the sub-pixel centroid.
 
-    在 (cx, cy) 周围的 box_size×box_size 区域内，
-    用椭圆 Gaussian fit 精确定位亮度中心。
+    Within a box_size×box_size region around (cx, cy),
+    use an elliptical Gaussian fit to precisely locate the brightness center.
 
     Args:
-        data: 2D 图像（应为背景减除后的数据）
-        cx: 初始中心 x 坐标 (像素)
-        cy: 初始中心 y 坐标 (像素)
-        box_size: 拟合区域大小 (像素)
+        data: 2D image (should be background-subtracted data)
+        cx: Initial center x coordinate (pixels)
+        cy: Initial center y coordinate (pixels)
+        box_size: Size of the fitting region (pixels)
 
     Returns:
-        (cx_fit, cy_fit): 精修后的中心坐标 (像素)
+        (cx_fit, cy_fit): Refined center coordinates (pixels)
 
     Note:
-        拟合失败时返回输入的 (cx, cy)。
+        Returns the input (cx, cy) when the fit fails.
     """
     half = box_size // 2
     yc, xc = int(round(cy)), int(round(cx))
 
-    # 确保不越界
+    # Ensure no out-of-bounds
     y1, y2 = max(0, yc - half), min(data.shape[0], yc + half)
     x1, x2 = max(0, xc - half), min(data.shape[1], xc + half)
 
     sub = data[y1:y2, x1:x2]
-    if sub.size < 9:  # 太小无法拟合
+    if sub.size < 9:  # Too small to fit
         return cx, cy
 
     yy, xx = np.mgrid[y1:y2, x1:x2]
 
-    # 初始猜测
+    # Initial guess
     guess = (
         float(sub.max()),
         x1 + half,
@@ -99,7 +99,7 @@ def fit_centroid(
         float(np.median(sub)),
     )
 
-    # 参数边界
+    # Parameter bounds
     bounds = (
         [0, x1, y1, 0.5, 0.5, -np.pi / 2, -np.inf],
         [np.inf, x2, y2, box_size / 2, box_size / 2, np.pi / 2, np.inf],
@@ -126,12 +126,12 @@ def compute_offset(
     cy_initial: float,
     pixel_scale: float = 0.05,
 ) -> dict:
-    """计算 centroid 偏移量（像素和角秒）。
+    """Compute the centroid offset (in pixels and arcsec).
 
     Args:
-        cx_fit, cy_fit: 拟合后的 centroid
-        cx_initial, cy_initial: 初始中心
-        pixel_scale: 像元尺度 (arcsec/pixel)
+        cx_fit, cy_fit: Fitted centroid
+        cx_initial, cy_initial: Initial center
+        pixel_scale: Pixel scale (arcsec/pixel)
 
     Returns:
         {"dx_px": float, "dy_px": float, "dx_as": float, "dy_as": float}

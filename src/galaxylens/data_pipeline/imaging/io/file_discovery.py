@@ -1,28 +1,28 @@
 """
-HST 源文件查找 HST source file discovery
+HST source file discovery
 ==============
-根据透镜ID和波段，在 MAST_download 目录中定位正确的 FITS 文件。
+Locate the correct FITS files in the MAST_download directory based on lens ID and band.
 
-功能:
-  1. 按 product_type (DRC/DRZ/FLT/FLC) 自动匹配文件
-  2. 优先级: FLC > FLT > DRC > DRZ
-  3. 排除 skycell 产品（优先使用目标指向的产品）
-  4. FLT/FLC 支持多曝光返回
+Features:
+  1. Auto-match files by product_type (DRC/DRZ/FLT/FLC)
+  2. Priority: FLC > FLT > DRC > DRZ
+  3. Exclude skycell products (prefer target-pointed products)
+  4. FLT/FLC support returning multiple exposures
 
-处理流程:
-    输入: lens_id + band + product_type
+Processing flow:
+    Input: lens_id + band + product_type
            │
-           ├─ 扫描 raw/{lens}/MAST_download/
+           ├─ Scan raw/{lens}/MAST_download/
            │
-           ├─ 按 product_type 过滤:
+           ├─ Filter by product_type:
            │   ├─ DRC → *_drc.fits
            │   ├─ DRZ → *_drz.fits
-           │   ├─ FLT → 文件名含波段 且 非drc/drz
-           │   └─ FLC → 文件名含波段 且 非drc/drz
+           │   ├─ FLT → filename contains band and not drc/drz
+           │   └─ FLC → filename contains band and not drc/drz
            │
-           └─ 返回 List[Path] (FLT/FLC可能多个)
+           └─ Return List[Path] (FLT/FLC may be multiple)
 
-使用示例:
+Usage example:
   >>> from galaxylens.data_pipeline.imaging.io.file_discovery import find_source_files
   >>> files = find_source_files("J1630+4520", "F814W", "FLT")
   >>> [f.name for f in files]
@@ -41,7 +41,7 @@ ProductType = Literal["DRC", "DRZ", "FLT", "FLC"]
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 公开接口
+# Public interface
 # ══════════════════════════════════════════════════════════════════════
 
 def find_source_files(
@@ -50,24 +50,24 @@ def find_source_files(
     product_type: ProductType = "FLC",
     min_size_mb: float = 50.0,
 ) -> List[Path]:
-    """在 MAST_download 中查找指定透镜+波段的源文件。
+    """Find source files for the given lens + band in MAST_download.
 
     Args:
-        lens_id: 透镜标识符，如 "J2141-0001"
-        band: 波段名，如 "F814W"
-        product_type: 数据产品类型 (DRC/DRZ/FLT/FLC)
-        min_size_mb: 最小文件大小阈值 (MB)，排除残次下载
+        lens_id: Lens identifier, e.g. "J2141-0001"
+        band: Band name, e.g. "F814W"
+        product_type: Data product type (DRC/DRZ/FLT/FLC)
+        min_size_mb: Minimum file size threshold (MB), to exclude partial downloads
 
     Returns:
-        匹配的 FITS 文件路径列表（FLT/FLC可能有多个曝光）
+        List of matching FITS file paths (FLT/FLC may have multiple exposures)
 
     Raises:
-        FileNotFoundError: 若未找到任何匹配文件
+        FileNotFoundError: If no matching files are found
 
     Note:
-        - DRC/DRZ 通常返回1个文件
-        - FLT/FLC 可能返回多个文件（多次曝光）
-        - skycell 产品被自动排除（优先指向目标的）
+        - DRC/DRZ usually return 1 file
+        - FLT/FLC may return multiple files (multiple exposures)
+        - skycell products are automatically excluded (prefer target-pointed ones)
     """
     mast_dir = get_raw_root() / lens_id / "MAST_download"
     if not mast_dir.is_dir():
@@ -75,7 +75,7 @@ def find_source_files(
             f"MAST_download not found for {lens_id} at {mast_dir}"
         )
 
-    # 收集所有候选 FITS 文件
+    # Collect all candidate FITS files
     all_fits: List[Path] = sorted(
         p for p in mast_dir.rglob("*.fits")
         if p.stat().st_size > min_size_mb * 1024 * 1024
@@ -86,7 +86,7 @@ def find_source_files(
             f"No FITS files > {min_size_mb} MB in {mast_dir}"
         )
 
-    # 按产品类型过滤
+    # Filter by product type
     band_lower = band.lower()
     matched: List[Path] = []
 
@@ -96,7 +96,7 @@ def find_source_files(
                    if f.name.lower().endswith(suffix)
                    and band_lower in f.name.lower()]
     else:
-        # FLT/FLC: 先按波段名匹配，排除 DRC/DRZ/ASN
+        # FLT/FLC: match by band name first, exclude DRC/DRZ/ASN
         matched = [
             f for f in all_fits
             if band_lower in f.name.lower()
@@ -104,7 +104,7 @@ def find_source_files(
             and "_drz" not in f.name.lower()
             and "_asn" not in f.name.lower()
         ]
-        # 如果没找到，尝试用FITS头FILTER关键词匹配（FLC文件可能不含波段名）
+        # If none found, try matching via the FILTER keyword in the FITS header (FLC files may not contain the band name)
         if not matched:
             for f in all_fits:
                 if "_drc" in f.name.lower() or "_drz" in f.name.lower():
@@ -126,17 +126,17 @@ def find_source_files(
                 except Exception:
                     continue
 
-    # 排除 skycell 产品（优先目标指向的）
+    # Exclude skycell products (prefer target-pointed ones)
     nonsky = [f for f in matched if "skycell" not in f.name.lower()]
     if nonsky:
         matched = nonsky
 
-    # 二次验证：确保文件可读
+    # Secondary validation: ensure files are readable
     valid: List[Path] = []
     for f in matched:
         try:
             with fits.open(f) as hdul:
-                # 至少有2个扩展的才是 FLT/DRC
+                # Only files with at least 2 extensions are FLT/DRC
                 if len(hdul) >= 2:
                     valid.append(f)
         except Exception:
@@ -152,15 +152,15 @@ def find_source_files(
 
 
 def find_available_bands(lens_id: str) -> List[str]:
-    """扫描 MAST_download，返回实际存在的波段列表。
+    """Scan MAST_download and return the list of bands actually present.
 
-    通过读取每个 FITS 文件的 FILTER 关键字来确定波段。
+    Bands are determined by reading the FILTER keyword of each FITS file.
 
     Args:
-        lens_id: 透镜标识符
+        lens_id: Lens identifier
 
     Returns:
-        波段名列表，如 ["F435W", "F814W"]
+        List of band names, e.g. ["F435W", "F814W"]
     """
     mast_dir = get_raw_root() / lens_id / "MAST_download"
     if not mast_dir.is_dir():
@@ -185,14 +185,14 @@ def find_available_bands(lens_id: str) -> List[str]:
 
 
 def has_files_for_band(lens_id: str, band: str) -> bool:
-    """检查指定透镜+波段是否有可用的源文件。
+    """Check whether the given lens + band has available source files.
 
     Args:
-        lens_id: 透镜标识符
-        band: 波段名
+        lens_id: Lens identifier
+        band: Band name
 
     Returns:
-        是否有文件可用
+        Whether files are available
     """
     try:
         files = find_source_files(lens_id, band)

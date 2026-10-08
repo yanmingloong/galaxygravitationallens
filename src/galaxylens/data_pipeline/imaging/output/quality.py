@@ -1,25 +1,25 @@
 """
-定量质量评估 Quantitative quality assessment
+Quantitative quality assessment
 ============
-对处理后的数据自动计算质量指标并给出评级。
+Automatically compute quality metrics on the processed data and assign a rating.
 
-评估指标:
-  - SNR_peak: 图像最大 SNR
-  - SNR_center: 中心 20×20px 中值 SNR
-  - noise_uniformity: 背景区噪声均匀性 (std/median)
-  - PSF_FWHM: PSF 半高全宽 (arcsec)
-  - PSF_ellipticity: PSF 椭率
-  - CR_fraction: 宇宙线像素占比
-  - mask_fraction: 恒星 mask 占比
-  - bg_residual: 背景减除残差 (σ 单位)
+Metrics:
+  - SNR_peak: maximum SNR of the image
+  - SNR_center: median SNR of the central 20×20 px region
+  - noise_uniformity: noise uniformity of the background region (std/median)
+  - PSF_FWHM: PSF full width at half maximum (arcsec)
+  - PSF_ellipticity: PSF ellipticity
+  - CR_fraction: cosmic-ray pixel fraction
+  - mask_fraction: star-mask fraction
+  - bg_residual: background-subtraction residual (σ units)
 
-评级体系:
-  ★★★★★ — 所有通过，可直接用于建模
-  ★★★★  — 1 项警告
-  ★★★   — 2 项警告，建议检查
-  ★★    — 3+ 项警告或1项失败，需重新处理
+Rating system:
+  ★★★★★ — all checks pass; ready for modeling
+  ★★★★  — 1 warning
+  ★★★   — 2 warnings; inspection recommended
+  ★★    — 3+ warnings or 1 failure; reprocessing required
 
-使用示例:
+Usage example:
   >>> from galaxylens.data_pipeline.imaging.output.quality import assess_quality
   >>> result = assess_quality(sci, noise, psf, starmask, cr_mask)
   >>> print(result["rating"], result["stars"])
@@ -33,45 +33,45 @@ from scipy.ndimage import median_filter
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 阈值定义
+# Threshold definitions
 # ══════════════════════════════════════════════════════════════════════
 
 THRESHOLDS = {
     "SNR_peak":        {"warn": 30,   "fail": 20},
     "SNR_center":      {"warn": 5,    "fail": 3},
     "noise_uniformity": {"warn": 0.3,  "fail": 0.5},
-    "PSF_FWHM_min":    {"warn": 0.04, "fail": 0.02},  # arcsec (放宽: ACS实际~0.05-0.15")
-    "PSF_FWHM_max":    {"warn": 0.20, "fail": 0.30},  # arcsec (放宽)
+    "PSF_FWHM_min":    {"warn": 0.04, "fail": 0.02},  # arcsec (relaxed: ACS actual ~0.05-0.15")
+    "PSF_FWHM_max":    {"warn": 0.20, "fail": 0.30},  # arcsec (relaxed)
     "PSF_ellipticity": {"warn": 0.10, "fail": 0.15},
-    "CR_fraction":     {"warn": 1.0,  "fail": 2.0},   # percent (默认: LA-cosmic单曝光~0.5%)
+    "CR_fraction":     {"warn": 1.0,  "fail": 2.0},   # percent (default: LA-cosmic single exposure ~0.5%)
     "mask_fraction":   {"warn": 5.0,  "fail": 10.0},   # percent
     "bg_residual":     {"warn": 0.5,  "fail": 1.0},   # σ units
 }
 
-# 按宇宙线检测方法区分的 CR_fraction 阈值（percent）。
-# deepCR 检出率天然高于 LA-cosmic（~1% vs ~0.5%），
-# 交叉审计证实 deepCR 多检出的像素 89% 是真尖峰、过检仅 ~1.8%，
-# 因此 deepCR 用更宽的阈值，避免"检出更完整"被冤枉成降级。
+# CR_fraction thresholds (percent) split by cosmic-ray detection method.
+# deepCR has a naturally higher detection rate than LA-cosmic (~1% vs ~0.5%);
+# cross-audit confirms that 89% of deepCR's extra detections are true spikes and over-detection is only ~1.8%,
+# so deepCR uses wider thresholds to avoid penalizing "more complete detection" as a downgrade.
 CR_THRESHOLDS_BY_METHOD = {
     "deepCR":    {"warn": 2.0, "fail": 4.0},
     "LA-cosmic": {"warn": 1.0, "fail": 2.0},
-    "stacked":   {"warn": 0.5, "fail": 1.0},  # 多曝光堆叠后残留应极低
+    "stacked":   {"warn": 0.5, "fail": 1.0},  # residual after multi-exposure stacking should be very low
 }
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 指标计算
+# Metric computation
 # ══════════════════════════════════════════════════════════════════════
 
 def compute_snr_metrics(
     sci: np.ndarray,
     noise: np.ndarray,
 ) -> dict:
-    """计算 SNR 相关指标。
+    """Compute SNR-related metrics.
 
     Args:
-        sci: 科学图像
-        noise: 噪声图
+        sci: science image
+        noise: noise map
 
     Returns:
         {"snr_peak": float, "snr_center_median": float}
@@ -93,20 +93,20 @@ def compute_noise_uniformity(
     noise: np.ndarray,
     sci: np.ndarray,
 ) -> float:
-    """计算背景区噪声均匀性。
+    """Compute noise uniformity in the background region.
 
-    用 sigma-clipping 识别背景区域，
-    计算噪声图在背景区的 std/median 比值。
-    接近 0 表示均匀。
+    Identifies the background region via sigma-clipping,
+    then computes the std/median ratio of the noise map over that region.
+    A value near 0 indicates uniformity.
 
     Args:
-        noise: 噪声图
-        sci: 科学图像 (用于识别背景)
+        noise: noise map
+        sci: science image (used to identify the background)
 
     Returns:
-        噪声不均匀性指数 (0-∞, 越小越好)
+        noise non-uniformity index (0-∞, smaller is better)
     """
-    # 识别背景区：SCI 接近 0 的区域
+    # Identify the background region: where SCI is close to 0
     sci_flat = sci.ravel()
     med = np.median(sci_flat)
     mad = np.median(np.abs(sci_flat - med)) * 1.4826
@@ -123,11 +123,11 @@ def compute_psf_metrics(
     psf: np.ndarray,
     pixel_scale: float = 0.05,
 ) -> dict:
-    """计算 PSF 质量指标。
+    """Compute PSF quality metrics.
 
     Args:
-        psf: 归一化 PSF 数组
-        pixel_scale: 像元尺度 (arcsec/pixel)
+        psf: normalized PSF array
+        pixel_scale: pixel scale (arcsec/pixel)
 
     Returns:
         {"fwhm_arcsec": float, "ellipticity": float}
@@ -139,7 +139,7 @@ def compute_psf_metrics(
     if half <= 0:
         return {"fwhm_arcsec": float("nan"), "ellipticity": float("nan")}
 
-    # FWHM: 从中心行估计
+    # FWHM: estimated from the central row
     row = psf[cy, :]
     above = row >= half
     crossings = np.where(np.diff(above.astype(int)))[0]
@@ -154,7 +154,7 @@ def compute_psf_metrics(
     else:
         fwhm_as = float("nan")
 
-    # Ellipticity: e = (a-b)/(a+b), 用二阶矩估计
+    # Ellipticity: e = (a-b)/(a+b), estimated via second moments
     yy, xx = np.indices(psf.shape)
     total = max(float(psf.sum()), 1e-10)
     x2 = float(np.sum(psf * (xx - cx) ** 2) / total)
@@ -175,14 +175,14 @@ def compute_bg_residual(
     sci: np.ndarray,
     bg_rms: float,
 ) -> float:
-    """计算背景减除残差（边缘中值，σ 单位）。
+    """Compute the background-subtraction residual (edge median, in σ units).
 
     Args:
-        sci: 背景减除后的图像
-        bg_rms: 背景 RMS
+        sci: image after background subtraction
+        bg_rms: background RMS
 
     Returns:
-        残差 (σ 单位)，接近 0 表示背景减除干净
+        residual (in σ units); a value near 0 indicates clean background subtraction
     """
     edge = np.concatenate([
         sci[0, :], sci[-1, :], sci[:, 0], sci[:, -1],
@@ -191,22 +191,22 @@ def compute_bg_residual(
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 评估与评级
+# Assessment and rating
 # ══════════════════════════════════════════════════════════════════════
 
-# 指标方向性: higher_is_better = 值越大越好 (SNR)
+# Metric directionality: higher_is_better = larger is better (SNR)
 _HIGHER_IS_BETTER = {"SNR_peak", "SNR_center"}
 
 
 def _check_metric(name: str, value: float, thresholds: dict = None) -> str:
-    """检查单个指标相对于阈值的状态。
+    """Check the status of a single metric against thresholds.
 
-    对 higher_is_better 指标: value < fail → fail, value < warn → warn
-    对 lower_is_better 指标:  value > fail → fail, value > warn → warn
-    PSF_FWHM: 使用专用 min/max 检查
+    For higher_is_better metrics: value < fail → fail, value < warn → warn
+    For lower_is_better metrics: value > fail → fail, value > warn → warn
+    PSF_FWHM: uses dedicated min/max checks
 
     Args:
-        thresholds: 可选，覆盖默认 THRESHOLDS（用于按方法区分的 CR 阈值）。
+        thresholds: optional, overrides the default THRESHOLDS (used for method-specific CR thresholds).
     """
     if np.isnan(value):
         return "unknown"
@@ -228,14 +228,14 @@ def _check_metric(name: str, value: float, thresholds: dict = None) -> str:
         return "pass"
 
     if name in _HIGHER_IS_BETTER:
-        # 值越大越好 (SNR)
+        # larger is better (SNR)
         if value < t[name]["fail"]:
             return "fail"
         if value < t[name]["warn"]:
             return "warn"
         return "pass"
     else:
-        # 值越小越好 (noise, CR, mask, etc.)
+        # smaller is better (noise, CR, mask, etc.)
         if value > t[name]["fail"]:
             return "fail"
         if value > t[name]["warn"]:
@@ -244,7 +244,7 @@ def _check_metric(name: str, value: float, thresholds: dict = None) -> str:
 
 
 def _stars_from_issues(issues: list[str]) -> int:
-    """从问题列表计算星级。"""
+    """Compute the star rating from the issue list."""
     n_fails = sum(1 for i in issues if i.endswith("(FAIL)"))
     n_warns = sum(1 for i in issues if i.endswith("(WARN)"))
 
@@ -261,7 +261,7 @@ def _stars_from_issues(issues: list[str]) -> int:
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 公开接口
+# Public interface
 # ══════════════════════════════════════════════════════════════════════
 
 def assess_quality(
@@ -274,18 +274,18 @@ def assess_quality(
     pixel_scale: float = 0.05,
     cr_method: str | None = None,
 ) -> Dict[str, Any]:
-    """一站式质量评估。
+    """One-stop quality assessment.
 
     Args:
-        sci: 科学图像
-        noise: 噪声图
-        psf: PSF 数组
-        starmask: 恒星 mask (可选)
-        cr_mask: 宇宙线 mask (可选)
-        bg_rms: 背景 RMS
-        pixel_scale: 像元尺度
-        cr_method: 宇宙线检测方法 ("deepCR" / "LA-cosmic" / "stacked" / None)。
-                   用于按方法选择 CR_fraction 阈值（deepCR 检出率天然更高）。
+        sci: science image
+        noise: noise map
+        psf: PSF array
+        starmask: star mask (optional)
+        cr_mask: cosmic-ray mask (optional)
+        bg_rms: background RMS
+        pixel_scale: pixel scale
+        cr_method: cosmic-ray detection method ("deepCR" / "LA-cosmic" / "stacked" / None).
+                   Used to select the CR_fraction threshold per method (deepCR naturally has a higher detection rate).
 
     Returns:
         {
@@ -296,7 +296,7 @@ def assess_quality(
             "usable": bool,
         }
     """
-    # 计算各项指标
+    # Compute all metrics
     snr_m = compute_snr_metrics(sci, noise)
     noise_uni = compute_noise_uniformity(noise, sci)
     psf_m = compute_psf_metrics(psf, pixel_scale)
@@ -315,12 +315,12 @@ def assess_quality(
                              if starmask is not None and starmask.size > 0 else 0.0,
     }
 
-    # 按宇宙线检测方法选 CR 阈值（默认用 THRESHOLDS 里的通用值）
+    # Select the CR threshold per detection method (default to the generic values in THRESHOLDS)
     eff_thresholds = dict(THRESHOLDS)
     if cr_method is not None and cr_method in CR_THRESHOLDS_BY_METHOD:
         eff_thresholds["CR_fraction"] = CR_THRESHOLDS_BY_METHOD[cr_method]
 
-    # 检查阈值
+    # Check thresholds
     checks = [
         ("SNR_peak", metrics["snr_peak"], "peak SNR", "high"),
         ("SNR_center", metrics["snr_center_median"], "中心 SNR", "high"),

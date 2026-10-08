@@ -1,15 +1,15 @@
 """
-诊断可视化 Diagnostic visualization
+Diagnostic visualization
 ==========
-生成处理结果的诊断图，包括 4-panel 总览和 PSF 剖面。
+Generate diagnostic plots of the processing results, including a 4-panel overview and a PSF profile.
 
-功能:
+Features:
   1. generate_diagnostic_plot() — 4-panel: SCI/Noise/SNR/StarMask
-  2. generate_psf_profile()     — PSF 剖面图
+  2. generate_psf_profile()     — PSF profile plot
 
-输出格式: PNG (matplotlib Agg backend)
+Output format: PNG (matplotlib Agg backend)
 
-使用示例:
+Example:
   >>> from galaxylens.data_pipeline.imaging.output.diagnostics import generate_diagnostic_plot
   >>> generate_diagnostic_plot(output_dir, lens_id, band, sci, noise, psf, starmask)
 """
@@ -42,7 +42,7 @@ def generate_diagnostic_plot(
     cr_mask: Optional[np.ndarray] = None,
     snr: Optional[np.ndarray] = None,
 ) -> Optional[Path]:
-    """生成 4-panel 或 5-panel 诊断图。
+    """Generate a 4-panel or 5-panel diagnostic plot.
 
     Panel layout:
       1. SCI (grayscale, log-stretch like)
@@ -51,20 +51,20 @@ def generate_diagnostic_plot(
       4. Star mask (red overlay) or PSF (hot colormap)
 
     Args:
-        output_dir: 输出目录
-        lens_id: 透镜标识符
-        band: 波段名
-        sci: 科学图像
-        noise: 噪声图
-        psf: PSF 数组
-        starmask: 恒星 mask
-        bg_rms: 背景 RMS (用于显示范围)
-        psf_source: PSF 来源标签
-        cr_mask: 宇宙线 mask (可选)
-        snr: SNR 图 (可选，自动计算)
+        output_dir: Output directory
+        lens_id: Lens identifier
+        band: Band name
+        sci: Science image
+        noise: Noise map
+        psf: PSF array
+        starmask: Star mask
+        bg_rms: Background RMS (used for display range)
+        psf_source: PSF source label
+        cr_mask: Cosmic-ray mask (optional)
+        snr: SNR map (optional; auto-computed)
 
     Returns:
-        PNG 文件路径，或 None (失败时)
+        PNG file path, or None (on failure)
     """
     try:
         from .fits_writer import make_prefix
@@ -146,18 +146,18 @@ def generate_psf_profile(
     pixel_scale: float = 0.05,
     psf_source: str = "",
 ) -> Optional[Path]:
-    """生成 PSF 剖面图（中心行/列 + 2D 等高线）。
+    """Generate the PSF profile plot (central row/column + 2D contours).
 
     Args:
-        output_dir: 输出目录
-        lens_id: 透镜标识符
-        band: 波段名
-        psf: PSF 数组
-        pixel_scale: 像元尺度 (arcsec/pixel)
-        psf_source: PSF 来源标签
+        output_dir: Output directory
+        lens_id: Lens identifier
+        band: Band name
+        psf: PSF array
+        pixel_scale: Pixel scale (arcsec/pixel)
+        psf_source: PSF source label
 
     Returns:
-        PNG 文件路径
+        PNG file path
     """
     try:
         from .fits_writer import make_prefix

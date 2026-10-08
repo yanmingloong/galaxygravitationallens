@@ -1,14 +1,14 @@
 """
-处理日志 Processing log
+Processing log
 ========
-记录处理过程的完整元数据到 JSON 文件。
+Record the complete metadata of the processing run to a JSON file.
 
-功能:
-  1. 创建结构化处理日志
-  2. 记录所有参数、方法和输入/输出路径
-  3. 支持追加波段信息
+Features:
+  1. Create a structured processing log
+  2. Record all parameters, methods, and input/output paths
+  3. Support appending band information
 
-使用示例:
+Usage example:
   >>> from galaxylens.data_pipeline.imaging.output.log import ProcessingLog
   >>> log = ProcessingLog("J2141-0001", "v2_flc_whtonly")
   >>> log.add_band("F814W", band_info)
@@ -23,18 +23,18 @@ from typing import Any
 
 
 class ProcessingLog:
-    """单次处理运行的完整日志。"""
+    """Complete log for a single processing run."""
 
     def __init__(
         self,
         lens_id: str,
         version_tag: str,
     ) -> None:
-        """初始化处理日志。
+        """Initialize the processing log.
 
         Args:
-            lens_id: 透镜标识符
-            version_tag: 版本标签 (如 "v2_flc_whtonly")
+            lens_id: Lens identifier
+            version_tag: Version tag (e.g. "v2_flc_whtonly")
         """
         self.lens_id = lens_id
         self.version_tag = version_tag
@@ -43,25 +43,25 @@ class ProcessingLog:
         self.errors: list[str] = []
 
     def add_band(self, band: str, info: dict[str, Any]) -> None:
-        """记录一个波段的处理信息。
+        """Record the processing information for one band.
 
         Args:
-            band: 波段名
-            info: 包含以下键的字典:
-              - source_files: 源文件列表
-              - product_type: 数据产品类型
-              - n_exposures: 曝光数
-              - pixel_scale: 像元尺度
-              - cutout_shape: 裁剪后 shape
+            band: Band name
+            info: Dictionary containing the following keys:
+              - source_files: List of source files
+              - product_type: Data product type
+              - n_exposures: Number of exposures
+              - pixel_scale: Pixel scale
+              - cutout_shape: Cutout shape
               - centroid: [cx, cy]
-              - bg_median: 背景中值
-              - bg_rms: 背景 RMS
-              - noise_method: 噪声方法
-              - psf_source: PSF 来源
+              - bg_median: Background median
+              - bg_rms: Background RMS
+              - noise_method: Noise method
+              - psf_source: PSF source
               - psf_shape: PSF shape
-              - starmask_pixels: mask 像素数
-              - cr_fraction_pct: CR 占比
-              - quality: 质量评估 (可选)
+              - starmask_pixels: Number of masked pixels
+              - cr_fraction_pct: CR fraction
+              - quality: Quality assessment (optional)
         """
         self.bands[band] = {
             **info,
@@ -69,16 +69,16 @@ class ProcessingLog:
         }
 
     def add_error(self, band: str, error: str) -> None:
-        """记录处理错误。
+        """Record a processing error.
 
         Args:
-            band: 波段名
-            error: 错误描述
+            band: Band name
+            error: Error description
         """
         self.errors.append(f"[{band}] {error}")
 
     def to_dict(self) -> dict[str, Any]:
-        """将日志导出为字典。"""
+        """Export the log as a dictionary."""
         return {
             "lens": self.lens_id,
             "version": self.version_tag,
@@ -89,13 +89,13 @@ class ProcessingLog:
         }
 
     def save(self, output_dir: Path) -> Path:
-        """保存日志到 JSON 文件。
+        """Save the log to a JSON file.
 
         Args:
-            output_dir: 输出目录
+            output_dir: Output directory
 
         Returns:
-            日志文件路径
+            Log file path
         """
         output_dir.mkdir(parents=True, exist_ok=True)
         log_path = output_dir / "processing_log.json"

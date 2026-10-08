@@ -1,7 +1,7 @@
-"""TinyTim PSF：Massey 栅格（ACS）+ 直接编译（WFPC2 等）。
+"""TinyTim PSF: Massey grid (ACS) + direct compilation (WFPC2 etc.).
 TinyTim PSF: Massey grid (ACS) + direct compilation (WFPC2 etc.).
 
-参考 dinos_i pipeline: https://github.com/cytan1/dinos-i
+Reference: dinos_i pipeline: https://github.com/cytan1/dinos-i
 """
 from __future__ import annotations
 from typing import Optional, Tuple
@@ -27,62 +27,63 @@ from galaxylens.config.paths import (
 
 
 # ══════════════════════════════════════════════════════════════════════
-# TinyTim 配置
+# TinyTim configuration
 # ══════════════════════════════════════════════════════════════════════
 
-# Massey 栅格配置
+# Massey grid configuration
 MASSEY_GRID_TILE_SIZE = 255
-MASSEY_GRID_SOURCE_SCALE = 0.03   # arcsec/pixel (TinyTim 原生)
+MASSEY_GRID_SOURCE_SCALE = 0.03   # arcsec/pixel (TinyTim native)
 MASSEY_GRID_N_TILES = 30           # 30x30 tiles
-# 可用波段
+# Available bands
 MASSEY_AVAILABLE_BANDS = {"F435W", "F606W", "F775W", "F814W", "F850W"}
 
-# TinyTim 仪器配置
-# 注意: detector_range 是【整个焦平面】的像素范围，不是单 chip。
-# ACS/WFC 两个 chip (各 2048×4096) 上下拼接成 4096×4096 焦平面，
-# world_to_pixel 返回焦平面坐标 (y 可达 4095)。见 PSF_NEEDS.md §6。
-# J2141 验证: pixel=(2083,3135) -> tile=(22,15) 需 ymax=4095 (ymax=2047 会得到 tile_row=28, 错)
+# TinyTim instrument configuration
+# Note: detector_range is the pixel range of the【entire focal plane】, not a single chip.
+# ACS/WFC's two chips (each 2048×4096) are stitched top-to-bottom into a 4096×4096 focal plane,
+# world_to_pixel returns focal-plane coordinates (y can reach 4095). See PSF_NEEDS.md §6.
+# J2141 verification: pixel=(2083,3135) -> tile=(22,15) requires ymax=4095 (ymax=2047 would give tile_row=28, wrong)
 TINYTIM_CAMERAS = {
     "ACS/WFC":  {"camera_id": 15, "chip_key": "ACS_WFC",  "detector_range": (0, 4095, 0, 4095)},
     "WFPC2/PC": {"camera_id": 6,  "chip_key": "WFPC2_PC", "detector_range": (0, 799, 0, 799)},
-    # WFPC2 三个宽场芯片：tiny1 交互 menu 选 5 (WFPC2 WFC) 后需进一步输入 chip 号 (2/3/4)。
-    # camera_id 存的是 tiny1 交互 menu 的选择号 (5)，chip 号单独存 wfpc2_chip。
-    # tiny1.c case 5: sprintf("WFPC_II_WFC%d", chip); chip = chip-2+WFPC2_WFC_2 → 内部编号 12/13/14。
+    # WFPC2's three wide-field chips: after selecting 5 (WFPC2 WFC) in the tiny1 interactive menu,
+    # you must further enter the chip number (2/3/4).
+    # camera_id stores the tiny1 interactive menu selection number (5); the chip number is stored separately as wfpc2_chip.
+    # tiny1.c case 5: sprintf("WFPC_II_WFC%d", chip); chip = chip-2+WFPC2_WFC_2 → internal numbers 12/13/14.
     "WFPC2/WF2": {"camera_id": 5, "chip_key": "WFPC2_WFC", "detector_range": (0, 799, 0, 799), "wfpc2_chip": 2},
     "WFPC2/WF3": {"camera_id": 5, "chip_key": "WFPC2_WFC", "detector_range": (0, 799, 0, 799), "wfpc2_chip": 3},
     "WFPC2/WF4": {"camera_id": 5, "chip_key": "WFPC2_WFC", "detector_range": (0, 799, 0, 799), "wfpc2_chip": 4},
 }
 
-# Z4 焦面偏移 (microns), 参考 dinos_i 模板
+# Z4 focal-plane offset (microns), reference dinos_i template
 TINYTIM_FOCUS_CENTER = {
     "ACS/WFC":  0.028,
     "WFPC2/PC": -0.117,
-    # WFPC2 WFC 三个芯片共用 -0.117 (dinos_i psf_templates 模板里 WF3 的值)
+    # WFPC2 WFC's three chips share -0.117 (the WF3 value in the dinos_i psf_templates template)
     "WFPC2/WF2": -0.117,
     "WFPC2/WF3": -0.117,
     "WFPC2/WF4": -0.117,
 }
 
-# Z4 scaling: 次镜 despace -> Z4 的比例
-TINYTIM_Z4_SCALING = 0.011  # dinos_i psf_templates 中使用
+# Z4 scaling: secondary mirror despace -> Z4 ratio
+TINYTIM_Z4_SCALING = 0.011  # used in dinos_i psf_templates
 
 def _get_hst_focus_mjd(mjd: float) -> float:
-    """从 HST 呼吸模型查询给定 MJD 的聚焦偏移 (microns)。
+    """Query the focus offset (microns) for a given MJD from the HST breathing model.
 
-    参考 dinos_i Hubble_dspace.csv。
+    Reference: dinos_i Hubble_dspace.csv.
 
     Args:
         mjd: Modified Julian Date
 
     Returns:
-        聚焦偏移 (microns), 0 如果模型不可用
+        Focus offset (microns), 0 if the model is unavailable
     """
     csv_path = get_tinytim_breathing_csv()
     if csv_path is None or not csv_path.exists():
         return 0.0
 
     try:
-        # 二分查找最近的 MJD
+        # binary search for the nearest MJD
         mjd_str = f"{mjd:.5f}"
         with open(csv_path, 'r') as f:
             reader = csv.reader(f)
@@ -107,17 +108,17 @@ def _compute_focus_offset(
     date_obs: str,
     instrument: str,
 ) -> float:
-    """计算 Z4 聚焦修正量。
+    """Compute the Z4 focus correction.
 
-    1. 查询 HST 呼吸模型获取 dm (次镜 despace, microns)
+    1. Query the HST breathing model to get dm (secondary mirror despace, microns)
     2. Z4_offset = dm * Z4_SCALING
 
     Args:
-        date_obs: 观测日期 "YYYY-MM-DD"
+        date_obs: Observation date "YYYY-MM-DD"
         instrument: "ACS/WFC" or "WFPC2/PC"
 
     Returns:
-        Z4 修正值 (microns)
+        Z4 correction value (microns)
     """
     try:
         t = Time(date_obs, format='iso')
@@ -134,20 +135,20 @@ def _detector_pos_to_tile(
     detector_range: Tuple[int, int, int, int],
     n_tiles: int = MASSEY_GRID_N_TILES,
 ) -> Tuple[int, int]:
-    """探测器像素坐标 -> Massey 栅格瓦片坐标。
+    """Detector pixel coordinates -> Massey grid tile coordinates.
 
-    参考 dinos_i: tile = 1 + (coord/det_max) * (n_tiles-2), clamp 1..(n_tiles-2)
+    Reference dinos_i: tile = 1 + (coord/det_max) * (n_tiles-2), clamp 1..(n_tiles-2)
 
     Args:
-        x_pix, y_pix: 探测器像素坐标
+        x_pix, y_pix: Detector pixel coordinates
         detector_range: (xmin, xmax, ymin, ymax)
-        n_tiles: 栅格维度
+        n_tiles: Grid dimension
 
     Returns:
         (tile_row, tile_col), 0-indexed
     """
     xmin, xmax, ymin, ymax = detector_range
-    # 归一化到 0..(n_tiles-2), 留 1 个边缘瓦片
+    # normalize to 0..(n_tiles-2), leaving 1 edge tile
     tile_col = int(1 + (x_pix / xmax) * (n_tiles - 2))
     tile_row = int(1 + (y_pix / ymax) * (n_tiles - 2))
     # clamp
@@ -157,19 +158,19 @@ def _detector_pos_to_tile(
 
 
 def _find_grid_file(base: Path, band: str, focus_idx: int) -> Optional[Path]:
-    """在 Massey 栅格目录中递归搜索聚焦切片文件。
+    """Recursively search for the focus slice file in the Massey grid directory.
 
-    支持多种目录结构:
+    Supports multiple directory structures:
       - F814W/TinyTim_models_F814W/TinyTim_f0.fits
       - F435W/435/TinyTim_f0.fits.gz
 
     Args:
-        base: 栅格根目录
-        band: 波段名
-        focus_idx: 聚焦索引
+        base: Grid root directory
+        band: Band name
+        focus_idx: Focus index
 
     Returns:
-        文件路径或 None
+        File path or None
     """
     band_dir = base / band
     if not band_dir.is_dir():
@@ -187,7 +188,7 @@ def _load_grid_tile(
     tile_col: int,
     tile_size: int = MASSEY_GRID_TILE_SIZE,
 ) -> Optional[np.ndarray]:
-    """加载栅格并提取指定瓦片。"""
+    """Load the grid and extract the specified tile."""
     try:
         if grid_path.suffix == '.gz':
             with gzip.open(grid_path, 'rb') as gz:
@@ -213,7 +214,7 @@ def _find_best_focus_slice(
     tile_size: int = MASSEY_GRID_TILE_SIZE,
     focus_range: range = range(-10, 6),
 ) -> Tuple[Optional[np.ndarray], int]:
-    """在多个聚焦切片中找峰值最大的瓦片。"""
+    """Find the tile with the largest peak across multiple focus slices."""
     best_peak = -1.0
     best_tile = None
     best_f = 0
@@ -239,22 +240,22 @@ def build_tinytim_massey_psf(
     focus_idx: Optional[int] = None,
     grid_base: Optional[Path] = None,
 ) -> Optional[Tuple[np.ndarray, str]]:
-    """从 TinyTim Massey 栅格提取 ACS PSF。
+    """Extract an ACS PSF from the TinyTim Massey grid.
 
-    使用 Richard Massey (Durham) 预计算的 TinyTim v6.3 栅格模型。
-    支持探测器位置映射、HST 呼吸聚焦修正、多聚焦切片搜索。
+    Uses the TinyTim v6.3 grid model precomputed by Richard Massey (Durham).
+    Supports detector position mapping, HST breathing focus correction, and multi-focus-slice search.
 
     Args:
-        band: 波段 (如 "F814W", "F435W")
-        date_obs: 观测日期 "YYYY-MM-DD"
-        detector_pos: 探测器像素坐标 (x, y), None 则用中心
-        pixel_scale: 目标像元尺度 (arcsec/pixel)
-        stamp_size: 输出 PSF 尺寸
-        focus_idx: 聚焦切片索引 (None=自动搜索 f-10..f+5)
-        grid_base: 栅格根目录, None 用默认
+        band: Band (e.g. "F814W", "F435W")
+        date_obs: Observation date "YYYY-MM-DD"
+        detector_pos: Detector pixel coordinates (x, y); use center if None
+        pixel_scale: Target pixel scale (arcsec/pixel)
+        stamp_size: Output PSF size
+        focus_idx: Focus slice index (None=auto search f-10..f+5)
+        grid_base: Grid root directory; use default if None
 
     Returns:
-        (psf_normalized, source_label) 或 None
+        (psf_normalized, source_label) or None
     """
     if band not in MASSEY_AVAILABLE_BANDS:
         return None
@@ -263,17 +264,17 @@ def build_tinytim_massey_psf(
     if base is None:
         return None
 
-    # 探测器位置 -> 瓦片
+    # detector position -> tile
     if detector_pos is not None:
         det_range = TINYTIM_CAMERAS["ACS/WFC"]["detector_range"]
         tile_row, tile_col = _detector_pos_to_tile(
             detector_pos[0], detector_pos[1], det_range
         )
     else:
-        # 默认中心瓦片
+        # default center tile
         tile_row = tile_col = MASSEY_GRID_N_TILES // 2
 
-    # 聚焦搜索或指定
+    # focus search or specified
     if focus_idx is not None:
         fpath = _find_grid_file(base, band, focus_idx)
         if fpath is None:
@@ -284,16 +285,16 @@ def build_tinytim_massey_psf(
         best_tile = tile
         best_f = focus_idx
     else:
-        # 自动搜索最佳聚焦
+        # auto-search for best focus
         result = _find_best_focus_slice(base, band, tile_row, tile_col)
         if result[0] is None:
             return None
         best_tile, best_f = result
-        # 如果提供了日期，计算聚焦修正
+        # if a date is provided, compute the focus correction
         if date_obs:
             z4 = _compute_focus_offset(date_obs, "ACS/WFC")
             if abs(z4) > 0.001:
-                # Z4 每微米约对应 1 个聚焦切片步长
+                # Z4 corresponds to roughly 1 focus-slice step per micron
                 f_correction = int(round(z4))
                 corrected_f = best_f + f_correction
                 corrected_f = max(-10, min(5, corrected_f))
@@ -303,11 +304,11 @@ def build_tinytim_massey_psf(
                     if result2[0] is not None:
                         best_tile, best_f = result2
 
-    # 从瓦片提取 PSF (rebin 0.03" -> 目标像素尺度, crop center)
+    # extract PSF from tile (rebin 0.03" -> target pixel scale, crop center)
     source_scale = MASSEY_GRID_SOURCE_SCALE
     target_scale = pixel_scale
 
-    # 找瓦片峰值位置
+    # find tile peak position
     y_peak, x_peak = np.unravel_index(best_tile.argmax(), best_tile.shape)
     margin = stamp_size * int(target_scale / source_scale) + 10
     y0, y1 = max(0, y_peak - margin), min(best_tile.shape[0], y_peak + margin + 1)
@@ -340,25 +341,25 @@ def build_tinytim_direct_psf(
     tinytim_bin: Optional[Path] = None,
     pixel_scale: Optional[float] = None,
 ) -> Optional[Tuple[np.ndarray, str]]:
-    """使用本地 TinyTim v7.5 直接编译生成 PSF。
+    """Generate a PSF by direct compilation with local TinyTim v7.5.
 
-    tiny1 (参数文件) -> tiny2 (光线追踪) -> 提取 61x61 中心 -> 归一化
+    tiny1 (parameter file) -> tiny2 (ray tracing) -> extract 61x61 center -> normalize
 
-    参考 dinos_i 4_Psf_Maker.ipynb 流程。
+    Reference: dinos_i 4_Psf_Maker.ipynb workflow.
 
     Args:
-        band: 波段 (如 "F450W", "F606W")
+        band: Band (e.g. "F450W", "F606W")
         instrument: "ACS/WFC", "WFPC2/PC", "WFPC2/WF2", "WFPC2/WF3", "WFPC2/WF4"
-        date_obs: 观测日期 "YYYY-MM-DD"
-        detector_pos: 探测器像素 (x, y)
-        spectrum_type: 光谱类型 ("g2v", "blackbody_6000" 等)
-        psf_diameter: PSF 直径 (arcsec)
-        stamp_size: 输出 stamp 尺寸
-        tinytim_bin: TinyTim 可执行目录, None 用默认
-        pixel_scale: 目标像元尺度 (arcsec/pixel); 与 TinyTim 原生尺度不同则 rebin
+        date_obs: Observation date "YYYY-MM-DD"
+        detector_pos: Detector pixel (x, y)
+        spectrum_type: Spectral type ("g2v", "blackbody_6000", etc.)
+        psf_diameter: PSF diameter (arcsec)
+        stamp_size: Output stamp size
+        tinytim_bin: TinyTim executable directory; use default if None
+        pixel_scale: Target pixel scale (arcsec/pixel); rebin if different from TinyTim's native scale
 
     Returns:
-        (psf_normalized, source_label) 或 None
+        (psf_normalized, source_label) or None
     """
     bin_dir = tinytim_bin or get_tinytim_bin()
     if bin_dir is None:
@@ -376,28 +377,28 @@ def build_tinytim_direct_psf(
         print(f"    [WARN] TinyTim: unknown instrument {instrument}", flush=True)
         return None
 
-    # 焦距修正
+    # focus correction
     z4_offset = _compute_focus_offset(date_obs, instrument)
     z4 = TINYTIM_FOCUS_CENTER.get(instrument, 0.0) + z4_offset
 
-    # 光谱映射
+    # spectrum mapping
     spectrum_map = {
-        "g2v": "2\n6000",           # blackbody 6000K (近似 G2V)
+        "g2v": "2\n6000",           # blackbody 6000K (approx. G2V)
         "blackbody_6000": "2\n6000",
         "powerlaw_0": "3\n0",
     }
     spec_input = spectrum_map.get(spectrum_type, "2\n6000")
 
-    # 构建 tiny1 输入序列 (参考 dinos_i TinyTim_Interactive_Flow.md)
+    # build tiny1 input sequence (reference dinos_i TinyTim_Interactive_Flow.md)
     cam_id = cam_cfg["camera_id"]
     x, y = detector_pos
 
-    # ACS/WFC 需要选 chip (1 or 2)；WFPC2 WFC 需要选 chip (2/3/4，见 cam_cfg["wfpc2_chip"])
+    # ACS/WFC requires selecting a chip (1 or 2); WFPC2 WFC requires selecting a chip (2/3/4, see cam_cfg["wfpc2_chip"])
     if instrument == "ACS/WFC":
         chip = 1 if x < 2048 else 2
         tiny1_input = f"{cam_id}\n{chip}\n{x} {y}\n{band.lower()}\n{spec_input}\n{psf_diameter}\nN\n{z4:.3f}\ntinytim_psf\n"
     elif cam_cfg.get("wfpc2_chip") is not None:
-        # WFPC2 Wide Field: tiny1 menu 选 5 后需输入 chip 号 (2/3/4)
+        # WFPC2 Wide Field: after selecting 5 in the tiny1 menu, enter the chip number (2/3/4)
         chip = cam_cfg["wfpc2_chip"]
         tiny1_input = f"{cam_id}\n{chip}\n{x} {y}\n{band.lower()}\n{spec_input}\n{psf_diameter}\nN\n{z4:.3f}\ntinytim_psf\n"
     elif instrument == "WFPC2/PC":
@@ -409,7 +410,7 @@ def build_tinytim_direct_psf(
     try:
         param_file = tmpdir / "tinytim_psf.par"
 
-        # Step 1: tiny1 (生成参数文件)
+        # Step 1: tiny1 (generate parameter file)
         env = os.environ.copy()
         env["TINYTIM"] = str(bin_dir)
         result1 = subprocess.run(
@@ -423,7 +424,7 @@ def build_tinytim_direct_psf(
             print(f"    [WARN] TinyTim tiny1 failed: rc={result1.returncode}", flush=True)
             return None
 
-        # Step 2: tiny2 (光线追踪)
+        # Step 2: tiny2 (ray tracing)
         result2 = subprocess.run(
             [str(tiny2), str(param_file)],
             capture_output=True, text=True,
@@ -431,7 +432,7 @@ def build_tinytim_direct_psf(
             env=env,
         )
 
-        # 查找输出 (ACS 产生 *00_psf.fits, WFPC2 产生 *00.fits)
+        # find output (ACS produces *00_psf.fits, WFPC2 produces *00.fits)
         psf_candidates = list(tmpdir.glob("tinytim_psf00_psf.fits")) + list(tmpdir.glob("tinytim_psf00.fits"))
         if not psf_candidates:
             print(f"    [WARN] TinyTim no PSF output files found in {tmpdir}", flush=True)
@@ -441,15 +442,15 @@ def build_tinytim_direct_psf(
             psf_full = np.asarray(hdul[0].data, dtype=float)
             native_scale = float(hdul[0].header.get("PIXSCALE", 0.0) or 0.0)
 
-        # Rebin 到目标像元尺度 (TinyTim 输出原生尺度 vs 科学图尺度)。
-        # WFPC2 WF 芯片原生 0.0999"/px，但 DRZ 科学图是 0.0455"/px，须放大 ~2.19x。
+        # Rebin to the target pixel scale (TinyTim output native scale vs science image scale).
+        # WFPC2 WF chips are natively 0.0999"/px, but the DRZ science image is 0.0455"/px, so enlarge ~2.19x.
         if native_scale > 0 and pixel_scale and pixel_scale > 0:
             factor = native_scale / pixel_scale
             if abs(factor - 1.0) > 0.01:
                 psf_full = zoom(psf_full, factor, order=1)
 
-        # 以质心为中心裁剪 stamp_size×stamp_size。
-        # 旧代码 half_full-30:half_full+31 在 30x30 数组上负索引 wrap，只剩 1/4 PSF。
+        # Crop stamp_size×stamp_size centered on the centroid.
+        # The old code half_full-30:half_full+31 wrapped negative indices on a 30x30 array, leaving only 1/4 of the PSF.
         yy, xx = np.indices(psf_full.shape)
         tot = psf_full.sum()
         if tot > 0:

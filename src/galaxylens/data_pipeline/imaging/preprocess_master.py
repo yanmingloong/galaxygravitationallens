@@ -1,31 +1,31 @@
 """
-HST 透镜数据预处理总调度 HST lens data preprocessing master scheduler
+HST lens data preprocessing master scheduler
 ========================
-按样本和版本配置，自动化执行完整预处理管线。
+Automates the full preprocessing pipeline, configured per sample and version.
 
-处理流程:
-  对于每个透镜的每个波段:
-    1. file_discovery  → 查找源文件
-    2. loaders         → 加载 SCI + WHT + WCS
-    3. cutout          → WCS 裁剪到 15"×15"
-    4. centroid        → 2D Gaussian 中心微调
-    5. background      → 背景估计 + 减除
-    6. cosmic_ray      → 宇宙线检测 (FLT/FLC) 或 sigma-clipped stacking
-    7. noise           → 噪声图 (根据 product_type 自动选方法)
-    8. psf             → PSF 构建 (ePSF → Moffat → Gaussian 回退)
-    9. starmask        → 恒星 mask
-    10. alignment      → 跨波段对齐 (仅多波段)
-    11. output         → FITS 写入 + 诊断图 + 日志 + 质量评估
+Processing flow:
+  For each band of each lens:
+    1. file_discovery  → locate source files
+    2. loaders         → load SCI + WHT + WCS
+    3. cutout          → WCS cutout to 15"×15"
+    4. centroid        → 2D Gaussian center refinement
+    5. background      → background estimation + subtraction
+    6. cosmic_ray      → cosmic-ray detection (FLT/FLC) or sigma-clipped stacking
+    7. noise           → noise map (method auto-selected by product_type)
+    8. psf             → PSF construction (ePSF → Moffat → Gaussian fallback)
+    9. starmask        → star mask
+    10. alignment      → cross-band alignment (multi-band only)
+    11. output         → FITS write + diagnostic plots + log + quality assessment
 
-用法:
+Usage:
   python preprocess_master.py --lens J2141-0001 --version-tag v1_test
   python preprocess_master.py --sample SWELLS --version-tag v2_flc_whtonly
   python preprocess_master.py --all --version-tag v1_test
   python preprocess_master.py --lens J1630+4520 --dry-run
   python preprocess_master.py --lens J1630+4520 --bands F814W
 
-历史:
-  2026-06-23: 初始版本，从 preprocess_swells.py / preprocess_elliptical.py 重构
+History:
+  2026-06-23: initial version, refactored from preprocess_swells.py / preprocess_elliptical.py
 """
 
 from __future__ import annotations
@@ -43,10 +43,10 @@ import astropy.units as u
 
 from galaxylens.data_pipeline.imaging.paths import get_processed_root
 
-# 样本族 → 输出目录名映射（与旧数据 processed/{disk,ellip} 层级保持一致）
+# Sample family → output directory name mapping (keeps the legacy processed/{disk,ellip} hierarchy)
 SAMPLE_DIR = {"SWELLS": "disk", "SLACS": "ellip"}
 
-# ── 导入管线模块 ─────────────────────────────────────────────────
+# ── Import pipeline modules ─────────────────────────────────────────────────
 from galaxylens.data_pipeline.imaging.config import (
     get_lens_config, list_lenses, get_bands_for_lens,
     get_pixel_scale, CUTOUT_SIZE_ARCSEC, PSF_STAMP_SIZE,
@@ -77,7 +77,7 @@ from galaxylens.data_pipeline.imaging.output.quality import assess_quality
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 单波段处理
+# Single-band processing
 # ══════════════════════════════════════════════════════════════════════
 
 def process_band(
@@ -91,25 +91,25 @@ def process_band(
     use_bug_noise: bool = False,
     use_rescaled: bool = False,
 ) -> Optional[dict]:
-    """处理单个透镜的单个波段。
+    """Process a single band of a single lens.
 
     Args:
-        lens_id: 透镜标识符
-        band: 波段名
-        version_tag: 版本标签
-        output_base: 输出根目录 (processed/)
-        log: 处理日志对象
-        dry_run: 仅列出将处理的文件，不实际运行
+        lens_id: Lens identifier.
+        band: Band name.
+        version_tag: Version tag.
+        output_base: Output root directory (processed/).
+        log: Processing log object.
+        dry_run: Only list the files that would be processed, without actually running.
 
     Returns:
-        处理结果字典或 None
+        Processing result dict, or None.
     """
     config = get_lens_config(lens_id)
     output_dir = output_base / SAMPLE_DIR.get(config.sample, config.sample.lower()) / lens_id / version_tag
 
     print(f"\n  --- [{band}] ---", flush=True)
 
-    # ── 1. 查找源文件（FLC优先，FLT/DRC/DRZ回退）──
+    # ── 1. Locate source files (FLC first, fall back to FLT/DRC/DRZ)──
     source_files = None
     product_type = None
     for pt in ["FLC", "FLT", "DRC", "DRZ"]:
@@ -136,7 +136,7 @@ def process_band(
         print(f"    [DRY RUN] Would process into {output_dir}", flush=True)
         return {"dry_run": True}
 
-    # ── 2. 加载 ──
+    # ── 2. Load ──
     exposures = [load_exposure_for_target(f, config.ra, config.dec) for f in source_files]
     exp = exposures[0]
     n_exp = len(exposures)
@@ -144,7 +144,7 @@ def process_band(
     print(f"    Loaded {n_exp} exposure(s), product={exp.product_type}, "
           f"scale={pixel_scale}\"/pix", flush=True)
 
-    # ── 3. WCS 裁剪 ──
+    # ── 3. WCS cutout ──
     offset = config.center_offset_arcsec
     sci_cuts = []
     wht_cuts = []
@@ -157,7 +157,7 @@ def process_band(
         sci_cuts.append(s)
         wht_cuts.append(w)
 
-    # ── 4. 多曝光堆叠 (FLT/FLC only) ──
+    # ── 4. Multi-exposure stacking (FLT/FLC only) ──
     if n_exp > 1 and exp.product_type in ("FLT", "FLC"):
         sci_stacked, cr_hitmap = sigma_clipped_stack(sci_cuts)
         wht_stacked = np.mean(np.stack([w for w in wht_cuts if w is not None], axis=0), axis=0) \
@@ -172,7 +172,7 @@ def process_band(
         sci = sci_cuts[0]
         wht = wht_cuts[0]
         if exp.product_type in ("FLT", "FLC"):
-            # 优先 deepCR（检测+inpaint 修复），失败回退 LA-cosmic
+            # Prefer deepCR (detection + inpaint repair), fall back to LA-cosmic on failure
             instrument = exp.header.get("INSTRUME", "ACS")
             detector = exp.header.get("DETECTOR", "WFC")
             exptime = exp.header.get("EXPTIME", 420.0)
@@ -195,12 +195,12 @@ def process_band(
             cr_fraction = 0.0
             cr_method = None
 
-    # ── 5. 中心微调（带迭代修正）──
+    # ── 5. Center refinement (with iterative correction)──
     cx_init, cy_init = sci.shape[1] // 2, sci.shape[0] // 2
     cx_fit, cy_fit = fit_centroid(sci, cx_init, cy_init)
     print(f"    Center offset: ({cx_fit - cx_init:+.1f}, {cy_fit - cy_init:+.1f}) px", flush=True)
 
-    # 迭代修正：若偏移 > 10 像素，修正 RA/Dec 重新裁剪（参考 dinos_i）
+    # Iterative correction: if offset > 10 px, correct RA/Dec and re-cutout (cf. dinos_i)
     CENTER_THRESHOLD_PX = 10.0
     if abs(cx_fit - cx_init) > CENTER_THRESHOLD_PX or abs(cy_fit - cy_init) > CENTER_THRESHOLD_PX:
         dx_as = (cx_fit - cx_init) * pixel_scale
@@ -211,7 +211,7 @@ def process_band(
         print(f"    Iterative recenter: ({dx_as:.1f}arcsec, {dy_as:.1f}arcsec) -> "
               f"RA={ra_corr:.6f} DEC={dec_corr:.6f}", flush=True)
 
-        # 重新裁剪
+        # Re-cutout
         sci_cuts2, wht_cuts2 = [], []
         for e in exposures:
             s, w = wcs_cutout_with_wht(
@@ -222,7 +222,7 @@ def process_band(
             sci_cuts2.append(s)
             wht_cuts2.append(w)
 
-        # 重做堆叠/单曝光
+        # Redo stacking / single exposure
         if n_exp > 1 and exp.product_type in ("FLT", "FLC"):
             stack2, _ = sigma_clipped_stack(sci_cuts2)
             sci = stack2
@@ -233,11 +233,11 @@ def process_band(
         cx_fit, cy_fit = fit_centroid(sci, cx2, cy2)
         print(f"    Recentered offset: ({cx_fit - cx2:+.1f}, {cy_fit - cy2:+.1f}) px", flush=True)
 
-    # ── 6. 背景减除 ──
+    # ── 6. Background subtraction ──
     sci_bgsub, bg_med, bg_rms = process_background(sci)
     print(f"    BG: median={bg_med:.4f}, rms={bg_rms:.4f}", flush=True)
 
-    # ── 7. 噪声图 ──
+    # ── 7. Noise map ──
     calibrate = (exp.product_type in ("DRC", "DRZ"))
     noise = compute_noise(
         sci_bgsub, wht, exp.product_type,
@@ -253,9 +253,9 @@ def process_band(
                                      data_shape=sci_bgsub.shape)
     print(f"    Detected {len(stars)} stars, {len(field_stars)} field stars", flush=True)
 
-    # 提取 FITS 元数据供 TinyTim 使用
+    # Extract FITS metadata for TinyTim
     date_obs = exp.header.get("DATE-OBS", "")
-    # 仪器信息优先从 config 获取（FITS头可能缺失）
+    # Instrument info preferentially taken from config (FITS header may be missing)
     band_cfg = config.bands.get(band)
     instrument_full = (band_cfg.instrument if band_cfg else None)
     if not instrument_full:
@@ -263,7 +263,7 @@ def process_band(
         detector = exp.header.get("DETECTOR", "")
         instrument_full = f"{instrument}/{detector}" if instrument and detector else None
 
-    # 探测器位置：从 WCS 计算透镜在探测器上的像素坐标
+    # Detector position: compute the lens's pixel coordinates on the detector from the WCS
     detector_pos = None
     if exp.wcs is not None and instrument_full:
         try:
@@ -274,8 +274,8 @@ def process_band(
         except Exception:
             pass
 
-    # WFPC2 DRZ: 焦平面 WCS 返回的是 drizzle 组合图坐标 (远超芯片 0-799)，
-    # 需用 CTX 图 + HDRTAB 精确定位目标所在芯片及芯片内坐标。
+    # WFPC2 DRZ: the focal-plane WCS returns drizzle-combined coordinates (far beyond chip 0-799);
+    # use the CTX image + HDRTAB to precisely locate the target's chip and in-chip coordinates.
     if (exp.product_type == "DRZ"
             and instrument_full and instrument_full.upper().startswith("WFPC2")):
         chip_instr, chip_pos = wfpc2_chip_position(
@@ -298,7 +298,7 @@ def process_band(
         detector_pos=detector_pos,
         instrument=instrument_full,
     )
-    # ── 9. 恒星 mask ──
+    # ── 9. Star mask ──
     starmask = make_starmask(
         sci_bgsub.shape, field_stars, psf_fwhm_pix,
         lens_center=(cx_fit, cy_fit),
@@ -307,14 +307,14 @@ def process_band(
     print(f"    Starmask: {starmask.sum()} px "
           f"({100 * starmask.sum() / starmask.size:.1f}%)", flush=True)
 
-    # ── 10. 写入 FITS ──
+    # ── 10. Write FITS ──
     files = write_processed_band(
         output_dir, lens_id, band,
         sci=sci_bgsub, noise=noise, psf=psf_data,
         starmask=starmask, cr_mask=cr_mask,
     )
 
-    # ── 11. 诊断图 ──
+    # ── 11. Diagnostic plot ──
     diag_path = generate_diagnostic_plot(
         output_dir, lens_id, band,
         sci=sci_bgsub, noise=noise, psf=psf_data,
@@ -322,7 +322,7 @@ def process_band(
         psf_source=psf_source, cr_mask=cr_mask,
     )
 
-    # ── 12. 质量评估 ──
+    # ── 12. Quality assessment ──
     quality = assess_quality(
         sci_bgsub, noise, psf_data,
         starmask=starmask, cr_mask=cr_mask,
@@ -335,7 +335,7 @@ def process_band(
         for issue in quality["issues"]:
             print(f"      ⚠ {issue}", flush=True)
 
-    # ── 13. 记录日志 ──
+    # ── 13. Record log ──
     log.add_band(band, {
         "source_files": [f.name for f in source_files],
         "product_type": exp.product_type,
@@ -367,7 +367,7 @@ def process_band(
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 单透镜处理
+# Single-lens processing
 # ══════════════════════════════════════════════════════════════════════
 
 def process_lens(
@@ -380,17 +380,17 @@ def process_lens(
     use_bug_noise: bool = False,
     use_rescaled: bool = False,
 ) -> Optional[Path]:
-    """处理一个透镜的所有可用波段。
+    """Process all available bands of a single lens.
 
     Args:
-        lens_id: 透镜标识符
-        version_tag: 版本标签
-        output_base: 输出根目录
-        bands: 指定波段列表 (None = 自动检测)
-        dry_run: 仅列出，不运行
+        lens_id: Lens identifier.
+        version_tag: Version tag.
+        output_base: Output root directory.
+        bands: Explicit band list (None = auto-detect).
+        dry_run: Only list, do not run.
 
     Returns:
-        输出目录路径或 None
+        Output directory path, or None.
     """
     config = get_lens_config(lens_id)
     output_dir = output_base / SAMPLE_DIR.get(config.sample, config.sample.lower()) / lens_id / version_tag
@@ -429,7 +429,7 @@ def process_lens(
         print(f"\n  ❌ {lens_id}: No bands processed successfully", flush=True)
         return None
 
-    # ── 跨波段对齐 ──
+    # ── Cross-band alignment ──
     if len(band_results) >= 2:
         centroids = {
             b: (r["centroid"][0], r["centroid"][1], r["pixel_scale"])
@@ -438,7 +438,7 @@ def process_lens(
         offsets = compute_alignment(centroids)
         print(f"\n  {format_alignment_report(offsets)}", flush=True)
 
-    # ── 合并 starmask ──
+    # ── Combine starmask ──
     masks = [r["starmask"] for r in band_results.values()]
     if len(masks) > 0:
         combined = combine_masks(masks)
@@ -446,17 +446,17 @@ def process_lens(
         print(f"  Combined starmask: {combined.sum()} px "
               f"({100 * combined.sum() / combined.size:.1f}%)", flush=True)
 
-    # ── 版本说明 ──
+    # ── Version notes ──
     write_version_readme(output_dir, lens_id, version_tag, band_results, log)
 
-    # ── 保存日志 ──
+    # ── Save log ──
     log.save(output_dir)
     print(f"\n  ✅ {lens_id} complete → {output_dir}", flush=True)
     return output_dir
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 版本说明
+# Version notes
 # ══════════════════════════════════════════════════════════════════════
 
 def write_version_readme(
@@ -466,7 +466,7 @@ def write_version_readme(
     band_results: dict,
     log: ProcessingLog,
 ) -> None:
-    """生成版本 README.md。"""
+    """Generate the version README.md."""
     config = get_lens_config(lens_id)
     quality_summary = ""
     for b, r in band_results.items():
@@ -508,7 +508,7 @@ def write_version_readme(
 
 
 # ══════════════════════════════════════════════════════════════════════
-# CLI 入口
+# CLI entry point
 # ══════════════════════════════════════════════════════════════════════
 
 def main():
@@ -546,7 +546,7 @@ Examples:
 
     args = parser.parse_args()
 
-    # ── 确定透镜列表 ──
+    # ── Determine lens list ──
     if args.lens:
         lenses = [args.lens]
     elif args.sample:

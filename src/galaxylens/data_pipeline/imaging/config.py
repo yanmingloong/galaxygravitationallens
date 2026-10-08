@@ -1,8 +1,9 @@
-"""透镜参数配置（兼容层，从 galaxylens.config 加载 YAML）。
-Lens parameter config (compatibility layer, loading YAML from galaxylens.config).
+"""Lens parameter configuration (compatibility layer, loading YAML from
+galaxylens.config).
 
-原为硬编码 dict，现改为从 configs/{disk,slacs}/*.yaml 加载，
-返回 LensConfig dataclass。本文件保留原接口名供 data_pipeline 内部调用。
+Originally a hardcoded dict, now loads from configs/{disk,slacs}/*.yaml and
+returns a LensConfig dataclass. This file keeps the original interface names
+for internal calls within data_pipeline.
 """
 from galaxylens.config.loader import (  # noqa: F401
     load_lens_config,
@@ -25,5 +26,5 @@ from galaxylens.config.defaults import (  # noqa: F401
 
 
 def get_lens_config(lens_id):
-    """获取透镜配置（返回 LensConfig dataclass）。"""
+    """Get the lens configuration (returns a LensConfig dataclass)."""
     return load_lens_config(lens_id)

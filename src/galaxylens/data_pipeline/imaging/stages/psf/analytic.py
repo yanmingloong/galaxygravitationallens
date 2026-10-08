@@ -1,4 +1,4 @@
-"""解析 PSF：Moffat / 圆形 Gaussian / 椭圆 Gaussian。 Analytic PSF: Moffat / circular Gaussian / elliptical Gaussian."""
+"""Analytic PSF: Moffat / circular Gaussian / elliptical Gaussian."""
 from __future__ import annotations
 from typing import Tuple
 
@@ -13,16 +13,16 @@ def build_moffat_psf(
     pixel_scale: float = 0.05,
     size: int = PSF_STAMP_SIZE,
 ) -> Tuple[np.ndarray, str]:
-    """生成归一化 Moffat 轮廓 PSF。
+    """Build a normalized Moffat-profile PSF.
 
     I(r) propto [1 + (r/alpha)^2]^(-beta)
     alpha = FWHM / (2 * sqrt(2^(1/beta) - 1))
 
     Args:
-        fwhm_arcsec: PSF FWHM (角秒)
-        beta: Moffat beta 参数 (2.5-4.5 是 HST 典型值)
-        pixel_scale: 像元尺度 (arcsec/pixel)
-        size: PSF stamp 尺寸 (奇数像素)
+        fwhm_arcsec: PSF FWHM (arcseconds)
+        beta: Moffat beta parameter (2.5-4.5 are typical HST values)
+        pixel_scale: pixel scale (arcsec/pixel)
+        size: PSF stamp size (odd number of pixels)
 
     Returns:
         (psf_array, source_label)
@@ -45,12 +45,12 @@ def build_gaussian_psf(
     pixel_scale: float = 0.05,
     size: int = PSF_STAMP_SIZE,
 ) -> Tuple[np.ndarray, str]:
-    """生成归一化圆形 Gaussian PSF。
+    """Build a normalized circular Gaussian PSF.
 
     Args:
-        fwhm_arcsec: PSF FWHM (角秒)
-        pixel_scale: 像元尺度 (arcsec/pixel)
-        size: PSF stamp 尺寸
+        fwhm_arcsec: PSF FWHM (arcseconds)
+        pixel_scale: pixel scale (arcsec/pixel)
+        size: PSF stamp size
 
     Returns:
         (psf_array, source_label)
@@ -74,13 +74,13 @@ def build_elliptical_gaussian_psf(
     size: int = PSF_STAMP_SIZE,
     ellipticity: float = 0.05,
 ) -> Tuple[np.ndarray, str]:
-    """生成归一化椭圆 Gaussian PSF (带 ~5% 椭率)。
+    """Build a normalized elliptical Gaussian PSF (with ~5% ellipticity).
 
     Args:
-        fwhm_arcsec: PSF FWHM (角秒)
-        pixel_scale: 像元尺度 (arcsec/pixel)
-        size: PSF stamp 尺寸
-        ellipticity: 椭率 e = (a-b)/(a+b)，默认 0.05
+        fwhm_arcsec: PSF FWHM (arcseconds)
+        pixel_scale: pixel scale (arcsec/pixel)
+        size: PSF stamp size
+        ellipticity: ellipticity e = (a-b)/(a+b), default 0.05
 
     Returns:
         (psf_array, source_label)

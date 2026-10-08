@@ -1,17 +1,17 @@
 """
-恒星杂光 Mask Stellar stray-light mask
+Stellar stray-light mask
 =============
-生成恒星掩模，标记场星周围区域以防止其杂光污染透镜建模。
+Generate stellar masks that flag the regions around field stars to prevent their stray light from contaminating the lens modeling.
 
-功能:
-  1. 对检测到的每颗场星生成圆形 mask
-  2. 排除透镜中心区域（保护星系和弧）
-  3. mask 半径 = MASK_RADIUS_FACTOR × PSF_FWHM
+Features:
+  1. Generate a circular mask for each detected field star
+  2. Exclude the lens center region (protecting the galaxy and arcs)
+  3. Mask radius = MASK_RADIUS_FACTOR × PSF_FWHM
 
-处理流程:
-    场星列表 → 排除中心区域 → 逐星生成圆形mask → 合并输出
+Processing flow:
+    Field star list → exclude center region → generate circular mask per star → combine output
 
-使用示例:
+Example:
   >>> from galaxylens.data_pipeline.imaging.stages.starmask import make_starmask
   >>> mask = make_starmask(shape, field_stars, psf_fwhm_pix, center, pixel_scale)
 """
@@ -25,7 +25,7 @@ from ..config import MASK_RADIUS_FACTOR
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 公开接口
+# Public interface
 # ══════════════════════════════════════════════════════════════════════
 
 def make_starmask(
@@ -37,22 +37,22 @@ def make_starmask(
     lens_exclusion_arcsec: float = 5.0,
     arc_positions: Optional[List[Tuple[float, float]]] = None,
 ) -> np.ndarray:
-    """生成恒星杂光 mask。
+    """Generate the stellar stray-light mask.
 
-    对每颗检测到的场星制作圆形 mask，
-    排除透镜中心区域和已知弧位置。
+    Create a circular mask for each detected field star,
+    excluding the lens center region and known arc positions.
 
     Args:
-        shape: 图像 shape (ny, nx)
-        star_coords: 场星列表 [(x, y, flux), ...]
-        psf_fwhm_pix: PSF FWHM (像素)
-        lens_center: 透镜中心 (cx, cy)
-        pixel_scale: 像元尺度 (arcsec/pixel)
-        lens_exclusion_arcsec: 中心保护半径 (角秒)
-        arc_positions: 弧区额外保护坐标 [(x, y), ...]
+        shape: Image shape (ny, nx)
+        star_coords: Field star list [(x, y, flux), ...]
+        psf_fwhm_pix: PSF FWHM (pixels)
+        lens_center: Lens center (cx, cy)
+        pixel_scale: Pixel scale (arcsec/pixel)
+        lens_exclusion_arcsec: Center protection radius (arcsec)
+        arc_positions: Additional protected arc coordinates [(x, y), ...]
 
     Returns:
-        Boolean mask (True = 需要mask掉)
+        Boolean mask (True = pixel to be masked out)
     """
     mask = np.zeros(shape, dtype=bool)
     cx, cy = lens_center
@@ -60,15 +60,15 @@ def make_starmask(
     lens_excl_pix = lens_exclusion_arcsec / pixel_scale
     mask_radius = int(np.ceil(MASK_RADIUS_FACTOR * psf_fwhm_pix))
 
-    # 预生成坐标网格
+    # Pre-generate the coordinate grid
     yy, xx = np.ogrid[:shape[0], :shape[1]]
 
     for sx, sy, flux in star_coords:
-        # 跳过透镜中心区域
+        # Skip the lens center region
         if np.sqrt((sx - cx) ** 2 + (sy - cy) ** 2) < lens_excl_pix:
             continue
 
-        # 跳过弧区域
+        # Skip arc regions
         if arc_positions:
             skip = False
             for ax, ay in arc_positions:
@@ -78,7 +78,7 @@ def make_starmask(
             if skip:
                 continue
 
-        # 圆形 mask
+        # Circular mask
         dist = np.sqrt((xx - sx) ** 2 + (yy - sy) ** 2)
         mask[dist < mask_radius] = True
 
@@ -89,16 +89,16 @@ def combine_masks(
     masks: List[np.ndarray],
     target_shape: Optional[Tuple[int, int]] = None,
 ) -> np.ndarray:
-    """合并多个 mask（逻辑 OR），统一到目标 shape。
+    """Combine multiple masks (logical OR), unified to the target shape.
 
-    用于合并不同波段/曝光的 starmask。
+    Used to combine starmasks from different bands/exposures.
 
     Args:
-        masks: Boolean mask 列表
-        target_shape: 目标 shape，None 则取各 mask 的最小公共尺寸
+        masks: List of Boolean masks
+        target_shape: Target shape; if None, use the smallest common size of the masks
 
     Returns:
-        合并后的 Boolean mask
+        Combined Boolean mask
     """
     if not masks:
         raise ValueError("No masks to combine")
@@ -125,7 +125,7 @@ def combine_masks(
 
 
 def get_mask_stats(mask: np.ndarray) -> dict:
-    """计算 mask 的统计信息。
+    """Compute statistics of the mask.
 
     Args:
         mask: Boolean mask

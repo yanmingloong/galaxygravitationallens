@@ -1,18 +1,19 @@
 """
-跨波段对齐 Cross-band alignment
-==========
-以参考波段（通常 F814W）为中心，计算其他波段相对于参考的 centroid 偏移。
+Cross-band alignment
+====================
+Centers on the reference band (usually F814W) and computes the centroid
+offsets of the other bands relative to the reference.
 
-功能:
-  1. 以 F814W 的 centroid 为基准
-  2. 计算各波段的 centroid 偏移（像素和角秒）
-  3. 生成对齐报告
+Features:
+  1. Uses the F814W centroid as the reference
+  2. Computes the centroid offset of each band (in pixels and arcseconds)
+  3. Generates an alignment report
 
-使用场景:
-  - 盘星系多波段（ACS + WFPC2 + WFC3）需要对齐
-  - 椭圆星系纯 ACS 通常不需要（同一仪器，WCS 一致）
+Use cases:
+  - Disk galaxies with multiple bands (ACS + WFPC2 + WFC3) need alignment
+  - Elliptical galaxies with pure ACS usually do not (same instrument, consistent WCS)
 
-使用示例:
+Usage example:
   >>> from galaxylens.data_pipeline.imaging.stages.alignment import compute_alignment
   >>> offsets = compute_alignment({"F814W": (cx1, cy1, 0.05),
   ...                                "F606W": (cx2, cy2, 0.0455)})
@@ -23,29 +24,30 @@ from typing import Dict, Tuple
 
 
 # ══════════════════════════════════════════════════════════════════════
-# 公开接口
+# Public interface
 # ══════════════════════════════════════════════════════════════════════
 
 def compute_alignment(
     band_centroids: Dict[str, Tuple[float, float, float]],
     ref_band: str = "F814W",
 ) -> Dict[str, dict]:
-    """计算各波段相对于参考波段的 centroid 偏移。
+    """Compute the centroid offset of each band relative to the reference band.
 
     Args:
         band_centroids: {band: (cx, cy, pixel_scale), ...}
-        ref_band: 参考波段名 (默认 F814W)
+        ref_band: reference band name (default F814W)
 
     Returns:
         {band: {"offset_px": (dx, dy), "offset_as": (dx_as, dy_as)}, ...}
-        参考波段自身的偏移为 (0, 0)
+        The reference band's own offset is (0, 0)
 
     Raises:
-        KeyError: 若 ref_band 不在 band_centroids 中
+        KeyError: if ref_band is not in band_centroids
     """
     if ref_band not in band_centroids:
-        # 参考波段不在本批波段中（如只处理 F450W/F606W 而无 F814W）时，
-        # 回退到第一个可用波段作参考，而不是抛错。
+        # If the reference band is not among this batch of bands (e.g. only
+        # F450W/F606W are being processed without F814W), fall back to the
+        # first available band as the reference instead of raising an error.
         ref_band = next(iter(band_centroids))
 
     cx_ref, cy_ref, scale_ref = band_centroids[ref_band]
@@ -72,16 +74,16 @@ def format_alignment_report(
     offsets: Dict[str, dict],
     ref_band: str = "F814W",
 ) -> str:
-    """将对齐偏移量格式化为可读字符串。
+    """Format the alignment offsets as a human-readable string.
 
     Args:
-        offsets: compute_alignment() 的输出
-        ref_band: 参考波段名
+        offsets: output of compute_alignment()
+        ref_band: reference band name
 
     Returns:
-        格式化后的对齐报告
+        the formatted alignment report
     """
-    # 若 ref_band 不在 offsets 中，推断为 offset=(0,0) 的参考波段
+    # If ref_band is not in offsets, infer it as the band whose offset is (0,0)
     if ref_band not in offsets:
         for b, off in offsets.items():
             if off["offset_px"] == (0.0, 0.0):

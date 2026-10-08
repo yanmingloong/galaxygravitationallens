@@ -1,8 +1,8 @@
-"""兼容层：re-export galaxylens.config.paths。
-Compatibility layer: re-exports galaxylens.config.paths.
+"""Compatibility layer: re-exports galaxylens.config.paths.
 
-保留本文件是为了不破坏 data_pipeline/imaging 内既有 import 路径；
-权威实现见 galaxylens.config.paths。
+This file is kept so as not to break existing import paths within
+data_pipeline/imaging; the authoritative implementation lives in
+galaxylens.config.paths.
 """
 from galaxylens.config.paths import (  # noqa: F401
     get_data_root,

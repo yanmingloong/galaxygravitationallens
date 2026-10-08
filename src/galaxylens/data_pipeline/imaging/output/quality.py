@@ -323,14 +323,14 @@ def assess_quality(
     # Check thresholds
     checks = [
         ("SNR_peak", metrics["snr_peak"], "peak SNR", "high"),
-        ("SNR_center", metrics["snr_center_median"], "中心 SNR", "high"),
-        ("noise_uniformity", metrics["noise_uniformity"], "噪声不均匀", "low"),
-        ("PSF_FWHM_min", metrics["psf_fwhm_arcsec"], "PSF FWHM过低", "low"),
-        ("PSF_FWHM_max", metrics["psf_fwhm_arcsec"], "PSF FWHM过高", "high"),
-        ("PSF_ellipticity", metrics["psf_ellipticity"], "PSF椭率偏高", "high"),
-        ("CR_fraction", metrics["cr_fraction_pct"], "宇宙线残留", "high"),
-        ("mask_fraction", metrics["mask_fraction_pct"], "mask占比过高", "high"),
-        ("bg_residual", metrics["bg_residual_sigma"], "背景残余", "high"),
+        ("SNR_center", metrics["snr_center_median"], "center SNR", "high"),
+        ("noise_uniformity", metrics["noise_uniformity"], "noise non-uniform", "low"),
+        ("PSF_FWHM_min", metrics["psf_fwhm_arcsec"], "PSF FWHM too low", "low"),
+        ("PSF_FWHM_max", metrics["psf_fwhm_arcsec"], "PSF FWHM too high", "high"),
+        ("PSF_ellipticity", metrics["psf_ellipticity"], "PSF ellipticity high", "high"),
+        ("CR_fraction", metrics["cr_fraction_pct"], "cosmic-ray residual", "high"),
+        ("mask_fraction", metrics["mask_fraction_pct"], "mask fraction too high", "high"),
+        ("bg_residual", metrics["bg_residual_sigma"], "background residual", "high"),
     ]
 
     issues = []

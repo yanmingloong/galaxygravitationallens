@@ -286,7 +286,7 @@ def process_band(
             instrument_full = chip_instr
             detector_pos = chip_pos
         else:
-            print(f"    [WARN] WFPC2 chip 定位失败，回退焦平面坐标", flush=True)
+            print(f"    [WARN] WFPC2 chip localization failed, falling back to focal-plane coordinates", flush=True)
 
     psf_data, psf_source = build_psf(
         sci_bgsub, field_stars,
@@ -476,32 +476,32 @@ def write_version_readme(
 
     content = f"""# {lens_id} — {version_tag}
 
-- **输入数据**: `raw/{lens_id}/MAST_download/`
-- **处理日期**: {datetime.now().strftime('%Y-%m-%d')}
-- **处理脚本**: `galaxylens.data_pipeline.imaging.preprocess_master`
-- **样本**: {config.sample}
-- **红移**: z_l={config.zl}, z_s={config.zs}
+- **Input data**: `raw/{lens_id}/MAST_download/`
+- **Processing date**: {datetime.now().strftime('%Y-%m-%d')}
+- **Processing script**: `galaxylens.data_pipeline.imaging.preprocess_master`
+- **Sample**: {config.sample}
+- **Redshift**: z_l={config.zl}, z_s={config.zs}
 
-## 方法选择
+## Method selection
 
-| 环节 | 方法 | 参数 |
-|------|------|------|
-| 噪声 | auto (基于产品类型) | — |
-| PSF | ePSF → Moffat → Gaussian 回退 | 4×oversampling |
-| 宇宙线 | LA-cosmic / sigma-clipped stacking | σ=8.0 |
-| 背景 | 边缘 sigma-clipping | σ=3.0 |
-| 裁剪 | WCS Cutout2D | {CUTOUT_SIZE_ARCSEC}\"×{CUTOUT_SIZE_ARCSEC}\" |
+| Stage | Method | Parameters |
+|-------|--------|------------|
+| Noise | auto (by product type) | — |
+| PSF | ePSF → Moffat → Gaussian fallback | 4×oversampling |
+| Cosmic ray | LA-cosmic / sigma-clipped stacking | σ=8.0 |
+| Background | edge sigma-clipping | σ=3.0 |
+| Cutout | WCS Cutout2D | {CUTOUT_SIZE_ARCSEC}\"×{CUTOUT_SIZE_ARCSEC}\" |
 
-## 质量评级
+## Quality rating
 
-| 波段 | 评级 | 备注 |
-|------|------|------|
+| Band | Rating | Notes |
+|------|--------|-------|
 {quality_summary}
 
-## 注意事项
+## Notes
 
-- 原始数据位于 `raw/{lens_id}/MAST_download/`（数据根目录见 GALAXYLENS_DATA_ROOT），请勿修改
-- 处理日志见 `processing_log.json`
+- Raw data live in `raw/{lens_id}/MAST_download/` (data root set by GALAXYLENS_DATA_ROOT); do not modify
+- Processing log: `processing_log.json`
 """
     readme_path = output_dir / "README.md"
     readme_path.write_text(content)
@@ -513,7 +513,7 @@ def write_version_readme(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="HST 透镜数据预处理总调度",
+        description="HST lens data preprocessing master scheduler",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -525,24 +525,24 @@ Examples:
         """,
     )
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--lens", type=str, help="处理单个透镜")
+    group.add_argument("--lens", type=str, help="process a single lens")
     group.add_argument("--sample", type=str, choices=["SWELLS", "SLACS"],
-                       help="按样本批量处理")
-    group.add_argument("--all", action="store_true", help="处理全部透镜")
+                       help="process by sample")
+    group.add_argument("--all", action="store_true", help="process all lenses")
 
     parser.add_argument("--version-tag", type=str, default="v1",
-                        help="版本标签 (default: v1)")
+                        help="version tag (default: v1)")
     parser.add_argument("--bands", type=str, nargs="*",
-                        help="指定波段 (e.g., --bands F814W F555W)")
+                        help="specify bands (e.g., --bands F814W F555W)")
     parser.add_argument("--psf-method", type=str, default=None,
                         choices=["epsf", "moffat", "gaussian", "gaussian_ell",
                                  "tinytim_massey", "tinytim_direct"],
-                        help="强制PSF方法 (默认自动: ePSF -> TinyTim -> Moffat)")
+                        help="force PSF method (default auto: ePSF -> TinyTim -> Moffat)")
     parser.add_argument("--dry-run", action="store_true",
-                        help="仅列出将处理的文件，不实际运行")
+                        help="list files to process without running")
     parser.add_argument("--noise-method", type=str, default="all",
                         choices=["whtonly", "rescaled", "bugnoise", "all"],
-                        help="噪声方法 (default: all，一次生成三版本；version-tag 需含 {noise} 占位符)")
+                        help="noise method (default: all, generates three versions; version-tag must contain {noise} placeholder)")
 
     args = parser.parse_args()
 
@@ -569,7 +569,7 @@ Examples:
     methods = list(NOISE_METHODS.keys()) if args.noise_method == "all" else [args.noise_method]
 
     if args.noise_method == "all" and "{noise}" not in args.version_tag:
-        print(f"  ⚠ --noise-method all 需要 --version-tag 含 {{noise}} 占位符（如 v2_flc_{{noise}}_tinytim_inpaint），回退单版本 whtonly", flush=True)
+        print(f"  ⚠ --noise-method all requires --version-tag to contain {{noise}} placeholder (e.g. v2_flc_{{noise}}_tinytim_inpaint); falling back to single whtonly", flush=True)
         methods = ["whtonly"]
 
     print(f"  Noise methods: {methods}", flush=True)

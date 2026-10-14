@@ -38,6 +38,7 @@ galaxygravitationallens/
 │   └── sample_library/          #   Observational sample library access
 ├── configs/                     # per-lens YAML (disk/ + slacs/)
 ├── sample_library/              # observational sample data
+├── examples/                    # cluster run templates (slurm)
 ├── notebooks/                   # tutorials
 ├── tests/                       # unit tests
 └── docs/                        # documentation

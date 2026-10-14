@@ -13,6 +13,9 @@
 # 数据根目录（必需） data root (required)
 export GALAXYLENS_DATA_ROOT=/path/to/DataPipeline
 
+# 结果输出根（结果不进仓库，统一放这里） results output root (keep out of the repo)
+export GALAXYLENS_OUTPUT_ROOT=/path/to/results
+
 # SExtractor（可选） SExtractor (optional)
 export SEXTRACTOR_BIN=/path/to/sex
 

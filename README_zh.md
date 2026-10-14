@@ -33,6 +33,7 @@ galaxygravitationallens/
 │   └── sample_library/          #   观测样本库访问
 ├── configs/                     # 各透镜 YAML（disk/ + slacs/）
 ├── sample_library/              # 观测样本库数据
+├── examples/                    # 集群运行模板（slurm）
 ├── notebooks/                   # 教程
 ├── tests/                       # 单元测试
 └── docs/                        # 文档

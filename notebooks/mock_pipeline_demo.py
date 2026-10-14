@@ -29,10 +29,11 @@ print(J2141)
 # ## 2. 端到端筛选：scan → L1 → L3 → catalog
 #
 # `--max-detail 10` 是 smoke test（限制每快照详情数），真实普查去掉该参数。
+# 结果输出到 `GALAXYLENS_OUTPUT_ROOT`（结果不进仓库）。
 
 # %%
 data_root = os.environ.get("GALAXYLENS_DATA_ROOT", ".")
-outdir = "./mock_out"
+outdir = os.environ.get("GALAXYLENS_OUTPUT_ROOT", os.path.join(data_root, "mock_out"))
 
 # smoke test: 每快照只抓 10 个详情
 rows = run_selection(

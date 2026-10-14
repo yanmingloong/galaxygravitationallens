@@ -14,6 +14,7 @@ from .download import (
 )
 from .filter import filter_l1, pass_l1, is_field
 from .merger import check_merger, z_of
+from .run import run_selection
 from .scan import scan_snapshot
 from .verify import verify_one, load_stars
 
@@ -24,6 +25,7 @@ __all__ = [
     "download_stars", "download_gas", "download_cutout", "STARS_3FIELD",
     "filter_l1", "pass_l1", "is_field",
     "check_merger", "z_of",
+    "run_selection",
     "scan_snapshot",
     "verify_one", "load_stars",
 ]

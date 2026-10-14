@@ -885,19 +885,30 @@ def enrich_theta_e(df: pd.DataFrame) -> pd.DataFrame:
 
     # Known theta_E values from literature for SWELLS lenses
     # SWELLS names in catalog with double-J: "SDSS JJ0820+4847"
+    # NOTE (2026-10-14): the 4 SWELLS-III lens values corrected from Brewer+2012
+    # (MNRAS 422, 3574) Table 1 column b: J0820+4847=0.82, J1029+0420=1.05,
+    # J1103+5322=1.08, J2141-0001=0.88. Remaining names are SLACS lenses
+    # (Auger+2009), values kept from SLACS literature.
     swell_s_thetas = {
-        "J0820+4847": 1.17, "J0903+5116": 1.09,
+        "J0820+4847": 0.82, "J0903+5116": 1.09,
         "J0904+5112": 0.89, "J0912+4845": 0.65,
         "J0922+4508": 0.85, "J0955+4640": 0.72,
-        "J1029+0420": 1.16, "J1103+5322": 0.93,
+        "J1029+0420": 1.05, "J1103+5322": 1.08,
         "J1110+4638": 0.93, "J1114+4727": 0.70,
         "J1142+5055": 0.97, "J1148+4950": 0.75,
         "J1205+4910": 1.25, "J1250+0523": 1.16,
         "J1301+5117": 0.83, "J1338+4447": 0.63,
         "J1430+4105": 1.47, "J1436+4654": 0.69,
         "J1632+4117": 0.82, "J2111-0114": 0.70,
-        "J2141-0001": 1.10, "J2300+0022": 0.84,
+        "J2141-0001": 0.88, "J2300+0022": 0.84,
         "J2341+0000": 1.29,
+        # Additional SWELLS lens theta_E from Brewer+2012 Table 1 (added 2026-10-14)
+        "J0841+3824": 1.46, "J0915+4211": 0.98,
+        "J0955+0101": 1.04, "J1032+5322": 1.06,
+        "J1117+4704": 0.77, "J1135+3720": 0.71,
+        "J1203+2535": 0.87, "J1251-0208": 0.82,
+        "J1313+0506": 0.53, "J1331+3628": 0.96,
+        "J1703+2451": 0.93,
     }
     from .utils import normalize_name
     for short_name, theta_e in swell_s_thetas.items():

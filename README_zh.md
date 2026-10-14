@@ -26,7 +26,7 @@ galaxygravitationallens/
 │   │   ├── data/                #     读 processed → imaging + PSF 对象
 │   │   ├── mge/                 #     MGE 拟合 + 去投影
 │   │   ├── lens/                #     透镜模型 builder（盘 / 椭圆两套）
-│   │   ├── dynamics/            #     JAX Jeans / AGAMA / jampy（统一接口）
+│   │   ├── dynamics/            #     jampy（主引擎）/ AGAMA / JAX Jeans（交叉验证）
 │   │   ├── fit/                 #     lens-only / dynamics-only / joint 似然
 │   │   ├── plotting/            #     统一绘图（论文风格）
 │   │   └── validation/          #     ground-truth 对照（mock 验证）
@@ -50,7 +50,9 @@ galaxygravitationallens/
 | `data_pipeline/spectra` | ⏳ 待完善后迁移 |
 | `data_pipeline/other_obs` | ⏳ 待完善后迁移 |
 | `lensfit` (data/mge/lens/dynamics/fit/plotting/validation) | ⏳ 待迁移 |
-| `mock_pipeline` (selection/skirt/truth) | ⏳ 待迁移 |
+| `mock_pipeline/truth` (kinematics/measures/cosmology) | ✅ 已迁移（纯函数 + 回归测试，348489 f_disk=0.643 复现） |
+| `mock_pipeline/selection` (scan/filter/merger/download/verify/catalog) | ✅ 已迁移（按目标配置，筛选判据数据化） |
+| `mock_pipeline/skirt` (convert/render/imaging) | ✅ 已迁移（惯性张量对齐 + .ski 生成 + fake HST） |
 
 ## 设计原则
 

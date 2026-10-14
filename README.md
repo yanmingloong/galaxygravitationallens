@@ -31,7 +31,7 @@ galaxygravitationallens/
 │   │   ├── data/                #     read processed → imaging + PSF objects
 │   │   ├── mge/                 #     MGE fitting + deprojection
 │   │   ├── lens/                #     lens model builder (disk / elliptical)
-│   │   ├── dynamics/            #     JAX Jeans / AGAMA / jampy (unified)
+│   │   ├── dynamics/            #     jampy (primary) / AGAMA / JAX Jeans (cross-check)
 │   │   ├── fit/                 #     lens-only / dynamics-only / joint likelihood
 │   │   ├── plotting/            #     unified plotting (paper style)
 │   │   └── validation/          #     ground-truth comparison (mock validation)
@@ -55,7 +55,9 @@ Code is being migrated from the internal research project incrementally.
 | `data_pipeline/spectra` | ⏳ pending |
 | `data_pipeline/other_obs` | ⏳ pending |
 | `lensfit` (data/mge/lens/dynamics/fit/plotting/validation) | ⏳ pending |
-| `mock_pipeline` (selection/skirt/truth) | ⏳ pending |
+| `mock_pipeline/truth` (kinematics/measures/cosmology) | ✅ migrated (pure functions + regression tests; 348489 f_disk=0.643 reproduced) |
+| `mock_pipeline/selection` (scan/filter/merger/download/verify/catalog) | ✅ migrated (per-target config; selection criteria are data) |
+| `mock_pipeline/skirt` (convert/render/imaging) | ✅ migrated (inertia-tensor alignment + .ski generation + fake HST) |
 
 ## Design principles
 

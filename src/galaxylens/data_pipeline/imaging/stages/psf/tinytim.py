@@ -1,5 +1,4 @@
-"""TinyTim PSF: Massey grid (ACS) + direct compilation (WFPC2 etc.).
-TinyTim PSF: Massey grid (ACS) + direct compilation (WFPC2 etc.).
+"""TinyTim PSF: Massey grid (ACS) + direct compilation (WFPC2, WFC3/IR).
 
 Reference: dinos_i pipeline: https://github.com/cytan1/dinos-i
 """
@@ -52,6 +51,7 @@ TINYTIM_CAMERAS = {
     "WFPC2/WF2": {"camera_id": 5, "chip_key": "WFPC2_WFC", "detector_range": (0, 799, 0, 799), "wfpc2_chip": 2},
     "WFPC2/WF3": {"camera_id": 5, "chip_key": "WFPC2_WFC", "detector_range": (0, 799, 0, 799), "wfpc2_chip": 3},
     "WFPC2/WF4": {"camera_id": 5, "chip_key": "WFPC2_WFC", "detector_range": (0, 799, 0, 799), "wfpc2_chip": 4},
+    "WFC3/IR":  {"camera_id": 23, "chip_key": "WFC3_IR",  "detector_range": (0, 1013, 0, 1013)},
 }
 
 # Z4 focal-plane offset (microns), reference dinos_i template
@@ -62,6 +62,7 @@ TINYTIM_FOCUS_CENTER = {
     "WFPC2/WF2": -0.117,
     "WFPC2/WF3": -0.117,
     "WFPC2/WF4": -0.117,
+    "WFC3/IR": 0.0,
 }
 
 # Z4 scaling: secondary mirror despace -> Z4 ratio
@@ -349,7 +350,7 @@ def build_tinytim_direct_psf(
 
     Args:
         band: Band (e.g. "F450W", "F606W")
-        instrument: "ACS/WFC", "WFPC2/PC", "WFPC2/WF2", "WFPC2/WF3", "WFPC2/WF4"
+        instrument: "ACS/WFC", "WFPC2/PC", "WFPC2/WF2", "WFPC2/WF3", "WFPC2/WF4", "WFC3/IR"
         date_obs: Observation date "YYYY-MM-DD"
         detector_pos: Detector pixel (x, y)
         spectrum_type: Spectral type ("g2v", "blackbody_6000", etc.)
@@ -403,6 +404,10 @@ def build_tinytim_direct_psf(
         tiny1_input = f"{cam_id}\n{chip}\n{x} {y}\n{band.lower()}\n{spec_input}\n{psf_diameter}\nN\n{z4:.3f}\ntinytim_psf\n"
     elif instrument == "WFPC2/PC":
         tiny1_input = f"{cam_id}\n{x} {y}\n{band.lower()}\n{spec_input}\n{psf_diameter}\nN\n{z4:.3f}\ntinytim_psf\n"
+    elif instrument == "WFC3/IR":
+        # WFC3/IR (single 1014x1014 chip): no chip prompt and no "N" focus
+        # prompt — goes straight from PSF diameter to the focus offset (0 = none).
+        tiny1_input = f"{cam_id}\n{x} {y}\n{band.lower()}\n{spec_input}\n{psf_diameter}\n{z4:.3f}\ntinytim_psf\n"
     else:
         tiny1_input = f"{cam_id}\n{x} {y}\n{band.lower()}\n{spec_input}\n{psf_diameter}\nN\n{z4:.3f}\ntinytim_psf\n"
 

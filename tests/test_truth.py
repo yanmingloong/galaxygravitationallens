@@ -48,12 +48,20 @@ def test_cosmic_time():
     assert cosmic_time(1.0) == pytest.approx(13.8, abs=0.3)
 
 
+def test_snap_to_a_unknown_raises():
+    """Unknown snapshot must raise, not silently return a=1.0."""
+    import pytest as _pytest
+    from galaxylens.mock_pipeline.truth import snap_to_a
+    with _pytest.raises(KeyError):
+        snap_to_a(93)  # not in SNAP_Z
+
+
 def test_tng_units():
     assert tng_mass_to_msun(42.48) == pytest.approx(6.27e11, rel=0.01)
     assert snap_to_a(88) == pytest.approx(1.0 / 1.1418, abs=1e-6)
-    # 100 comoving kpc/h at snap88 -> 100 * 0.6774 * (1/1.1418) physical kpc
+    # 100 comoving kpc/h at snap88 -> 100 / 0.6774 * (1/1.1418) physical kpc
     assert tng_length_to_physical_kpc(100, 88) == pytest.approx(
-        100 * 0.6774 / 1.1418, abs=1e-6)
+        100 / 0.6774 / 1.1418, abs=1e-6)
 
 
 # ---------------------------------------------------------------------------

@@ -103,7 +103,7 @@ def fetch_detail(sim, snap, sid):
         if d.get("mass_stars") else None,
         "mstar_msun": round(d.get("mass_stars", 0) / H * 1e10, 1),
         "sigma_km_s": d.get("veldisp"), "vmax_km_s": d.get("vmax"),
-        "re_star_kpc": round(d.get("halfmassrad_stars", 0) * H * a, 2),
+        "re_star_kpc": round(d.get("halfmassrad_stars", 0) * a / H, 2),
         "sfr_msun_yr": d.get("sfr"), "mass_log_total": d.get("mass_log_msun"),
         "primary_flag": d.get("primary_flag"), "grnr": grnr,
         "group_mass_log": round(math.log10(gm), 2) if gm and gm > 0 else None,

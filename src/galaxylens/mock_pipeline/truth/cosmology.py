@@ -128,21 +128,30 @@ def tng_mass_to_msun(mass_tng, h=H):
 
 def tng_length_to_kpc(length_tng, h=H):
     """TNG length (comoving kpc/h) -> comoving kpc."""
-    return length_tng * h
+    return length_tng / h
 
 
 def tng_length_to_physical_kpc(length_tng, snap, h=H):
     """TNG length (comoving kpc/h) -> physical kpc at a snapshot.
 
-    physical = comoving * a, with a = 1/(1+z) the scale factor.
+    physical = comoving / h * a, with a = 1/(1+z) the scale factor.
+    (ckpc/h is "ckpc per h", so divide by h, matching tng_mass_to_msun.)
     """
     a = SNAP_TO_A.get(snap, 1.0)
-    return length_tng * h * a
+    return length_tng * a / h
 
 
 def snap_to_a(snap):
-    """Scale factor a = 1/(1+z) for a TNG snapshot."""
-    return SNAP_TO_A.get(snap, 1.0)
+    """Scale factor a = 1/(1+z) for a TNG snapshot.
+
+    Raises KeyError for a snapshot not in SNAP_Z (instead of silently
+    returning a=1.0 = z=0, which would corrupt the unit conversion).
+    """
+    if snap in SNAP_TO_A:
+        return SNAP_TO_A[snap]
+    raise KeyError(
+        f"snapshot {snap} not in SNAP_Z ({sorted(SNAP_Z)}); "
+        "add it to SNAP_Z or pass a known snapshot")
 
 
 def snap_to_z(snap):

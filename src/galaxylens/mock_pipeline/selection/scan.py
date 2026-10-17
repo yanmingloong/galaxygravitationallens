@@ -27,10 +27,47 @@ import requests
 
 from ..truth.cosmology import H, snap_to_a
 
-API_KEY = os.environ.get("TNG_API_KEY", "")
-HEADERS = {"api-key": API_KEY}
 BASE = "https://www.tng-project.org/api/"
 RATE_LIMIT = 0.25  # seconds/request
+
+_key_hint_shown = False
+
+
+def _print_key_hint():
+    """Print the one-time "how to obtain a key" hint (process-wide)."""
+    global _key_hint_shown
+    if _key_hint_shown:
+        return
+    _key_hint_shown = True
+    print(
+        "TNG API key not found: set env var TNG_API_KEY, or write it "
+        "to ~/.tng_api_key.\n"
+        "See docs/mock_pipeline.md for how to obtain one "
+        "(free registration at tng-project.org).",
+        flush=True)
+
+
+def read_api_key():
+    """Read the TNG API key from env TNG_API_KEY or ~/.tng_api_key.
+
+    Returns the key string, or "" when unavailable. Silent on import —
+    the hint prints only when a download is actually attempted (see
+    ``_print_key_hint``). The key is never hard-coded in this repository.
+    """
+    key = os.environ.get("TNG_API_KEY", "").strip()
+    if key:
+        return key
+    key_file = os.path.expanduser("~/.tng_api_key")
+    if os.path.exists(key_file):
+        with open(key_file) as f:
+            key = f.read().strip()
+        if key:
+            return key
+    return ""
+
+
+API_KEY = read_api_key()
+HEADERS = {"api-key": API_KEY} if API_KEY else {}
 
 COLS = ["sim", "snap", "subhalo_id", "log_mstar", "mstar_msun", "sigma_km_s",
         "vmax_km_s", "re_star_kpc", "sfr_msun_yr", "mass_log_total",
@@ -39,6 +76,11 @@ COLS = ["sim", "snap", "subhalo_id", "log_mstar", "mstar_msun", "sigma_km_s",
 
 def get(url, timeout=45, retries=4):
     """GET with api-key header, retry/backoff, rate limiting."""
+    if not API_KEY:
+        _print_key_hint()
+        r = requests.Response()
+        r.status_code = -1
+        return r
     for i in range(retries + 1):
         try:
             r = requests.get(url, headers=HEADERS, timeout=timeout)

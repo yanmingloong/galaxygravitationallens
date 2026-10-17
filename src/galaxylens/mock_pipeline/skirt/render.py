@@ -1,10 +1,10 @@
 """SKIRT simulation-file (.ski) generation and execution.
 
-Generates the SKIRT9 ``MonteCarloSimulation`` XML for F814W/F160W in a dust
-(``ExtinctionOnly`` + ``ParticleMedium``) and a no-dust (``NoMedium``)
-version, then runs the ``skirt`` binary. Inclination is 78.5 deg (edge-on,
-matching J2141), azimuth 90 deg (long axis horizontal after the three-axis
-alignment), and ``roll`` compensates each galaxy's residual tilt.
+Generates the SKIRT9 ``MonteCarloSimulation`` XML for arbitrary bands
+(each a :class:`~.config.BandConfig`) in a dust (``ExtinctionOnly`` +
+``ParticleMedium``) and a no-dust (``NoMedium``) version, then runs the
+``skirt`` binary. Inclination/azimuth/roll come from the target + the
+:class:`~.config.MockObsConfig`; roll compensates each galaxy's residual tilt.
 
 The ``skirt`` binary is taken from ``SKIRT_BIN`` (env var) or ``skirt`` on
 PATH.
@@ -13,10 +13,7 @@ PATH.
 import os
 import subprocess
 
-BANDS = {
-    "F814W": "HST ACS WFC F814W",
-    "F160W": "HST WFC3 IR F160W",
-}
+from .config import J2141_OBS
 
 # ExtinctionOnly + dust medium
 TEMPLATE_DUST = """<?xml version="1.0" encoding="UTF-8"?>
@@ -58,8 +55,8 @@ TEMPLATE_DUST = """<?xml version="1.0" encoding="UTF-8"?>
                     </ConfigurableBandWavelengthGrid>
                 </defaultWavelengthGrid>
                 <instruments type="Instrument">
-                    <FrameInstrument instrumentName="{band}" distance="10 Mpc" inclination="{incl}" azimuth="90 deg" roll="{roll}"
-                                     fieldOfViewX="{fov}" fieldOfViewY="{fov}" numPixelsX="200" numPixelsY="200"/>
+                    <FrameInstrument instrumentName="{band}" distance="{distance}" inclination="{incl}" azimuth="{azimuth}" roll="{roll}"
+                                     fieldOfViewX="{fov}" fieldOfViewY="{fov}" numPixelsX="{num_pixels}" numPixelsY="{num_pixels}"/>
                 </instruments>
             </InstrumentSystem>
         </instrumentSystem>
@@ -93,8 +90,8 @@ TEMPLATE_NODUST = """<?xml version="1.0" encoding="UTF-8"?>
                     </ConfigurableBandWavelengthGrid>
                 </defaultWavelengthGrid>
                 <instruments type="Instrument">
-                    <FrameInstrument instrumentName="{band}" distance="10 Mpc" inclination="{incl}" azimuth="90 deg" roll="{roll}"
-                                     fieldOfViewX="{fov}" fieldOfViewY="{fov}" numPixelsX="200" numPixelsY="200"/>
+                    <FrameInstrument instrumentName="{band}" distance="{distance}" inclination="{incl}" azimuth="{azimuth}" roll="{roll}"
+                                     fieldOfViewX="{fov}" fieldOfViewY="{fov}" numPixelsX="{num_pixels}" numPixelsY="{num_pixels}"/>
                 </instruments>
             </InstrumentSystem>
         </instrumentSystem>
@@ -103,24 +100,30 @@ TEMPLATE_NODUST = """<?xml version="1.0" encoding="UTF-8"?>
 """
 
 
-def write_ski(label, band, outdir, incl="78.5 deg", fov="40 kpc", roll="0 deg",
-              npackets="1e9"):
+def write_ski(label, band_cfg, outdir, obs=J2141_OBS, incl="78.5 deg",
+              roll="0 deg", npackets="1e9"):
     """Write the dust and no-dust .ski files for one label/band.
 
-    Returns ``(dust_path, nodust_path)``.
+    ``band_cfg`` is a :class:`~.config.BandConfig`; ``obs`` is the
+    :class:`~.config.MockObsConfig` (fov / num_pixels / azimuth /
+    distance). ``incl`` is the disk inclination; pass ``target.incl``
+    from the target's
+    :class:`~galaxylens.mock_pipeline.selection.config.TargetConfig`
+    (default 78.5 deg = J2141). Returns ``(dust_path, nodust_path)``.
     """
     os.makedirs(outdir, exist_ok=True)
-    bandname = BANDS[band]
-    dust_path = os.path.join(outdir, f"{label}_{band}.ski")
-    nodust_path = os.path.join(outdir, f"{label}_{band}_nodust.ski")
+    dust_path = os.path.join(outdir, f"{label}_{band_cfg.label}.ski")
+    nodust_path = os.path.join(outdir, f"{label}_{band_cfg.label}_nodust.ski")
     with open(dust_path, "w") as f:
-        f.write(TEMPLATE_DUST.format(label=label, band=band, bandname=bandname,
-                                     incl=incl, fov=fov, roll=roll,
-                                     npackets=npackets))
+        f.write(TEMPLATE_DUST.format(
+            label=label, band=band_cfg.label, bandname=band_cfg.skirt_name,
+            incl=incl, fov=obs.fov, roll=roll, npackets=npackets,
+            num_pixels=obs.num_pixels, azimuth=obs.azimuth, distance=obs.distance))
     with open(nodust_path, "w") as f:
-        f.write(TEMPLATE_NODUST.format(label=label, band=band, bandname=bandname,
-                                       incl=incl, fov=fov, roll=roll,
-                                       npackets=npackets))
+        f.write(TEMPLATE_NODUST.format(
+            label=label, band=band_cfg.label, bandname=band_cfg.skirt_name,
+            incl=incl, fov=obs.fov, roll=roll, npackets=npackets,
+            num_pixels=obs.num_pixels, azimuth=obs.azimuth, distance=obs.distance))
     return dust_path, nodust_path
 
 

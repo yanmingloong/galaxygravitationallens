@@ -15,7 +15,7 @@ import time
 
 import requests
 
-from .scan import BASE, HEADERS
+from .scan import BASE, HEADERS, API_KEY, _print_key_hint
 
 STARS_3FIELD = "Coordinates,Velocities,Masses"
 
@@ -27,6 +27,9 @@ def download_cutout(sim, snap, sid, ptype, fields, outdir, timeout=300):
     failure after retries. Files are written with a ``.part`` suffix then
     atomically renamed to avoid leaving corrupt HDF5 on interruption.
     """
+    if not API_KEY:
+        _print_key_hint()
+        return False
     out = os.path.join(outdir, f"{sim}_snap{snap}_id{sid}_{ptype}.hdf5")
     if os.path.exists(out) and os.path.getsize(out) > 100_000:
         return True

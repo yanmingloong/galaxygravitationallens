@@ -14,7 +14,7 @@ mock_pipeline/
 ├── selection/    # TNG 盘透镜类似物筛选
 │   ├── scan.py        # 全量扫描（API 翻页 + 详情抓取）
 │   ├── filter.py      # L1 筛选（判据数据化）
-│   ├── merger.py      # L2 并合史（simple.json）
+│   ├── merger.py      # L2 并合史（mpb.hdf5 主支质量跳变）
 │   ├── download.py    # 粒子下载（3 字段 / 全字段）
 │   ├── verify.py      # L3 验证（下载 + disk_kinematics）
 │   ├── catalog.py     # L3 → catalog 自动生成
@@ -22,6 +22,7 @@ mock_pipeline/
 │   └── run.py         # --target 端到端编排
 └── skirt/        # SKIRT 辐射转移 → mock 图像
     ├── convert.py     # TNG 粒子 → .dat（惯性张量盘轴对齐）
+    ├── config.py      # BandConfig/MockObsConfig（波段/仪器/几何，数据化）
     ├── render.py      # .ski 生成 + skirt 运行
     └── imaging.py     # fake HST + 消光图
 ```
@@ -42,7 +43,7 @@ L2（并合史）不在主链中，作为独立 `merger.check_merger` 按候选�
 
 ```bash
 # 环境变量
-export TNG_API_KEY=...            # TNG API key（必需）
+export TNG_API_KEY=...            # TNG API key（或写入 ~/.tng_api_key，见下方指引）
 export GALAXYLENS_DATA_ROOT=/path/to/tng_data   # 数据根（catalog/ + stars_l3/）
 export SKIRT_BIN=/path/to/skirt   # SKIRT 9 二进制（render 用）
 
@@ -55,12 +56,18 @@ python -m galaxylens.mock_pipeline.selection.run \
     --target j2141 --max-detail 5 --l3-workers 1
 ```
 
+> **TNG API key 获取**（免费，每人可申请）：在 tng-project.org 注册账号 → 登录后在
+> [API 文档](https://www.tng-project.org/data/docs/api/) 获取 key → 二选一提供给脚本：
+> `export TNG_API_KEY=你的key` 或写入 `~/.tng_api_key`（单行）。仓库不内置任何 key；
+> 未配置时脚本会提示「TNG API key not found」并指向本指引。
+
 **换目标 = 加一个 `TargetConfig`**（在 `selection/config.py` 或后续 YAML），流水线代码零改动：
 
 ```python
 from galaxylens.mock_pipeline.selection.config import TargetConfig, SelectionCriteria
 J1331 = TargetConfig(
     name="J1331+3628", z_lens=0.113, z_source=0.254, snap=88,
+    incl="70 deg",
     criteria=SelectionCriteria(
         sims=["TNG100-1"], snapshots=[88, 91, 84, 95, 99],
         mass_min=68.0, mstar_range=(5e10, 3e11), sigma_min=140.0,
@@ -102,7 +109,10 @@ J1331 = TargetConfig(
 ```python
 from galaxylens.mock_pipeline.truth import disk_kinematics, projected_ellipticity, theta_E_SIS, kpc_per_arcsec
 from galaxylens.mock_pipeline.selection import run_selection, build_catalog, verify_one
-from galaxylens.mock_pipeline.skirt import tng_to_skirt, write_ski, run_skirt, make_fake_hst
+from galaxylens.mock_pipeline.skirt import (
+    tng_to_skirt, write_ski, run_skirt, make_fake_hst,
+    BandConfig, MockObsConfig, J2141_BANDS, J2141_OBS,
+)
 
 # ground truth：粒子 → f_disk/B/D/L_hat/厚度/Re
 res = disk_kinematics(pos_kpc, vel, mass, center)   # pos/vel/mass 物理单位
@@ -112,9 +122,13 @@ rows = run_selection("j2141", data_root, outdir)    # scan → L1 → L3 → cat
 
 # SKIRT：全字段粒子 → .dat → .ski → fake HST
 tng_to_skirt(stars_h5, gas_h5, "348489", "TNG100-1", 88, outdir)
-write_ski("348489", "F814W", outdir, roll="0 deg")
+write_ski("348489", J2141_BANDS[0], outdir, obs=J2141_OBS, roll="0 deg", incl=J2141.incl)
 run_skirt(f"{outdir}/348489_F814W.ski", outdir=outdir)
-img = make_fake_hst(fits_path, px_mock, psf)
+img = make_fake_hst(fits_path, px_mock, J2141_BANDS[0], psf)
+
+# 换仪器（如 J1331 用 WFPC2 F814W、倾角 70°）：新建 BandConfig，零代码改动
+wfpc2 = BandConfig("F814W", "HST WFPC2 F814W", 0.10)
+write_ski("J1331", wfpc2, outdir, incl="70 deg")
 ```
 
 ## 七、回归测试

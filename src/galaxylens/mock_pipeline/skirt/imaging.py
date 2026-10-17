@@ -5,10 +5,10 @@ convolution + Gaussian noise + cosmic rays + faint background sources) and
 derives the extinction map from the raw dust/no-dust output. Requires
 ``scipy`` and ``astropy`` (core optional deps).
 
-The PSF, noise sigma and peak normalization are lens-instrument specific and
-passed as arguments (the project's J2141 F814W values are the defaults).
-Note: the project borrowed the F814W PSF for the F160W band too — F160W
-should use a WFC3/IR PSF (known debt, not yet applied).
+PSF / noise / peak / pixel scale are band-specific and come from a
+:class:`~.config.BandConfig` (see the J2141 defaults in ``config.py``).
+F814W uses the observed HST PSF; F160W uses a TinyTim WFC3/IR PSF
+(generated 2026-10-17). The caller passes the band-appropriate ``psf``.
 """
 
 import numpy as np
@@ -16,28 +16,25 @@ from astropy.io import fits
 from scipy.ndimage import zoom
 from scipy.signal import fftconvolve
 
-PX_HST = 0.1258          # HST F814W pixel scale, arcsec/px
-SIGMA = 8.81             # background noise sigma (e-/s)
-J_PEAK = 4905.0          # peak normalization (e-/s)
-
-
-def make_fake_hst(fits_path, px_mock, psf, sigma=SIGMA, j_peak=J_PEAK,
-                  px_hst=PX_HST, seed=42):
+def make_fake_hst(fits_path, px_mock, band_cfg, psf, seed=42):
     """Make one fake HST image from a SKIRT noiseless total.fits.
 
-    ``px_mock`` is the SKIRT image pixel scale (arcsec/px); the image is
-    resampled to ``px_hst``, convolved with ``psf``, peak-normalized to
-    ``j_peak``, then Gaussian noise (sigma), cosmic rays and 40 faint
-    background sources are added. Returns the noisy image.
+    ``band_cfg`` is a :class:`~.config.BandConfig` (pixel_scale /
+    noise_sigma / peak); ``psf`` is the PSF array for that band.
+    ``px_mock`` is the SKIRT image pixel scale (arcsec/px); the image
+    is resampled to ``band_cfg.pixel_scale``, convolved with ``psf``,
+    peak-normalized to ``band_cfg.peak``, then Gaussian noise
+    (``band_cfg.noise_sigma``), cosmic rays and 40 faint background
+    sources are added. Returns the noisy image.
     """
     img = fits.getdata(fits_path)[0]
-    factor = px_mock / px_hst
+    factor = px_mock / band_cfg.pixel_scale
     img_rs = zoom(img, factor, order=1)
     img_conv = fftconvolve(img_rs, psf, mode="same")
-    img_norm = img_conv / img_conv.max() * j_peak
+    img_norm = img_conv / img_conv.max() * band_cfg.peak
 
     rng = np.random.default_rng(seed)
-    img_noisy = img_norm + rng.normal(0, sigma, img_norm.shape)
+    img_noisy = img_norm + rng.normal(0, band_cfg.noise_sigma, img_norm.shape)
 
     # cosmic rays: 0.05% of pixels get a bright spike
     ncr = int(img_noisy.size * 0.0005)

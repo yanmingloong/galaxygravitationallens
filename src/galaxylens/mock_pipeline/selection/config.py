@@ -11,13 +11,15 @@ Selection thresholds (project-convention, see the disk_lens_analogs reports):
   sigma floor is 140 km/s (relaxed) — a 170 km/s floor biases toward
   bulge-dominated systems because ``veldisp`` is the all-particle dispersion
   (DM-dominated) and cold thin disks fall at 140-160.
-- L2 (merger): no recent major merger (simple.json, satellite/main > 0.1)
-  since snapshot ``recent_merger_snap`` (z<0.5).
+- L2 (merger): no recent major merger (mpb.hdf5 main-branch stellar-mass
+  jump > +30%) since snapshot ``recent_merger_snap`` (z<0.5).
 - L3 (particle): ``f_disk`` from circularity; ``f_disk_min`` marks the
   disk-dominant subset, ``f_disk_disk`` marks "has a disk".
 """
 
 from dataclasses import dataclass, field
+
+from ..skirt.config import MockObsConfig, J2141_OBS
 
 
 @dataclass
@@ -44,6 +46,8 @@ class TargetConfig:
     z_source: float
     snap: int                      # snapshot matching z_lens
     criteria: SelectionCriteria
+    incl: str = "78.5 deg"         # disk inclination for the SKIRT mock (J2141)
+    obs: MockObsConfig = field(default_factory=lambda: J2141_OBS)  # observation setup (bands/geometry)
 
 
 # ---------------------------------------------------------------------------

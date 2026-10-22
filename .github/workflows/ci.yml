@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  core:
+    # Both OS: core deps + the pure-python regression (scale-free quad fit, D1).
+    # PyAutoLens / jampy / mgefit are Linux/macOS-first, so the heavy stack is a
+    # separate Linux-only job below.
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install core + dev
+        run: pip install -e ".[dev]"
+      - name: Import smoke (stays light, heavy deps are lazy)
+        run: python -c "import galaxylens; print('galaxylens', galaxylens.__version__)"
+      - name: Pure-python regression (scale-free quad fit, D1)
+        run: python tests/verify_lensfit_d1.py
+
+  full:
+    # Linux only: the full fitting stack (autolens/autofit + jampy + mgefit +
+    # nautilus), exercising the joint-fit core and the D-series point-level
+    # components. Not run on Windows (PyAutoLens is "usable but not first-class"
+    # there -- see README).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install full stack
+        run: pip install -e ".[lens,dynamics,dev]"
+      - name: Joint-fit core (B7 anchors)
+        run: python tests/verify_lensfit_joint_b7.py
+      - name: D-series point-level components (D5 anchors)
+        run: python tests/verify_lensfit_d5.py
+      - name: Facade point-level entries (fit_positions / fit_mein)
+        run: python tests/verify_facade_point.py
+      - name: Facade API (config_loader / dataset / result / corner)
+        run: python tests/verify_api.py
+      - name: Joint-fit smoke (synthetic FITS, full-chain wiring)
+        run: python tests/verify_fit_smoke.py
+      - name: autofit corner-plot disable
+        run: python tests/verify_disable_corner.py

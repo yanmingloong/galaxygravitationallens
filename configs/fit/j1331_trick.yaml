@@ -1,0 +1,72 @@
+# J1331 (Trick+2016) point-level fit recipe — reference config.
+#
+# J1331 is a QUADRUPLE-IMAGE system (four point-like QSO images, no extended
+# arc), so its lensing information is point-level: the four image positions
+# (D1 scale-free fit -> Einstein mass) and a single Einstein-mass constraint
+# (D5). There is NO pixel-level imaging, so this recipe does NOT go through
+# `gl.fit` (which needs an al.Imaging dataset). Instead:
+#   - `gl.fit_positions(theta_obs, err, zlens, zsrc, kpc_per_arcsec)` -> Rein/Mein
+#   - `gl.fit_mein(geometry, kinematics, lum_mge, ml_array, rein_arcsec,
+#                  mein_msun, ...)` -> v200/c200/beta_z
+# The values below are the Trick+2016 numbers used by the D series.
+
+geometry:
+  zlens: 0.113
+  zsrc: 0.254
+  inclination_deg: 70.0
+  # da_mpc=414, pc_per_arcsec=2007 computed with WMAP5 (H0=71.9, Om0=0.258)
+
+components:
+  dark: nfw              # spherical NFW (v200 + c200)
+  stellar: mge_radial_ml # radial (per-Gaussian) M/L
+  dynamics: jampy_kdc    # counter-rotating core + direct beta_z + PSF
+
+# stellar light MGE (Trick+2016 Table 3 I0,i) + per-Gaussian Salpeter M/L
+stellar_template:
+  type: radial_ml
+  sigma: [0.051, 0.178, 0.503, 1.180, 3.891]          # arcsec
+  q:     [1.00, 0.76, 0.58, 0.56, 0.57]
+  surf_lum: [20768.0, 3161.2, 1588.2, 502.25, 136.51]  # Lsun/pc^2
+  ml:   [4.7, 2.2, 2.2, 4.7, 4.7]   # bulge 4.7 / inner disk 2.2 / outer disk 4.7
+
+# Einstein-mass (point-level) lensing constraint (D5; corrected aperture-mass form)
+mein:
+  rein_arcsec: 0.907
+  mein_msun: 7.72e10
+  frac_err: 0.10
+
+# digitized kinematics (Trick+2016 Fig 1d; symmetrized 9 points)
+kinematics:
+  v_rms:
+    - [0.032, 185.4, 5.0]
+    - [0.601, 199.2, 5.0]
+    - [0.663, 197.4, 5.0]
+    - [1.230, 213.6, 5.0]
+    - [1.294, 214.7, 5.0]
+    - [1.863, 224.9, 5.0]
+    - [1.924, 232.8, 5.0]
+    - [2.808, 226.8, 5.0]
+    - [2.870, 230.4, 5.0]
+
+# priors (D5 / Trick+2016 Eq 34-36 + Maccio+2008 WMAP5 c-M)
+priors:
+  v200: [50, 450]
+  c200: [1, 50]
+  beta_z: [-0.5, 0.5]
+
+# scale-free lensing input (D1): four image positions relative to the galaxy
+# centre G, in pixels (1 px = 0.05 arcsec) — Trick+2016 Table 4 (Brewer+2012).
+image_positions:
+  pixel_scale: 0.05
+  g_centre_pix: [0.5, 0.5]
+  err_img_pix: 1.0
+  images:
+    A: [12.1, 16.6]
+    B: [-8.5, -10.4]
+    C: [21.7, -0.5]
+    D: [-3.3, 19.2]
+
+# reference results (for the regression anchors)
+reference:
+  d1: {rein_arcsec: 0.9068, mein_1e10: 7.718, chi2: 1.945}
+  d5_map: {v200: 252, c200: 9.9, beta_z: -0.40}   # corrected-Mein 3-param MAP

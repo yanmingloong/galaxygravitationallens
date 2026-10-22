@@ -1,0 +1,79 @@
+# Fit recipe: Barnabe-style joint lens + dynamics fit of SDSS J2141-0001 (B7).
+#
+# One YAML = one reproducible fit. The lens-catalog YAML under configs/disk/
+# (name/ra/dec/zl/zs/bands) is a DIFFERENT schema; this file encodes the full
+# fitting recipe consumed by gl.load_config / gl.fit.
+
+geometry:
+  zlens: 0.138
+  zsrc: 0.7127
+  inclination_deg: 78.5
+  re_arcsec: 0.88        # Einstein radius (SWELLS II circularised)
+  rd_arcsec: 1.51        # disk scale length (for V_circ(2.2 Rd) / f_dm apertures)
+
+kinematics:
+  # DEIMOS v_rms (Barnabe+2012 Fig 2): [x_arcsec, vrms, err]
+  v_rms:
+    - [0.4123, 236.2, 15.0]
+    - [0.9297, 231.4, 15.0]
+    - [1.4456, 211.4, 15.0]
+    - [1.9669, 164.2, 15.0]
+    - [2.4815, 168.9, 15.0]
+    - [3.0028, 178.8, 15.0]
+    - [3.5178, 171.0, 15.0]
+    - [4.0331, 158.8, 18.0]
+    - [4.5529, 180.3, 18.0]
+    - [5.0696, 209.0, 18.0]
+    - [5.5893, 227.5, 20.0]
+  vcirc: 289.0           # Halpha V_circ(2.2 Rd), beam-smearing corrected
+  vcirc_err: 15.0
+
+components:
+  dark: gnfw_virial
+  stellar: mge_const_ml
+  source: single_sersic
+  dynamics: jampy
+
+priors:
+  ml_img: [2.0, 100.0]   # LogUniform
+  v_vir: [150.0, 350.0]
+  gamma: [0.3, 1.5]       # gNFW inner slope
+  q_h: [0.4, 1.0]
+  ratio: [0.5, 1.0]       # sqrt(1 - beta_z)
+  c_2:                    # Dutton & Maccio 2014 c-M prior
+    kind: gaussian
+    mean: 5.9
+    sigma: 1.49
+    lower: 3.0
+    upper: 20.0
+
+stellar_template:
+  n_bulge: 1.21
+  re_bulge: 0.26
+  q_bulge: 0.53
+  rd_disk: 1.51
+  q_disk: 0.31
+  disk_over_bulge: 4.0   # B/T = 0.20
+  psf_sigma_arcsec: 0.064
+  bulge_i0: 957.0         # B4 Step1 F814W bulge central intensity (e-/s)
+
+source_priors: {}         # use B7 defaults
+
+data:
+  data_path: j2141-0001_f814w_sci.fits        # relative to GALAXYLENS_DATA_ROOT
+  noise_map_path: j2141-0001_f814w_noise.fits
+  psf_path: j2141-0001_f814w_psf.fits
+  starmask_path: j2141-0001_f814w_starmask.fits
+  pixel_scale: 0.05
+  mask_radius: 5.0
+  oversample: 1
+
+search:
+  backend: local          # local (laptop/workstation) | slurm (cluster)
+  name: j2141_b7_joint
+  n_live: 200             # lower (e.g. 50) for a quick smoke on a laptop
+  number_of_cores: 1
+  output_root: null       # null -> GALAXYLENS_OUTPUT_ROOT
+
+noise_rescale: true
+subtract_stellar: true

@@ -1,5 +1,7 @@
 # Contributing
 
+*中文版见 [CONTRIBUTING_zh.md](CONTRIBUTING_zh.md).*
+
 Conventions for maintaining the `galaxygravitationallens` repository.
 
 ## Language policy

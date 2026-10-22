@@ -27,14 +27,17 @@ galaxygravitationallens/
 │   │   ├── selection/           #     TNG disk-lens analog selection
 │   │   ├── skirt/               #     SKIRT radiative transfer → mock images
 │   │   └── truth/               #     ground-truth extraction (f_disk etc.)
-│   ├── lensfit/                 #   Lens fitting engine (observations + mocks)
+│   ├── lensfit/                 #   Lens fitting engine (pluggable components + config assembly)
+│   │   ├── models/              #     pluggable model components (dm / stellar / source)
+│   │   ├── dynamics/            #     jampy (primary) / AGAMA / JAX Jeans (cross-check)
+│   │   ├── fit/                 #     JointAnalysis + pluggable lens constraints
+│   │   ├── pipeline/            #     config assembly (zero physics)
 │   │   ├── data/                #     read processed → imaging + PSF objects
 │   │   ├── mge/                 #     MGE fitting + deprojection
 │   │   ├── lens/                #     lens model builder (disk / elliptical)
-│   │   ├── dynamics/            #     jampy (primary) / AGAMA / JAX Jeans (cross-check)
-│   │   ├── fit/                 #     lens-only / dynamics-only / joint likelihood
 │   │   ├── plotting/            #     unified plotting (paper style)
 │   │   └── validation/          #     ground-truth comparison (mock validation)
+│   ├── api/                     #   Facade layer: gl.fit / gl.load_config / gl.load_dataset
 │   └── sample_library/          #   Observational sample library access
 ├── configs/                     # per-lens YAML (disk/ + slacs/)
 ├── sample_library/              # observational sample data
@@ -55,10 +58,11 @@ Code is being migrated from the internal research project incrementally.
 | `sample_library` | ✅ migrated (build pipeline + access; 5 modeling_input CSVs) |
 | `data_pipeline/spectra` | ⏳ pending |
 | `data_pipeline/other_obs` | ⏳ pending |
-| `lensfit` (data/mge/lens/dynamics/fit/plotting/validation) | ⏳ pending |
-| `mock_pipeline/truth` (kinematics/measures/cosmology) | ✅ migrated (pure functions + regression tests; 348489 f_disk=0.643 reproduced) |
-| `mock_pipeline/selection` (scan/filter/merger/download/verify/catalog) | ✅ migrated (per-target config; selection criteria are data) |
-| `mock_pipeline/skirt` (convert/render/imaging) | ✅ migrated (inertia-tensor alignment + .ski generation + fake HST) |
+| `lensfit` (models/dynamics/fit/pipeline/data/mge/lens/plotting/validation) | ✅ migrated (pluggable model components + config assembly + JointAnalysis; gnfw_virial/nfw/mge_const_ml/mge_radial_ml/single_sersic components; jampy/jampy_kdc engines; LensingConstraint imaging/mein/scale-free; B7 joint fit + D-series pointwise fit reproduced) |
+| `api` (config_loader/dataset/search/result/derived/plotting/facade) | ✅ migrated (gl.fit / gl.fit_positions / gl.fit_mein / gl.load_config / gl.load_dataset) |
+| `mock_pipeline/truth` (kinematics/measures/cosmology) | ✅ migrated (pure functions + regression tests; 348489 f_disk=0.643 reproduced; `major_axis_angle` roll + `counter_rotation_angle` KDC added 2026-10-20) |
+| `mock_pipeline/selection` (scan/filter/merger/download/verify/catalog) | ✅ migrated (per-target config; J2141 + J1331 built-in targets) |
+| `mock_pipeline/skirt` (convert/render/imaging) | ✅ migrated (inertia-tensor alignment + .ski generation + fake HST + single-scale multi-band dataset 2026-10-20) |
 
 ## Design principles
 
@@ -93,6 +97,18 @@ python -m galaxylens.data_pipeline.imaging.preprocess_master \
 
 See [docs/data_pipeline.md](docs/data_pipeline.md) for the full guide.
 
+### Fit (lens + dynamics)
+
+```python
+import galaxylens as gl
+
+cfg = gl.load_config("configs/fit/j2141_barnabe.yaml")
+result = gl.fit(cfg)                    # assemble -> Nautilus -> post-process
+print(result.beta_z, result.m_star, result.f_dm(2.2 * cfg.pipeline.geometry.rd_arcsec))
+```
+
+See [docs/usage_guide.md](docs/usage_guide.md) Step 3 for the full fitting flow.
+
 ## Noise methods (data_pipeline/imaging)
 
 `preprocess_master.py --noise-method` generates three noise versions per lens
@@ -112,6 +128,28 @@ approximates that single factor at the preprocessing stage, while the fitting
 stage (B4) applies the exact two-pass Barnabè rescaling (`RESCALE=True`,
 f = √reduced χ²). `bugnoise` is a signal-dependent alternative, kept as a
 backup.
+
+## Cross-platform support
+
+galaxylens is pure-Python (numpy/scipy/astropy/pyyaml/pandas + optional
+PyAutoLens / jampy / mgefit / nautilus) and runs on Windows, WSL, Linux and
+macOS (CPU). Three honest boundaries:
+
+1. **PyAutoLens is Linux/macOS-first.** The `autolens`/`autofit` stack is
+   primarily tested on Linux and macOS; on Windows it is "usable but not
+   first-class support". galaxylens inherits this support level for the `[lens]`
+   extra. Core (numpy/scipy/astropy) and the pure-python lensfit modules run
+   identically on all three platforms.
+2. **BLAS/LAPACK numeric non-determinism ~1%.** MGE decomposition (mgefit)
+   converges to slightly different Gaussian sets across BLAS backends (B6/B7:
+   CALIB 1427 vs 1157), but conserved products (CALIB x L_2D_REL) agree to ~1%.
+   Cross-platform comparisons should anchor on the conserved quantity, not a
+   single decomposition output.
+3. **slurm cluster scheduling is Linux-only; GPU/JAX acceleration is
+   Linux+NVIDIA-only.** The `backend: slurm` search backend submits SBATCH jobs
+   on a Linux cluster; the `backend: local` backend runs everywhere. The CI
+   matrix (`.github/workflows/ci.yml`) runs core + pure-python on Windows and
+   Linux, and the full fitting stack on Linux only.
 
 ## License
 

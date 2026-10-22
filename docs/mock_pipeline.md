@@ -1,67 +1,69 @@
-# mock_pipeline 使用文档 — 模拟数据生产与筛选
+# mock_pipeline usage documentation — mock data production and selection
 
-> 从 IllustrisTNG 筛选盘星系强透镜类似物，生成 SKIRT mock 图像。
-> 本模块生产**带 ground truth 的模拟数据**，与观测样本库 `sample_library`（真实巡天目录，无 ground truth）区分。
+*中文版见 [mock_pipeline_zh.md](mock_pipeline_zh.md).*
 
-## 一、模块结构
+> Select disk-galaxy strong-lens analogs from IllustrisTNG and generate SKIRT mock images.
+> This module produces **mock data with ground truth**, distinct from the observational sample library `sample_library` (real survey catalogs, no ground truth).
+
+## 1. Module structure
 
 ```
 mock_pipeline/
-├── truth/        # ground-truth 计算（selection 与 validation 共用）
-│   ├── kinematics.py   # circularity → f_disk / B/D / 盘轴 / 厚度
-│   ├── measures.py     # 半光半径 / 投影椭圆率 / 固有轴比 / 消光
-│   └── cosmology.py    # Planck 2015 距离 / SIS θE / 宇宙时间 / TNG 单位换算
-├── selection/    # TNG 盘透镜类似物筛选
-│   ├── scan.py        # 全量扫描（API 翻页 + 详情抓取）
-│   ├── filter.py      # L1 筛选（判据数据化）
-│   ├── merger.py      # L2 并合史（mpb.hdf5 主支质量跳变）
-│   ├── download.py    # 粒子下载（3 字段 / 全字段）
-│   ├── verify.py      # L3 验证（下载 + disk_kinematics）
-│   ├── catalog.py     # L3 → catalog 自动生成
-│   ├── config.py      # TargetConfig / SelectionCriteria（判据）
-│   └── run.py         # --target 端到端编排
-└── skirt/        # SKIRT 辐射转移 → mock 图像
-    ├── convert.py     # TNG 粒子 → .dat（惯性张量盘轴对齐）
-    ├── config.py      # BandConfig/MockObsConfig（波段/仪器/几何，数据化）
-    ├── render.py      # .ski 生成 + skirt 运行
-    └── imaging.py     # fake HST + 消光图
+├── truth/        # ground-truth computation (shared by selection and validation)
+│   ├── kinematics.py   # circularity → f_disk / B/D / disk axis / thickness
+│   ├── measures.py     # half-light radius / projected ellipticity / intrinsic axis ratio / extinction
+│   └── cosmology.py    # Planck 2015 distances / SIS θE / cosmic time / TNG unit conversion
+├── selection/    # TNG disk-lens analog selection
+│   ├── scan.py        # full scan (API pagination + detail fetching)
+│   ├── filter.py      # L1 filtering (criteria as data)
+│   ├── merger.py      # L2 merger history (mpb.hdf5 main-progenitor mass jumps)
+│   ├── download.py    # particle download (3 fields / full fields)
+│   ├── verify.py      # L3 verification (download + disk_kinematics)
+│   ├── catalog.py     # L3 → catalog auto-generation
+│   ├── config.py      # TargetConfig / SelectionCriteria (criteria)
+│   └── run.py         # --target end-to-end orchestration
+└── skirt/        # SKIRT radiative transfer → mock images
+    ├── convert.py     # TNG particles → .dat (inertia-tensor disk-axis alignment)
+    ├── config.py      # BandConfig/MockObsConfig (bands/instruments/geometry, as data)
+    ├── render.py      # .ski generation + skirt run
+    └── imaging.py     # fake HST + extinction map
 ```
 
-## 二、端到端数据流
+## 2. End-to-end data flow
 
 ```
-scan（全量扫描，mass__gt 过滤）
-  → L1 筛选（场中心 + M* 窗口 + σ 下限，判据来自 TargetConfig）
-  → L3 验证（下载 3 字段粒子 → disk_kinematics 算 f_disk/B/D/L_hat）
-  → catalog 自动生成（选盘主导子集，L_hat 三列展开）
-  → skirt（下载全字段粒子 → convert 惯性张量对齐 → .ski → SKIRT 1e9 → fake HST）
+scan (full scan, mass__gt filter)
+  → L1 filtering (field center + M* window + σ lower bound, criteria from TargetConfig)
+  → L3 verification (download 3-field particles → disk_kinematics computes f_disk/B/D/L_hat)
+  → catalog auto-generation (select disk-dominated subset, L_hat expanded into three columns)
+  → skirt (download full-field particles → convert inertia-tensor alignment → .ski → SKIRT 1e9 → fake HST)
 ```
 
-L2（并合史）不在主链中，作为独立 `merger.check_merger` 按候选单独调用（与普查流程 scan→L1→L3 一致）。
+L2 (merger history) is not in the main chain; it is called independently per candidate via `merger.check_merger` (consistent with the census flow scan→L1→L3).
 
-## 三、快速开始
+## 3. Quick start
 
 ```bash
-# 环境变量
-export TNG_API_KEY=...            # TNG API key（或写入 ~/.tng_api_key，见下方指引）
-export GALAXYLENS_DATA_ROOT=/path/to/tng_data   # 数据根（catalog/ + stars_l3/）
-export SKIRT_BIN=/path/to/skirt   # SKIRT 9 二进制（render 用）
+# Environment variables
+export TNG_API_KEY=...            # TNG API key (or write to ~/.tng_api_key, see guidance below)
+export GALAXYLENS_DATA_ROOT=/path/to/tng_data   # data root (catalog/ + stars_l3/)
+export SKIRT_BIN=/path/to/skirt   # SKIRT 9 binary (used by render)
 
-# 一条命令搜 J2141 相似体（内置 target）
+# One command to search for J2141 analogs (built-in target)
 python -m galaxylens.mock_pipeline.selection.run \
     --target j2141 --data-root $GALAXYLENS_DATA_ROOT --outdir ./out
 
-# smoke test：限制每快照详情数
+# smoke test: limit detail count per snapshot
 python -m galaxylens.mock_pipeline.selection.run \
     --target j2141 --max-detail 5 --l3-workers 1
 ```
 
-> **TNG API key 获取**（免费，每人可申请）：在 tng-project.org 注册账号 → 登录后在
-> [API 文档](https://www.tng-project.org/data/docs/api/) 获取 key → 二选一提供给脚本：
-> `export TNG_API_KEY=你的key` 或写入 `~/.tng_api_key`（单行）。仓库不内置任何 key；
-> 未配置时脚本会提示「TNG API key not found」并指向本指引。
+> **Getting the TNG API key** (free, anyone can apply): register an account at tng-project.org → after logging in,
+> get the key from the [API documentation](https://www.tng-project.org/data/docs/api/) → provide it to the script via one of two ways:
+> `export TNG_API_KEY=your_key` or write it to `~/.tng_api_key` (single line). The repo does not bundle any key;
+> when unconfigured, the script prints "TNG API key not found" and points to this guide.
 
-**换目标 = 加一个 `TargetConfig`**（在 `selection/config.py` 或后续 YAML），流水线代码零改动：
+**Switching target = adding one `TargetConfig`** (in `selection/config.py` or later YAML), with zero changes to the pipeline code:
 
 ```python
 from galaxylens.mock_pipeline.selection.config import TargetConfig, SelectionCriteria
@@ -76,35 +78,35 @@ J1331 = TargetConfig(
 )
 ```
 
-## 四、关键物理口径（务必区分，勿混用）
+## 4. Key physical definitions (must distinguish, do not mix up)
 
-| 量 | 口径 | 位置 |
+| Quantity | Definition | Location |
 |----|------|------|
-| **f_disk** | circularity κ≥0.7 的**质量占比**（κ=jz/(R·vc)，盘粒子判定） | `truth/kinematics.py` |
-| **盘轴 L_hat** | 盘粒子角动量轴（迭代一次），**非**总角动量、**非**惯性张量 | 同上 |
-| **B/D** | (1−f_disk)/f_disk，无盘时 999.0 哨兵 | 同上 |
-| **投影椭圆率** | 1−√(λmin/λmax)，F814W **无阈值**强度加权二阶矩 | `truth/measures.py` |
-| **固有轴比** | 对齐粒子 σ_z/σ_x（3D 盘厚度），**非**投影椭圆率 | 同上 |
-| **盘轴对齐（SKIRT）** | **惯性张量**三轴（法向→+z、长轴→+x），**不读** catalog.csv 的旧 L_hat | `skirt/convert.py` |
-| **宇宙学** | Planck 2015（H0=67.74，Ωm=0.3089，ΩΛ=0.6911），非 Planck18 | `truth/cosmology.py` |
-| **kpc/″** | 角直径距离 D_A(z)/206265，随红移变化（J2141 z=0.138 → 2.517） | 同上 |
+| **f_disk** | **mass fraction** with circularity κ≥0.7 (κ=jz/(R·vc), disk-particle criterion) | `truth/kinematics.py` |
+| **disk axis L_hat** | disk-particle angular-momentum axis (iterated once), **not** total angular momentum, **not** inertia tensor | same as above |
+| **B/D** | (1−f_disk)/f_disk, sentinel 999.0 when no disk | same as above |
+| **projected ellipticity** | 1−√(λmin/λmax), F814W intensity-weighted second moment with **no threshold** | `truth/measures.py` |
+| **intrinsic axis ratio** | σ_z/σ_x of aligned particles (3D disk thickness), **not** projected ellipticity | same as above |
+| **disk-axis alignment (SKIRT)** | **inertia tensor** three axes (normal→+z, major axis→+x), does **not read** the old L_hat in catalog.csv | `skirt/convert.py` |
+| **cosmology** | Planck 2015 (H0=67.74, Ωm=0.3089, ΩΛ=0.6911), not Planck18 | `truth/cosmology.py` |
+| **kpc/″** | angular diameter distance D_A(z)/206265, varies with redshift (J2141 z=0.138 → 2.517) | same as above |
 
-**历史教训**（易混点）：σ(total) 是**全粒子弥散**（含 DM，冷薄盘落 140–160），σ≥170 会偏核球盘；椭圆率曾有"固有轴比 vs 投影"两口径混用，现统一为投影协方差口径。
+**Historical lesson** (easily confused points): σ(total) is the **full-particle dispersion** (including DM; cold thin disks land at 140–160), σ≥170 biases toward bulge-dominated disks; ellipticity once mixed up the "intrinsic axis ratio vs projected" two definitions, now unified to the projected covariance definition.
 
-## 五、筛选判据数据化
+## 5. Selection criteria as data
 
-判据在 `SelectionCriteria` dataclass（**数据不是代码**），每目标一份：
+Criteria live in the `SelectionCriteria` dataclass (**data, not code**), one per target:
 
-| 字段 | 含义 | J2141 默认 |
+| Field | Meaning | J2141 default |
 |------|------|-----------|
-| `mstar_range` | L1 恒星质量窗口（Msun） | [5e10, 3e11]（普查口径，放宽；J2141 专用紧窗口 [7e10,1.3e11] 是子集）|
-| `sigma_min` | L1 σ(total) 下限（km/s） | 140（放宽；170 偏核球盘）|
-| `f_disk_min` | L3 盘主导子集阈值 | 0.6 |
-| `f_disk_disk` | L3 "有盘"阈值 | 0.30 |
-| `mass_min` | 扫描 pre-filter（总质量，1e10 Msun/h）| 68（已验证对场中心目标不漏）|
-| `field_only` | L1 要求场中心（primary_flag=1）| True |
+| `mstar_range` | L1 stellar mass window (Msun) | [5e10, 3e11] (census definition, relaxed; the J2141-specific tight window [7e10,1.3e11] is a subset) |
+| `sigma_min` | L1 σ(total) lower bound (km/s) | 140 (relaxed; 170 biases toward bulge-dominated disks) |
+| `f_disk_min` | L3 disk-dominated subset threshold | 0.6 |
+| `f_disk_disk` | L3 "has disk" threshold | 0.30 |
+| `mass_min` | scan pre-filter (total mass, 1e10 Msun/h) | 68 (verified to not miss field-center targets) |
+| `field_only` | L1 requires field center (primary_flag=1) | True |
 
-## 六、API 摘要
+## 6. API summary
 
 ```python
 from galaxylens.mock_pipeline.truth import disk_kinematics, projected_ellipticity, theta_E_SIS, kpc_per_arcsec
@@ -114,27 +116,27 @@ from galaxylens.mock_pipeline.skirt import (
     BandConfig, MockObsConfig, J2141_BANDS, J2141_OBS,
 )
 
-# ground truth：粒子 → f_disk/B/D/L_hat/厚度/Re
-res = disk_kinematics(pos_kpc, vel, mass, center)   # pos/vel/mass 物理单位
+# ground truth: particles → f_disk/B/D/L_hat/thickness/Re
+res = disk_kinematics(pos_kpc, vel, mass, center)   # pos/vel/mass in physical units
 
-# 端到端筛选
+# end-to-end selection
 rows = run_selection("j2141", data_root, outdir)    # scan → L1 → L3 → catalog
 
-# SKIRT：全字段粒子 → .dat → .ski → fake HST
+# SKIRT: full-field particles → .dat → .ski → fake HST
 tng_to_skirt(stars_h5, gas_h5, "348489", "TNG100-1", 88, outdir)
 write_ski("348489", J2141_BANDS[0], outdir, obs=J2141_OBS, roll="0 deg", incl=J2141.incl)
 run_skirt(f"{outdir}/348489_F814W.ski", outdir=outdir)
 img = make_fake_hst(fits_path, px_mock, J2141_BANDS[0], psf)
 
-# 换仪器（如 J1331 用 WFPC2 F814W、倾角 70°）：新建 BandConfig，零代码改动
+# switch instrument (e.g. J1331 uses WFPC2 F814W, inclination 70°): create a new BandConfig, zero code changes
 wfpc2 = BandConfig("F814W", "HST WFPC2 F814W", 0.10)
 write_ski("J1331", wfpc2, outdir, incl="70 deg")
 ```
 
-## 七、回归测试
+## 7. Regression tests
 
 ```bash
 PYTHONPATH=src python -m pytest tests/test_truth.py tests/test_selection.py tests/test_skirt.py -v
 ```
 
-22 个测试，锚定已知值：348489 f_disk=0.643、B/D=0.55、kpc_per_arcsec(0.138)=2.517、θE(σ=200)=0.89″。
+22 tests, anchoring known values: 348489 f_disk=0.643, B/D=0.55, kpc_per_arcsec(0.138)=2.517, θE(σ=200)=0.89″.

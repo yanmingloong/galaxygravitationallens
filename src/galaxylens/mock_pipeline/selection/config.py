@@ -19,7 +19,7 @@ Selection thresholds (project-convention, see the disk_lens_analogs reports):
 
 from dataclasses import dataclass, field
 
-from ..skirt.config import MockObsConfig, J2141_OBS
+from ..skirt.config import MockObsConfig, J2141_OBS, J1331_OBS
 
 
 @dataclass
@@ -74,7 +74,39 @@ J2141 = TargetConfig(
     ),
 )
 
-BUILTIN_TARGETS = {"j2141": J2141}
+# ---------------------------------------------------------------------------
+# Built-in target: SDSS J1331+3628 (SWELLS disk lens, Trick+2016, bulge-dominant)
+#
+# J1331 differs from J2141 in three ways that live OUTSIDE this dataclass:
+# - sigma_min=190 (not 140): the L1 sigma floor is the calibrated bulge
+#   sigma0~200, NOT the relaxed 140 (see disk_lens_analogs/J1331/README.md).
+# - L2 merger judgment is REVERSED: J1331 keeps "recent merger" systems
+#   (counter-rotating core = merger relic), unlike J2141's "quiet" criterion.
+#   This is a standalone merger.check_merger call, not in the run chain.
+# - L3 criterion is counter-rotation (counter_rotation_angle ~ 180 deg KDC),
+#   NOT f_disk-dominant; J1331 is bulge-dominant (B/D ~ 2.7).
+# ---------------------------------------------------------------------------
+J1331 = TargetConfig(
+    name="J1331+3628",
+    z_lens=0.113,
+    z_source=0.254,
+    snap=90,
+    criteria=SelectionCriteria(
+        sims=["TNG100-1"],
+        snapshots=[90],
+        mass_min=68.0,
+        mstar_range=(1e11, 3e11),
+        sigma_min=190.0,
+        field_only=True,
+        f_disk_disk=0.30,
+        f_disk_min=0.60,
+        recent_merger_snap=68,
+    ),
+    incl="70 deg",
+    obs=J1331_OBS,
+)
+
+BUILTIN_TARGETS = {"j2141": J2141, "j1331": J1331}
 
 
 def get_target(name: str) -> TargetConfig:

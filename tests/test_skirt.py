@@ -8,7 +8,9 @@ import pytest
 from galaxylens.mock_pipeline.skirt import (
     inertia_rotation, tng_to_skirt, write_ski,
     BandConfig, MockObsConfig, J2141_BANDS, J2141_OBS,
+    single_scale_normalize,
 )
+from galaxylens.lensfit.psf import moffat_mge_psf, TRICK_2016_TABLE2
 
 RAW_STARS_348489 = ("/mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/"
                     "IllustrisTNG/mock_observations/01_data/raw_stars/"
@@ -97,3 +99,22 @@ def test_tng_to_skirt_348489(tmp_path):
         if not line.startswith("#"):
             assert len(line.split()) == 5
             break
+
+
+def test_single_scale_normalize_preserves_ratio():
+    """Single scale keeps the colour ratio (peak B / peak A unchanged)."""
+    img_a = np.full((10, 10), 2.0)   # peak 2.0
+    img_b = np.full((10, 10), 1.0)   # peak 1.0 -> colour ratio 0.5
+    scale, scaled = single_scale_normalize({"A": img_a, "B": img_b}, "A", 10.0)
+    assert scaled["A"].max() == pytest.approx(10.0)   # anchor peak
+    assert scaled["B"].max() == pytest.approx(5.0)    # same scale -> ratio kept
+    assert scaled["B"].max() / scaled["A"].max() == pytest.approx(0.5)
+
+
+def test_moffat_mge_psf_normalized():
+    """Table 2 four-Gaussian PSF: sum=1, peak ~ 0.0668 (audit value)."""
+    w, s = zip(*TRICK_2016_TABLE2)
+    psf = moffat_mge_psf(list(w), list(s), 0.0455)
+    assert psf.shape == (81, 81)
+    assert psf.sum() == pytest.approx(1.0, abs=1e-6)
+    assert psf.max() == pytest.approx(0.0668, rel=0.05)

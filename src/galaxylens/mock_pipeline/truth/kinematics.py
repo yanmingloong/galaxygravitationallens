@@ -109,6 +109,39 @@ def disk_fraction(kappa, mass, kappa_thresh=KAPPA_THRESH):
     return f_disk, bd
 
 
+def counter_rotation_angle(pos, vel, mass, center, axis=None,
+                           kappa_thresh=KAPPA_THRESH,
+                           core_R=3.0, outer_R=(6.0, 20.0)):
+    """Angle (deg) between core and outer-disk angular momenta (KDC test).
+
+    A coherent counter-rotating core (KDC) has its angular momentum
+    anti-parallel to the outer disk -> angle ~ 180 deg. A weak bias is
+    90-140 deg; co-rotation is < 90 deg. Note a mild reversed rotation
+    (~20 km/s) in a hot bulge is NOT a KDC: random bulge orbits give ~50%
+    counter-rotating particles, so a weak bias must not be read as coherent
+    counter-rotation (the 359159 false-positive lesson).
+
+    ``axis`` defaults to the disk angular-momentum axis (``disk_axis``);
+    cylindrical radius R is measured about it. ``core`` = R < core_R;
+    ``outer`` = outer_R[0] < R < outer_R[1]. ``pos``/``vel``/``mass`` are
+    physical units (kpc, km/s, Msun), already unwrapped.
+    """
+    if axis is None:
+        axis = disk_axis(pos, vel, mass, center, kappa_thresh)
+    u = axis / np.linalg.norm(axis)
+    r = pos - center
+    R = np.sqrt(np.sum(r ** 2, axis=1) - np.dot(r, u) ** 2)
+    core = R < core_R
+    outer = (R > outer_R[0]) & (R < outer_R[1])
+    if core.sum() == 0 or outer.sum() == 0:
+        return 0.0
+    l_core = angular_momentum(pos[core], vel[core], mass[core], center)
+    l_outer = angular_momentum(pos[outer], vel[outer], mass[outer], center)
+    cosang = np.dot(l_core, l_outer) / max(
+        np.linalg.norm(l_core) * np.linalg.norm(l_outer), 1e-30)
+    return float(np.degrees(np.arccos(np.clip(cosang, -1, 1))))
+
+
 def disk_thickness(pos, center, axis, R_cyl, disk_mask, inner_R=20.0):
     """Median |z| of disk particles within cylindrical radius < inner_R kpc.
 
@@ -130,7 +163,7 @@ def disk_kinematics(pos, vel, mass, center, kappa_thresh=KAPPA_THRESH,
     quantities used by both L3 selection and mock validation::
 
         f_disk, B_over_D, L_hat (unit vector), disk_thickness_med_kpc,
-        disk_Re_kpc, re_kpc, mstar_msun, axis_angle_deg
+        disk_Re_kpc, re_kpc, mstar_msun, axis_angle_deg, kdc_angle_deg
     """
     l_tot = angular_momentum(pos, vel, mass, center)
     u_tot = l_tot / np.linalg.norm(l_tot)
@@ -147,6 +180,10 @@ def disk_kinematics(pos, vel, mass, center, kappa_thresh=KAPPA_THRESH,
 
     ang = np.degrees(np.arccos(np.clip(np.abs(np.dot(u_tot, axis)), 0, 1)))
 
+    # counter-rotating core diagnostic (KDC): angle between core (R<3 kpc)
+    # and outer-disk (6<R<20 kpc) angular momenta about the disk axis.
+    kdc = counter_rotation_angle(pos, vel, mass, center, axis=axis)
+
     # B/D is inf when no disk particle exists (round() would overflow);
     # collapse to the 999.0 sentinel used by the reference analyze().
     bd_val = round(float(bd), 2) if np.isfinite(bd) else 999.0
@@ -160,6 +197,7 @@ def disk_kinematics(pos, vel, mass, center, kappa_thresh=KAPPA_THRESH,
         "re_kpc": round(float(re_all), 1),
         "mstar_msun": round(float(mass.sum()), 2),
         "axis_angle_deg": round(float(ang), 1),
+        "kdc_angle_deg": round(float(kdc), 1),
     }
 
 

@@ -24,10 +24,11 @@ from .cosmology import (
 from .kinematics import (
     KAPPA_THRESH, unwrap, com_iterative, angular_momentum, circularity,
     disk_axis, disk_fraction, disk_thickness, disk_kinematics,
+    counter_rotation_angle,
 )
 from .measures import (
     half_mass_radius, projected_ellipticity, intrinsic_axis_ratios,
-    extinction,
+    extinction, major_axis_angle,
 )
 
 __all__ = [
@@ -41,8 +42,8 @@ __all__ = [
     # kinematics
     "KAPPA_THRESH", "unwrap", "com_iterative", "angular_momentum",
     "circularity", "disk_axis", "disk_fraction", "disk_thickness",
-    "disk_kinematics",
+    "disk_kinematics", "counter_rotation_angle",
     # measures
     "half_mass_radius", "projected_ellipticity", "intrinsic_axis_ratios",
-    "extinction",
+    "extinction", "major_axis_angle",
 ]

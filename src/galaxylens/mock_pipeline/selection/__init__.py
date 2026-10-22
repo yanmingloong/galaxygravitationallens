@@ -7,7 +7,7 @@ L3 disk criterion and ground-truth quantities come from the shared
 
 from .catalog import build_catalog, classify
 from .config import (
-    SelectionCriteria, TargetConfig, J2141, get_target, BUILTIN_TARGETS,
+    SelectionCriteria, TargetConfig, J2141, J1331, get_target, BUILTIN_TARGETS,
 )
 from .download import (
     download_stars, download_gas, download_cutout, STARS_3FIELD,
@@ -20,7 +20,7 @@ from .verify import verify_one, load_stars
 
 __all__ = [
     "build_catalog", "classify",
-    "SelectionCriteria", "TargetConfig", "J2141", "get_target",
+    "SelectionCriteria", "TargetConfig", "J2141", "J1331", "get_target",
     "BUILTIN_TARGETS",
     "download_stars", "download_gas", "download_cutout", "STARS_3FIELD",
     "filter_l1", "pass_l1", "is_field",

@@ -15,9 +15,9 @@ from galaxylens.mock_pipeline.truth import (
     kpc_per_arcsec, theta_E_SIS, cosmic_time, Dls_over_Ds,
     tng_mass_to_msun, tng_length_to_physical_kpc, snap_to_a,
     half_mass_radius, projected_ellipticity, intrinsic_axis_ratios,
-    extinction,
+    extinction, major_axis_angle,
     unwrap, com_iterative, angular_momentum, circularity, disk_axis,
-    disk_fraction, disk_kinematics,
+    disk_fraction, disk_kinematics, counter_rotation_angle,
 )
 
 
@@ -182,3 +182,93 @@ def test_disk_kinematics_348489_regression():
     res = disk_kinematics(pos, vel, mass, center)
     assert res["f_disk"] == pytest.approx(0.643, abs=0.01)
     assert res["B_over_D"] == pytest.approx(0.55, abs=0.05)
+
+
+def test_major_axis_angle():
+    """Elongated Gaussian at +30 deg -> recovered major axis ~ 30 deg."""
+    yy, xx = np.mgrid[0:128, 0:128]
+    cx = cy = 63.5
+    dx = xx - cx
+    dy = yy - cy
+    ang = np.radians(30.0)
+    u = dx * np.cos(ang) + dy * np.sin(ang)
+    v = -dx * np.sin(ang) + dy * np.cos(ang)
+    img = np.exp(-(u ** 2 / (2 * 20.0 ** 2) + v ** 2 / (2 * 4.0 ** 2)))
+    assert major_axis_angle(img) == pytest.approx(30.0, abs=1.0)
+
+
+def test_major_axis_angle_round():
+    """A round Gaussian is axis-degenerate but must return a finite angle."""
+    yy, xx = np.mgrid[0:64, 0:64]
+    r2 = (xx - 31.5) ** 2 + (yy - 31.5) ** 2
+    img = np.exp(-r2 / (2 * 8.0 ** 2))
+    assert np.isfinite(major_axis_angle(img))
+
+
+def _rotating(R, n, sign, rng):
+    """Particles on tangential orbits at radius R about the z-axis."""
+    theta = rng.uniform(0, 2 * np.pi, n)
+    pos = np.column_stack([R * np.cos(theta), R * np.sin(theta),
+                           rng.normal(0, 0.1 * R, n)])
+    vphi = 100.0
+    vel = np.column_stack([sign * -vphi * np.sin(theta),
+                           sign * vphi * np.cos(theta), np.zeros(n)])
+    return pos, vel, np.ones(n)
+
+
+def test_counter_rotation_angle_kdc():
+    """Core counter-rotating vs outer disk -> angle ~ 180 deg (KDC)."""
+    rng = np.random.default_rng(3)
+    po, vo, mo = _rotating(12.0, 6000, +1, rng)
+    pc, vc, mc = _rotating(1.5, 1500, -1, rng)
+    ang = counter_rotation_angle(
+        np.vstack([po, pc]), np.vstack([vo, vc]),
+        np.concatenate([mo, mc]), np.zeros(3))
+    assert ang > 150.0
+
+
+def test_counter_rotation_angle_co_rotating():
+    """All co-rotating -> angle < 90 deg (no KDC)."""
+    rng = np.random.default_rng(4)
+    po, vo, mo = _rotating(12.0, 6000, +1, rng)
+    pc, vc, mc = _rotating(1.5, 1500, +1, rng)
+    ang = counter_rotation_angle(
+        np.vstack([po, pc]), np.vstack([vo, vc]),
+        np.concatenate([mo, mc]), np.zeros(3))
+    assert ang < 90.0
+
+
+def test_counter_rotation_angle_342537_regression():
+    """Regression: 342537 weak counter-rotation bias -> angle ~ 115.7 deg."""
+    path = ("/mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/"
+            "IllustrisTNG/disk_lens_analogs/01_data/analogs/J1331/stars_l3/"
+            "TNG100-1_snap90_id342537_stars.hdf5")
+    if not os.path.exists(path):
+        pytest.skip("342537 particle HDF5 not available")
+    import h5py
+    with h5py.File(path, "r") as f:
+        pt = f["PartType4"]
+        pos_raw = pt["Coordinates"][:].astype(np.float64)
+        vel_raw = pt["Velocities"][:].astype(np.float64)
+        mass_raw = pt["Masses"][:].astype(np.float64)
+    a = snap_to_a(90)
+    pos = unwrap(pos_raw.copy(), BOX_BY_SIM["TNG100-1"]) * a / H
+    vel = vel_raw * np.sqrt(a)
+    mass = mass_raw / H * 1e10
+    center = com_iterative(pos, mass)
+    ang = counter_rotation_angle(pos, vel, mass, center)
+    assert ang == pytest.approx(115.7, abs=2.0)
+
+
+def test_major_axis_angle_342537_regression():
+    """Regression: 342537 F814W roll-0 image -> major axis ~ -21.32 deg."""
+    path = ("/mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/"
+            "IllustrisTNG/mock_observations/03_outputs/static_mock/"
+            "342537_1e6/342537_F814W_F814W_total.fits")
+    if not os.path.exists(path):
+        pytest.skip("342537 F814W mock FITS not available")
+    from astropy.io import fits
+    img = fits.getdata(path)
+    if img.ndim == 3:
+        img = img[0]
+    assert major_axis_angle(img) == pytest.approx(-21.32, abs=1.0)

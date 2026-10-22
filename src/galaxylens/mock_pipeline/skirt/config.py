@@ -42,3 +42,15 @@ J2141_BANDS = [
     BandConfig("F160W", "HST WFC3 IR F160W", 0.13),
 ]
 J2141_OBS = MockObsConfig(bands=J2141_BANDS)
+
+
+# J1331 observation: WFPC2 F450W/F814W (mock uses ACS F435W as the F450W proxy,
+# since SKIRT has no WFPC2 F450W band). Pixel scale 0.0455"/px matches the HAP
+# drizzle cutout; peaks/noise are counts/s (J1331 measured background, 2026-10-20).
+J1331_BANDS = [
+    BandConfig("F435W", "HST ACS WFC F435W", 0.0455,
+               noise_sigma=0.00034, peak=0.0479),
+    BandConfig("F814W", "HST ACS WFC F814W", 0.0455,
+               noise_sigma=0.00084, peak=0.3166),
+]
+J1331_OBS = MockObsConfig(bands=J1331_BANDS, fov="30 kpc", num_pixels=200)

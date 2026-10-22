@@ -10,7 +10,8 @@ import os
 import pytest
 
 from galaxylens.mock_pipeline.selection import (
-    J2141, filter_l1, pass_l1, verify_one, build_catalog, classify,
+    J2141, J1331, get_target, filter_l1, pass_l1, verify_one, build_catalog,
+    classify,
 )
 
 CATALOG_CSV = ("/mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/"
@@ -95,3 +96,24 @@ def test_build_catalog(tmp_path):
     with open(out) as f:
         header = next(csv.reader(f))
     assert header[:4] == ["label", "simulation", "snap", "z"]
+
+
+def test_get_target_j1331():
+    """J1331 registered as the second built-in target (config-driven)."""
+    j = get_target("j1331")
+    assert j.name == "J1331+3628"
+    assert j.z_lens == pytest.approx(0.113)
+    assert j.z_source == pytest.approx(0.254)
+    assert j.snap == 90
+    assert j.incl == "70 deg"
+    assert j.criteria.sigma_min == pytest.approx(190.0)
+    assert j.criteria.mstar_range == (1e11, 3e11)
+    assert len(j.obs.bands) == 2
+    assert j.obs.bands[0].skirt_name == "HST ACS WFC F435W"
+    assert j.obs.bands[1].peak == pytest.approx(0.3166)
+
+
+def test_get_target_unknown_raises():
+    import pytest as _pytest
+    with _pytest.raises(KeyError):
+        get_target("nonexistent")

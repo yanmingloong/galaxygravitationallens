@@ -57,6 +57,45 @@ def projected_ellipticity(image):
     return float(1.0 - np.sqrt(ev[0] / ev[1]))
 
 
+def major_axis_angle(image):
+    """Major-axis position angle (deg, CCW from the image x-axis).
+
+    Uses the intensity-weighted covariance eigen-decomposition: the major
+    axis is the eigenvector of the *larger* eigenvalue. This removes the
+    +/-90 deg ambiguity of the classical ``0.5 * arctan2(2 mxy, mxx - myy)``
+    formula, which returns a principal-axis direction but cannot tell major
+    from minor without comparing the variances along the two candidate axes.
+
+    ``image`` is a 2D array (NaNs zeroed, negatives clipped). Returns the
+    angle in degrees in (-90, 90]; the axis is bidirectional so +180 deg is
+    the same axis. For an unrotated SKIRT output this is the roll correction
+    (``roll = -angle`` to bring the major axis horizontal).
+    """
+    img = np.nan_to_num(np.asarray(image, dtype=np.float64))
+    img = np.squeeze(img)
+    img = np.maximum(img, 0)
+    tot = img.sum()
+    if tot <= 0:
+        return 0.0
+    yy, xx = np.mgrid[0:img.shape[0], 0:img.shape[1]]
+    cx = (xx * img).sum() / tot
+    cy = (yy * img).sum() / tot
+    dx = xx - cx
+    dy = yy - cy
+    mxx = (dx * dx * img).sum() / tot
+    myy = (dy * dy * img).sum() / tot
+    mxy = (dx * dy * img).sum() / tot
+    cov = np.array([[mxx, mxy], [mxy, myy]])
+    _evals, evecs = np.linalg.eigh(cov)   # ascending eigenvalues
+    major = evecs[:, 1]                    # larger eigenvalue -> long axis
+    ang = np.degrees(np.arctan2(major[1], major[0]))
+    if ang > 90:
+        ang -= 180
+    elif ang <= -90:
+        ang += 180
+    return float(ang)
+
+
 def intrinsic_axis_ratios(x, y, z, m):
     """Mass-weighted axis ratios (sigma_y/sigma_x, sigma_z/sigma_x, sigma_z/sigma_y).
 

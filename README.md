@@ -8,8 +8,10 @@ observations, test simulation predictions, and constrain dark matter models and
 the nature of dark matter particles. Elliptical galaxies serve as the
 comparison sample.
 
-> **Status**: pre-alpha. Repository skeleton established; module code is being
-> migrated from the internal research project incrementally.
+> Originating from the undergraduate innovation project
+> **"Disk-galaxy strong gravitational lensing research" (盘星系引力透镜研究)**.
+
+> **Status**: pre-alpha.
 
 中文文档见 [README_zh.md](README_zh.md).
 
@@ -47,23 +49,21 @@ galaxygravitationallens/
 └── docs/                        # documentation
 ```
 
-## Migration status
+## Capabilities
 
-Code is being migrated from the internal research project incrementally.
-
-| Module | Status |
+| Module | What it does |
 |---|---|
-| `data_pipeline/imaging` | ✅ migrated (21 files; psf split into subpackage; path + SExtractor + TinyTim env-var decoupling) |
-| `config` (YAML + dataclass) | ✅ migrated (paths/schema/loader/defaults; 16 lens YAMLs under configs/) |
-| `sample_library` | ✅ migrated (build pipeline + access; 5 modeling_input CSVs) |
-| `data_pipeline/spectra` | ⏳ pending |
-| `data_pipeline/other_obs` | ⏳ pending |
-| `lensfit` (models/dynamics/fit/pipeline/data/mge/lens/plotting/validation) | ✅ migrated (pluggable model components + config assembly + JointAnalysis; gnfw_virial/nfw/mge_const_ml/mge_radial_ml/single_sersic/pixelized components; jampy/jampy_kdc engines; LensingConstraint imaging/mein/scale-free; B7 joint fit + D-series pointwise fit reproduced; B9 AGN point-source subtraction + sky-RMS noise + pixelized source) |
-| `api` (config_loader/dataset/search/result/derived/plotting/facade + pipeline/analysis) | ✅ migrated (gl.fit / gl.fit_positions / gl.fit_mein / gl.analyze / gl.mock / gl.load_config / gl.load_dataset) |
-| `mock_pipeline/truth` (particles/fdm/anisotropy/halo + kinematics/measures/cosmology) | ✅ migrated (pure functions + regression tests; 348489 f_disk=0.643 reproduced; f_dm spherical/cylindrical three apertures + beta_z + gNFW halo fit added 2026-10-27) |
-| `mock_pipeline/lensing` (arc + dataset) | ✅ migrated (true-mass lens galaxy + Einstein radius + arc ray-tracing + dataset merge, 2026-10-27) |
-| `mock_pipeline/selection` (scan/filter/merger/download/verify/catalog) | ✅ migrated (per-target config; J2141 + J1331 built-in targets) |
-| `mock_pipeline/skirt` (convert/render/imaging) | ✅ migrated (inertia-tensor alignment + .ski generation + fake HST + single-scale multi-band dataset 2026-10-20) |
+| `data_pipeline/imaging` | HST FLC/FLT preprocessing -> sci/noise/psf/starmask (SExtractor + TinyTim) |
+| `config` (YAML + dataclass) | YAML -> dataclass config loading (16 lens YAMLs under configs/) |
+| `sample_library` | observational sample library access (5 modeling_input CSVs) |
+| `data_pipeline/spectra` | spectra (SDSS / KCWI / DEIMOS) — planned |
+| `data_pipeline/other_obs` | other observations (NIRC2 K'-band) — planned |
+| `lensfit` | pluggable fitting engine: gnfw_virial / nfw / mge_const_ml / mge_radial_ml / single_sersic / pixelized components; jampy / jampy_kdc dynamics; LensingConstraint imaging / mein / scale-free; joint fit + D-series pointwise fit |
+| `api` | facade: gl.fit / gl.fit_positions / gl.fit_mein / gl.analyze / gl.mock / gl.load_config / gl.load_dataset |
+| `mock_pipeline/truth` | ground-truth extraction: f_disk / f_dm (spherical + cylindrical) / beta_z / gNFW halo fit |
+| `mock_pipeline/lensing` | true-mass lens galaxy + Einstein radius + arc ray-tracing + dataset merge |
+| `mock_pipeline/selection` | TNG disk-lens analog selection (J2141 + J1331 built-in targets) |
+| `mock_pipeline/skirt` | SKIRT radiative transfer -> mock images (inertia-tensor alignment + .ski + fake HST + multi-band dataset) |
 
 ## Design principles
 

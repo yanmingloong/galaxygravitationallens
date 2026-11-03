@@ -1,13 +1,13 @@
 # Roadmap / Extension Items
 
-Tracked pending extraction and analysis-flow gaps, so they are not lost. Items are
-grouped into "not yet extracted" and "flow mismatch / needs fixing".
+Tracked planned extensions and analysis-flow gaps, so they are not lost. Items
+are grouped into "planned" and "flow mismatch / needs fixing".
 
 ## Mock fitting (mock closure)
 
 ### Disk mock (MF series) — complete
 Truth (particles/fdm/anisotropy/halo), validation (closure etc.), arc synthesis
-(`mock_pipeline/lensing`), and dynamics `beta_z`-direct are all extracted; 6/6
+(`mock_pipeline/lensing`), and dynamics `beta_z`-direct are all in place; 6/6
 candidates closed (3 improve / 3 overshoot under M/L + c-M priors).
 
 ### Next disk-mock iteration (B9) — deferred
@@ -48,7 +48,7 @@ Re-run the MF mock with the B9 improvements. Fork to resolve first:
 
 ## Data pipeline pending
 
-- `data_pipeline/spectra`: DEIMOS reduction + pPXF extraction not extracted
+- `data_pipeline/spectra`: DEIMOS reduction + pPXF extraction not yet in place
   (research scripts live in SpectraPipeline; E-MILES templates in
   SpectraPipeline/03_catalogs/miles_templates/).
 - `data_pipeline/other_obs`: empty.

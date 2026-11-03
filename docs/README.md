@@ -9,8 +9,7 @@
 | [mock_pipeline.md](mock_pipeline.md) | mock data production + selection (TNG search → SKIRT mock images) |
 | [usage_guide.md](usage_guide.md) | end-to-end: find disk galaxies → download → reduce → analyse & fit |
 | [components_reference.md](components_reference.md) | fitting engine: pluggable components + configurable parameters index |
-| [refinement_plan.md](refinement_plan.md) | pluggable-architecture blueprint (components + facade + roadmap) |
-| [roadmap.md](roadmap.md) | pending extraction + analysis-flow gaps / extension items |
+| [roadmap.md](roadmap.md) | planned extensions + analysis-flow gaps |
 | [../lensfit/README.md](../lensfit/README.md) | lensfit engine guide (PSF/MGE/lens, reference table + pitfall list) |
 | [README.md](../README.md) | project overview + architecture |
 

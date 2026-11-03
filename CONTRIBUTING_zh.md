@@ -12,15 +12,15 @@
   - `README_zh.md` — 中文。
   - 每份文件在头部链接到另一份。
 
-## 提炼工作流（DataPipeline → 仓库）
+## 从研究管线同步
 
-仓库（`src/galaxylens/`）是研究管线（位于 `DataPipeline/` 下）的提炼、版本化形态。当研究管线发生变化时，把增量提炼进仓库：
+仓库（`src/galaxylens/`）是研究管线（位于 `DataPipeline/` 下）的版本化形态。当研究管线发生变化时，把增量同步进仓库：
 
 1. 找出 `DataPipeline/pipeline/` 中变更的文件。
 2. 映射到 `src/galaxylens/data_pipeline/imaging/`（或对应的模块）。
 3. 应用功能性变更（按语言政策，用英文 docstring）。
 4. 若变更影响用法或设计，更新 `README.md` 和 `README_zh.md`。
-5. 用描述提炼变更的提交信息提交；推送到两个远端（`git push origin` → GitHub + Gitee）。
+5. 用描述变更的提交信息提交；推送到两个远端（`git push origin` → GitHub + Gitee）。
 
 研究项目本身（`GalaxyGravLens/`）**不**纳入 git；只有本仓库纳入。
 

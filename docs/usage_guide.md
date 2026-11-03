@@ -105,8 +105,8 @@ noise rescale, gNFW + MGE x M/L + Sersic source, jampy dynamics) and samples it
 with Nautilus. `gl.fit_positions` / `gl.fit_mein` are the pointwise
 (coordinate-level) paths for quadruple-image systems (Trick+2016 J1331), where
 the lensing information is the image positions / a single Einstein mass rather
-than a pixel-level arc. See `lensfit/README.md` for the full pitfall list and
-`docs/refinement_plan.md` for the pluggable architecture.
+rather than a pixel-level arc. See `lensfit/README.md` for the full pitfall list and
+`docs/components_reference.md` for the pluggable components.
 
 ## Step 4 — mock cross-check: `mock_pipeline`
 

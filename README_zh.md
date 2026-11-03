@@ -4,7 +4,9 @@
 
 核心科学目标：利用星系形成的流体数值模拟结果，研究盘星系的强引力透镜效应，与空间望远镜（HST）观测结果比较，检验数值模拟预言，限制暗物质模型与暗物质粒子性质；椭圆星系作为对比样本。
 
-> **状态**：pre-alpha。仓库骨架已建立，代码正从内部研究项目逐步迁移。
+> 源自本科大学生创新项目**「盘星系引力透镜研究」**。
+
+> **状态**：pre-alpha。
 
 English docs: [README.md](README.md).
 
@@ -42,23 +44,21 @@ galaxygravitationallens/
 └── docs/                        # 文档
 ```
 
-## 迁移状态
+## 功能清单
 
-代码正从内部研究项目逐步迁移。
-
-| 模块 | 状态 |
+| 模块 | 功能 |
 |---|---|
-| `data_pipeline/imaging` | ✅ 已迁移（21 文件；psf 拆子包；路径 + SExtractor + TinyTim 环境变量解耦）|
-| `config` (YAML + dataclass) | ✅ 已迁移（paths/schema/loader/defaults；configs/ 下 16 个透镜 YAML）|
-| `sample_library` | ✅ 已迁移（构建管线 + 访问；5 个 modeling_input CSV）|
-| `data_pipeline/spectra` | ⏳ 待完善后迁移 |
-| `data_pipeline/other_obs` | ⏳ 待完善后迁移 |
-| `lensfit` (models/dynamics/fit/pipeline/data/mge/lens/plotting/validation) | ✅ 已迁移（可插拔模型组件 + 配置装配 + JointAnalysis；gnfw_virial/nfw/mge_const_ml/mge_radial_ml/single_sersic/pixelized 组件；jampy/jampy_kdc 引擎；LensingConstraint imaging/mein/scale-free；B7 联合拟合 + D 系列逐点拟合复现；B9 AGN 点源减恒星 + sky RMS 噪声 + 像素化源） |
-| `api` (config_loader/dataset/search/result/derived/plotting/facade + pipeline/analysis) | ✅ 已迁移（gl.fit / gl.fit_positions / gl.fit_mein / gl.analyze / gl.mock / gl.load_config / gl.load_dataset） |
-| `mock_pipeline/truth` (particles/fdm/anisotropy/halo + kinematics/measures/cosmology) | ✅ 已迁移（纯函数 + 回归测试，348489 f_disk=0.643 复现；f_dm 球/柱三孔径 + βz + gNFW 晕拟合 2026-10-27 新增） |
-| `mock_pipeline/lensing` (arc + dataset) | ✅ 已迁移（真值质量透镜星系 + 爱因斯坦半径 + 弧光线追踪 + dataset 合并，2026-10-27） |
-| `mock_pipeline/selection` (scan/filter/merger/download/verify/catalog) | ✅ 已迁移（按目标配置，J2141 + J1331 内建目标） |
-| `mock_pipeline/skirt` (convert/render/imaging) | ✅ 已迁移（惯性张量对齐 + .ski 生成 + fake HST + 单尺度多波段 dataset 2026-10-20） |
+| `data_pipeline/imaging` | HST FLC/FLT 预处理 -> sci/noise/psf/starmask（SExtractor + TinyTim） |
+| `config` (YAML + dataclass) | YAML -> dataclass 配置加载（configs/ 下 16 个透镜 YAML） |
+| `sample_library` | 观测样本库访问（5 个 modeling_input CSV） |
+| `data_pipeline/spectra` | 光谱（SDSS / KCWI / DEIMOS）——规划中 |
+| `data_pipeline/other_obs` | 其他观测（NIRC2 K'-band 等）——规划中 |
+| `lensfit` | 可插拔拟合引擎：gnfw_virial / nfw / mge_const_ml / mge_radial_ml / single_sersic / pixelized 组件；jampy / jampy_kdc 动力学；LensingConstraint imaging / mein / scale-free；联合拟合 + D 系列逐点拟合 |
+| `api` | 门面：gl.fit / gl.fit_positions / gl.fit_mein / gl.analyze / gl.mock / gl.load_config / gl.load_dataset |
+| `mock_pipeline/truth` | ground-truth 提取：f_disk / f_dm（球 + 柱）/ beta_z / gNFW 晕拟合 |
+| `mock_pipeline/lensing` | 真值质量透镜星系 + 爱因斯坦半径 + 弧光线追踪 + dataset 合并 |
+| `mock_pipeline/selection` | TNG 盘透镜类似物筛选（J2141 + J1331 内建目标） |
+| `mock_pipeline/skirt` | SKIRT 辐射转移 -> mock 图像（惯性张量对齐 + .ski + fake HST + 多波段 dataset） |
 
 ## 设计原则
 

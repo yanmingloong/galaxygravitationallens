@@ -15,8 +15,8 @@ data_pipeline/
 │   ├── stages/     # 处理阶段（cutout/centroid/background/cosmic_ray/noise/psf/starmask/alignment）
 │   ├── output/     # 输出（FITS 写入 / 诊断图 / 日志 / 质量评估）
 │   └── preprocess_master.py  # 主流程调度 + CLI
-├── spectra/        # 光谱管线（待提炼：SDSS / KCWI / DEIMOS）
-└── other_obs/      # 其他观测（待提炼：NIRC2 K'-band 等）
+├── spectra/        # 光谱管线（规划中：SDSS / KCWI / DEIMOS）
+└── other_obs/      # 其他观测（规划中：NIRC2 K'-band 等）
 ```
 
 **设计原则**：数据生产（data_pipeline）与数据消费（lensfit）分离。本模块只做"raw → processed"，产出标准化的 FITS；拟合引擎 lensfit 消费这些产物。因此本模块**只依赖 astropy/photutils**，不依赖 autolens。
@@ -147,4 +147,4 @@ print(f"产物目录: {out}")
 | `TINYTIM_BIN` | TinyTim 可执行目录 | 否 |
 | `TINYTIM_BREATHING_CSV` | HST 呼吸模型 CSV | 否 |
 
-透镜参数已从 `config.py` 硬编码迁移到 `configs/{disk,slacs}/*.yaml`，由 `galaxylens.config.loader.load_lens_config()` 加载为 `LensConfig` dataclass。
+透镜参数从 `configs/{disk,slacs}/*.yaml` 加载，由 `galaxylens.config.loader.load_lens_config()` 加载为 `LensConfig` dataclass。

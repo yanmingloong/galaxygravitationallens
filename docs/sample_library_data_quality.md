@@ -2,7 +2,7 @@
 
 *中文版见 [sample_library_data_quality_zh.md](sample_library_data_quality_zh.md).*
 
-> Extracted 2026-10-14 from a sample-library data audit of the J2141 analog project. These pitfalls once let erroneous values such as θE=1.10″ and Re=9.16 kpc propagate into the modeling inputs; take care to avoid them.
+> Recorded 2026-10-14 from a sample-library data audit of the J2141 analog project. These pitfalls once let erroneous values such as θE=1.10″ and Re=9.16 kpc propagate into the modeling inputs; take care to avoid them.
 
 ## 1. Hard-coded parameter dicts must cite their literature source
 

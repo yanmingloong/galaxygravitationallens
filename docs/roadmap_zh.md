@@ -1,12 +1,12 @@
 # 路线图 / 扩展项
 
-记录待提炼与流程不匹配项，避免丢失。分「未提炼」与「流程不匹配/待修」两组。
+记录待扩展与流程不匹配项，避免丢失。分「规划中」与「流程不匹配/待修」两组。
 
 ## mock 拟合（mock 闭合）
 
 ### 盘 mock（MF 系列）——已完成
 truth（particles/fdm/anisotropy/halo）、validation（closure 等）、弧合成
-（`mock_pipeline/lensing`）、dynamics `beta_z` 直参数化均已提炼；6/6 候选闭环
+（`mock_pipeline/lensing`）、dynamics `beta_z` 直参数化均已就位；6/6 候选闭环
 （M/L + c-M 先验下 3 改善 / 3 过修正）。
 
 ### 盘 mock 下一轮（B9）——暂缓
@@ -39,8 +39,8 @@ truth（particles/fdm/anisotropy/halo）、validation（closure 等）、弧合�
    `_JointAnalysis` 现在有稳定模块路径 + 命名空间注册；Linux（fork）可 pickle。
    spawn 平台仍单核。
 
-## 数据管线待提炼
+## 数据管线待扩展
 
-- `data_pipeline/spectra`：DEIMOS 归约 + pPXF 提取未提炼（研究脚本在
+- `data_pipeline/spectra`：DEIMOS 归约 + pPXF 提取尚未就位（研究脚本在
   SpectraPipeline；E-MILES 模板在 SpectraPipeline/03_catalogs/miles_templates/）。
 - `data_pipeline/other_obs`：空。

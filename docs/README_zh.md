@@ -9,8 +9,7 @@
 | [mock_pipeline_zh.md](mock_pipeline_zh.md) | 模拟数据生产与筛选（TNG 搜寻 → SKIRT mock 图像） |
 | [usage_guide_zh.md](usage_guide_zh.md) | 全流程使用：寻找盘星系 → 下载 → 处理 → 分析拟合 |
 | [components_reference_zh.md](components_reference_zh.md) | 拟合引擎：可插拔组件 + 可配置参数索引 |
-| [refinement_plan_zh.md](refinement_plan_zh.md) | 可插拔架构蓝图（组件 + 门面 + 路线图） |
-| [roadmap_zh.md](roadmap_zh.md) | 待提炼 + 流程不匹配 / 扩展项 |
+| [roadmap_zh.md](roadmap_zh.md) | 待扩展 + 流程不匹配 |
 | [../lensfit/README_zh.md](../lensfit/README_zh.md) | lensfit 拟合引擎指引（PSF/MGE/透镜，引用表 + 坑清单） |
 | [README_zh.md](../README_zh.md) | 项目总览 + 架构 |
 

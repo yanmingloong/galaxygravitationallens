@@ -99,7 +99,7 @@ res = gl.fit_mein(geometry, kinematics, lum_mge, ml_array,
 print(res["v200"], res["c200"], res["beta_z"], res["chi2_dyn"], res["chi2_lens"])
 ```
 
-`gl.fit` 端到端跑 Barnabè 式盘透镜流程（galaxy-subtract、噪声 rescale、gNFW + MGE×M/L + Sersic 源、jampy 动力学），用 Nautilus 采样。`gl.fit_positions` / `gl.fit_mein` 是四重像系统（Trick+2016 J1331）的逐点（坐标级）路径——透镜信息是像位置 / 单值爱因斯坦质量，而非像素级弧。完整坑清单见 `lensfit/README.md`，可插拔架构见 `docs/refinement_plan.md`。
+`gl.fit` 端到端跑 Barnabè 式盘透镜流程（galaxy-subtract、噪声 rescale、gNFW + MGE×M/L + Sersic 源、jampy 动力学），用 Nautilus 采样。`gl.fit_positions` / `gl.fit_mein` 是四重像系统（Trick+2016 J1331）的逐点（坐标级）路径——透镜信息是像位置 / 单值爱因斯坦质量，而非像素级弧。完整坑清单见 `lensfit/README.md`，可插拔组件见 `docs/components_reference_zh.md`。
 
 ## Step 4 — mock 对照：`mock_pipeline`
 

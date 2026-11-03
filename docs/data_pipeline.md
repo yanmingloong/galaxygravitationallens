@@ -15,8 +15,8 @@ data_pipeline/
 │   ├── stages/     # processing stages (cutout/centroid/background/cosmic_ray/noise/psf/starmask/alignment)
 │   ├── output/     # output (FITS writing / diagnostic plots / logs / quality assessment)
 │   └── preprocess_master.py  # main flow scheduling + CLI
-├── spectra/        # spectral pipeline (to be extracted: SDSS / KCWI / DEIMOS)
-└── other_obs/      # other observations (to be extracted: NIRC2 K'-band etc.)
+├── spectra/        # spectral pipeline (planned: SDSS / KCWI / DEIMOS)
+└── other_obs/      # other observations (planned: NIRC2 K'-band etc.)
 ```
 
 **Design principle**: data production (data_pipeline) is separated from data consumption (lensfit). This module only does "raw → processed", producing standardized FITS; the fitting engine lensfit consumes these products. Therefore this module **only depends on astropy/photutils**, not autolens.
@@ -147,4 +147,4 @@ print(f"Product directory: {out}")
 | `TINYTIM_BIN` | TinyTim executable directory | No |
 | `TINYTIM_BREATHING_CSV` | HST breathing model CSV | No |
 
-Lens parameters have been migrated from `config.py` hardcoding to `configs/{disk,slacs}/*.yaml`, loaded by `galaxylens.config.loader.load_lens_config()` into a `LensConfig` dataclass.
+Lens parameters are loaded from `configs/{disk,slacs}/*.yaml` by `galaxylens.config.loader.load_lens_config()` into a `LensConfig` dataclass.

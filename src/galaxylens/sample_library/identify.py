@@ -1,20 +1,25 @@
 """Lens identification: catalog row -> lens type -> modeling plan -> recipe.
 
-识别层（第 4 项）：classify.py 只做"盘/非盘"筛选（椭圆被排进 Tier X），这里补上
-正向识别——从 catalog 行推断"透镜类型（盘/椭圆）× 透镜约束（弧/四重像）"，映射到
-建模模块组合 + 配方模板。输出 :class:`LensPlan`，再调 :func:`write_recipe` 生成
-YAML，交给已有的 ``gl.fit``，即可串起"识别 -> 建模 -> 拟合"。
+The identification layer (step 4): ``classify.py`` only does "disk / non-disk"
+screening (ellipticals are pushed into Tier X); this module adds the forward
+identification -- inferring "lens type (disk/elliptical) x lens constraint
+(arc/quad)" from a catalog row, mapping it to a modeling-module combination +
+recipe template. Output :class:`LensPlan`, then call :func:`write_recipe` to
+emit a YAML for the existing ``gl.fit``, wiring "identify -> model -> fit".
 
-识别依据（按优先级）：
-    1. ``lens_type_label`` —— survey 里已有的形态学标签（DEV=椭圆，SER/EXP/S0=盘）
-    2. ``n_sersic``        —— Sérsic index 辅助（n<2 盘、n>=3 椭圆；catalog 里基本没填）
-    3. ``B_D_ratio``       —— 有 bulge/disk 分解则判盘
-    4. ``n_images`` / 已知名单 —— 四重像（点级约束，n_images 数据缺失时靠已知名单）
+Identification inputs (by priority):
+    1. ``lens_type_label`` -- the survey's morphology label (DEV=elliptical,
+       SER/EXP/S0=disk)
+    2. ``n_sersic``        -- Sersic index assist (n<2 disk, n>=3 elliptical;
+       mostly empty in the catalog)
+    3. ``B_D_ratio``       -- disk if a bulge/disk decomposition exists
+    4. ``n_images`` / known-quad list -- quads (point-level constraint; use the
+       known-name list when n_images is missing)
 
-三个已知样本的映射（回归测试的锚点）：
-    J2141-0001  disk  × imaging   -> j2141_barnabe.yaml (bulge+disk + jampy_kdc + 弧)
-    J1331+3628  disk  × positions -> j1331_trick.yaml   (点级四重像 fit_positions)
-    J1630+4520  ellip × imaging   -> j1630_ellip.yaml   (单 Sérsic + jampy + sigma_ap)
+Mapping for the three known samples (regression anchors):
+    J2141-0001  disk  x imaging   -> j2141_barnabe.yaml (bulge+disk + jampy_kdc + arc)
+    J1331+3628  disk  x positions -> j1331_trick.yaml   (point-level quad fit_positions)
+    J1630+4520  ellip x imaging   -> j1630_ellip.yaml   (single Sersic + jampy + sigma_ap)
 """
 
 from __future__ import annotations
@@ -27,8 +32,9 @@ from typing import Optional
 import numpy as np
 import pandas as pd
 
-# 内联 normalize_name / safe_float（不 import .utils，因为 utils -> config 会触发
-# GALAXYLENS_SAMPLE_LIB 环境变量检查 + 创建目录；识别层只读 catalog CSV，应当轻）。
+# Inline normalize_name / safe_float (do NOT import .utils: utils -> config
+# triggers the GALAXYLENS_SAMPLE_LIB env check + directory creation; the
+# identification layer only reads catalog CSVs and should stay light).
 def _normalize_name(name: str) -> str:
     name = str(name).lower().strip()
     name = name.replace(" ", "").replace("_", "")
@@ -46,17 +52,21 @@ def _safe_float(val, default=np.nan):
     except (ValueError, TypeError):
         return default
 
-# 椭圆 / 盘的形态学标签（对应 classify.py 的 TIER_X_LENS_TYPES 与盘 tier）
+# Elliptical / disk morphology labels (matching classify.py's TIER_X_LENS_TYPES
+# and the disk tiers).
 ELLIPTICAL_LABELS = {"DEV", "DEVAUCOULEURS", "ELLIPTICAL", "DEV2"}
 DISK_LABELS = {"SER", "SERSIC", "EXP", "EXPONENTIAL", "DISKY", "S0"}
 
-# 已知四重像名单（n_images 在 catalog 里几乎没填，跟 TIER0_NAMES 同做法靠已知名单）
+# Known-quad name list (n_images is mostly empty in the catalog; use the known
+# list, same approach as TIER0_NAMES).
 QUAD_NAMES = ["J1331+3628"]
 
-# 仓库内 product CSV（README 声明这里是 modeling_input 产品位置）。
-# 读 full（覆盖全部 tier，含四重像/特殊样本）+ 椭圆建模表（enrich_elliptical
-# 产物，含 DEV 标签 + sigma/thetaE/Re 等建模参数，让识别层能判 elliptical）。
-# elliptical.csv（614 DEV 排除名单）与 sample/tier01 是 full 的子集，不必重复读。
+# In-repo product CSVs (README declares this as the modeling_input product
+# location). Read full (covers all tiers, incl. quads/special samples) + the
+# elliptical modeling table (enrich_elliptical output, with DEV labels +
+# sigma/thetaE/Re modeling params, so the identification layer can say
+# "elliptical"). elliptical.csv (614-DEV exclusion list) and sample/tier01 are
+# subsets of full, no need to re-read them.
 _CATALOG_FILES = [
     "modeling_input_full.csv",
     "modeling_input_elliptical_modeling.csv",
@@ -66,10 +76,11 @@ _CATALOG_FILES = [
 
 @dataclass
 class LensPlan:
-    """透镜识别结果：类型 + 建模模块选择 + 配方模板。
+    """Lens identification result: type + modeling-module selection + recipe template.
 
     ``stellar_template`` / ``subtract_method`` / ``dynamics`` / ``source_model``
-    为 ``None`` 表示该组合不需要对应模块（如点级四重像不做恒星减除）。
+    are ``None`` when that combination does not need the module (e.g. a
+    point-level quad does no stellar subtraction).
     """
 
     name: str
@@ -79,8 +90,8 @@ class LensPlan:
     subtract_method: Optional[str]   # sersic / sersic_single
     dynamics: Optional[str]          # jampy_kdc / jampy
     source_model: Optional[str]      # sersic / pixelized
-    template_yaml: str               # 配方模板（相对 configs/fit/ 或绝对路径）
-    basis: str                       # 识别依据（人类可读）
+    template_yaml: str               # recipe template (relative to configs/fit/ or absolute)
+    basis: str                       # identification basis (human-readable)
 
     def asdict(self) -> dict:
         return asdict(self)
@@ -91,10 +102,10 @@ def _is_nan(x) -> bool:
 
 
 def identify_type(row: pd.Series) -> tuple[str, str]:
-    """从 catalog 行推断透镜类型 ``(lens_type, basis)``。
+    """Infer the lens type ``(lens_type, basis)`` from a catalog row.
 
-    ``lens_type`` 是形态分类：``disk`` / ``elliptical``（四重像是约束、在
-    :func:`identify_constraint` 里单独判，不在这里）。
+    ``lens_type`` is the morphology class: ``disk`` / ``elliptical`` (quads are
+    a constraint, decided separately in :func:`identify_constraint`, not here).
     """
     lt = str(row.get("lens_type_label", "") or "").strip().upper()
     n_sersic = _safe_float(row.get("n_sersic"))
@@ -106,26 +117,27 @@ def identify_type(row: pd.Series) -> tuple[str, str]:
     if lt in DISK_LABELS:
         return "disk", f"lens_type={lt}"
 
-    # Sérsic n 辅助（n<2 盘、n>=3 椭圆）
+    # Sersic n assist (n<2 disk, n>=3 elliptical)
     if not _is_nan(n_sersic):
         if n_sersic < 2.0:
             return "disk", f"n_sersic={n_sersic:.1f}_disk_like"
         if n_sersic >= 3.0:
             return "elliptical", f"n_sersic={n_sersic:.1f}_bulge_like"
 
-    # 有 bulge/disk 分解则判盘
+    # Disk if a bulge/disk decomposition exists
     if not _is_nan(b_d):
         return "disk", f"B/D={b_d:.2f}"
 
-    # 默认盘（样本库本就是盘筛选产物；type=None 时无法判断形态，诚实标注）
+    # Default disk (the sample library is a disk-screening product; type=None
+    # cannot tell the morphology, so state it honestly)
     return "disk", "no_morphology_label_default_disk"
 
 
 def identify_constraint(row: pd.Series, lens_type: str) -> tuple[str, str]:
-    """推断透镜约束类型 ``(constraint, basis)``：imaging / positions / mein。
+    """Infer the lens constraint ``(constraint, basis)``: imaging / positions / mein.
 
-    四重像（n_images>=4）走点级 ``positions``；延展弧走 ``imaging``。n_images
-    数据缺失时靠已知四重像名单兜底。
+    Quads (n_images>=4) go point-level ``positions``; extended arcs go
+    ``imaging``. Fall back to the known-quad list when n_images is missing.
     """
     name = str(row.get("name", "") or "")
     nname = _normalize_name(name)
@@ -141,23 +153,26 @@ def identify_constraint(row: pd.Series, lens_type: str) -> tuple[str, str]:
 
 
 def plan_modeling(name: str, lens_type: str, constraint: str, basis: str) -> LensPlan:
-    """类型 × 约束 -> 建模模块组合 + 配方模板。"""
+    """Type x constraint -> modeling-module combination + recipe template."""
     if constraint == "positions":
-        # 点级四重像：无恒星减除/动力学，靠像位置（Trick+2016 J1331 路线）
+        # Point-level quad: no stellar subtraction/dynamics, image positions only
+        # (the Trick+2016 J1331 route)
         return LensPlan(
             name, lens_type, "positions", None, None, None, None,
             "configs/fit/j1331_trick.yaml", f"point_level_quad:{basis}",
         )
 
     if lens_type == "elliptical":
-        # 椭圆透镜：单 Sérsic 减恒星 + jampy 各向同性 + sigma_ap（J1630 路线）
+        # Elliptical lens: single-Sersic subtraction + isotropic jampy + sigma_ap
+        # (the J1630 route)
         return LensPlan(
             name, "elliptical", "imaging", "ellip", "sersic_single",
             "jampy", "sersic", "configs/fit/j1630_ellip.yaml",
             f"elliptical_sigma_ap_arc:{basis}",
         )
 
-    # 盘透镜：bulge+disk 减恒星 + jampy_kdc 旋转 + v_rms 剖面 + 完整弧（Barnabe 路线）
+    # Disk lens: bulge+disk subtraction + jampy_kdc rotation + v_rms profile +
+    # full arc (the Barnabe route)
     return LensPlan(
         name, "disk", "imaging", "disk", "sersic",
         "jampy_kdc", "sersic", "configs/fit/j2141_barnabe.yaml",
@@ -166,10 +181,11 @@ def plan_modeling(name: str, lens_type: str, constraint: str, basis: str) -> Len
 
 
 def load_catalog(catalog_dir=None) -> pd.DataFrame:
-    """读 modeling_input 产品 CSV 并合并去重。
+    """Read the modeling_input product CSVs and merge/dedupe them.
 
-    ``catalog_dir`` 缺省为仓库内 ``sample_library/``（git 内、随时可用）；也可传
-    ``GALAXYLENS_SAMPLE_LIB/05_exports`` 的权威源目录。
+    ``catalog_dir`` defaults to the in-repo ``sample_library/`` (in git, always
+    available); alternatively pass the authoritative source dir
+    ``GALAXYLENS_SAMPLE_LIB/05_exports``.
     """
     if catalog_dir is None:
         catalog_dir = Path(__file__).resolve().parents[3] / "sample_library"
@@ -188,16 +204,17 @@ def load_catalog(catalog_dir=None) -> pd.DataFrame:
         )
     merged = pd.concat(frames, ignore_index=True)
     merged = merged.drop_duplicates(subset=["name"], keep="first")
-    # 预计算 normalize 名字（向量化一次，供 _lookup 用）
+    # Precompute the normalized name (vectorized once, reused by _lookup)
     merged["_norm"] = merged["name"].astype(str).map(_normalize_name)
     return merged
 
 
 def _lookup(catalog: pd.DataFrame, name: str) -> Optional[pd.Series]:
-    """按名字（normalize 后子串匹配）在 catalog 里找一行。
+    """Find a row by name (normalized substring match) in the catalog.
 
-    优先返回有形态学标签（DEV 椭圆建模表）的行，而非 full.csv 里 type=None 的
-    脏 cross_refs 行（否则 J1630 这类椭圆会落到默认盘）。
+    Prefer the row with a morphology label (the DEV elliptical modeling table)
+    over the dirty cross_refs rows with type=None in full.csv (otherwise an
+    elliptical like J1630 falls to the disk default).
     """
     target = _normalize_name(name)
     if not target:
@@ -212,7 +229,7 @@ def _lookup(catalog: pd.DataFrame, name: str) -> Optional[pd.Series]:
 
 
 def identify(name: str, catalog: Optional[pd.DataFrame] = None) -> LensPlan:
-    """按名字识别透镜 -> :class:`LensPlan`（不加载重依赖，可独立调用）。"""
+    """Identify a lens by name -> :class:`LensPlan` (no heavy deps, standalone)."""
     if catalog is None:
         catalog = load_catalog()
 
@@ -230,11 +247,12 @@ def identify(name: str, catalog: Optional[pd.DataFrame] = None) -> LensPlan:
 
 
 def write_recipe(plan: LensPlan, params: dict, out_path) -> Path:
-    """从 ``plan.template_yaml`` 复制模板 + 覆盖 ``params`` 里的键，写 YAML。
+    """Copy the ``plan.template_yaml`` and overwrite keys in ``params``, write YAML.
 
-    ``params`` 支持点号嵌套键（``"search.name"`` -> ``cfg["search"]["name"]``），
-    也支持整块 dict（``{"search": {"name": ...}}``）。复杂参数（数据路径、几何、
-    先验）仍需调用方给全。返回写出路径。
+    ``params`` supports dot-nested keys (``"search.name"`` ->
+    ``cfg["search"]["name"]``) and whole-dict values (``{"search": {"name": ...}}``).
+    Complex params (data paths, geometry, priors) are still the caller's job to
+    supply in full. Returns the written path.
     """
     import yaml
 

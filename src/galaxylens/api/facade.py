@@ -271,12 +271,13 @@ def analyze(cfg: FitConfig, samples_csv=None, out_dir=None, corner: bool = True,
 
 
 def identify(name: str, catalog=None):
-    """识别透镜类型 + 建模方案（识别层入口，可独立调用）。
+    """Identify lens type + modeling plan (identification-layer entry, standalone).
 
     ``gl.identify("J2141-0001")`` -> :class:`~galaxylens.sample_library.identify.LensPlan`
-    包含 ``lens_type`` / ``constraint`` / 建模模块选择 / ``template_yaml``。这是
-    "识别 -> 建模 -> 拟合" 全自动链路的第一环：拿 ``LensPlan.template_yaml`` 填参数
-    生成配方，再交给 ``gl.fit``。
+    carrying ``lens_type`` / ``constraint`` / the modeling-module selection /
+    ``template_yaml``. This is the first link of the "identify -> model -> fit"
+    automation chain: fill the ``LensPlan.template_yaml`` to emit a recipe, then
+    hand it to ``gl.fit``.
     """
     from ..sample_library.identify import identify as _identify
 
@@ -284,11 +285,14 @@ def identify(name: str, catalog=None):
 
 
 def identify_from_image(fits_path, name=None, center=None, rmax_pix=None):
-    """从图像测形态 -> 分类 -> :class:`LensPlan`（图像形状识别入口）。
+    """Measure image morphology -> classify -> :class:`LensPlan` (image-shape entry).
 
-    当 catalog 参数（lens_type_label/n_sersic）缺失或不可靠时，直接对 FITS 图像
-    测光集中度 C + 轴比 q，判盘/椭圆（C < 3.1 盘、C > 3.4 椭圆）。返回 LensPlan，
-    ``constraint`` 默认 ``imaging``（延展弧）。这是识别层的图像兜底，不依赖 catalog。
+    When catalog fields (lens_type_label / n_sersic) are missing or unreliable,
+    measure light concentration C + axis ratio q directly from the FITS image
+    and classify disk/elliptical (C < 3.1 disk, C > 3.4 elliptical). Returns a
+    LensPlan with ``constraint`` defaulting to ``imaging`` (extended arc). This
+    is the image-level fallback of the identification layer, independent of the
+    catalog.
     """
     from ..sample_library.identify import plan_modeling
     from ..sample_library.morphology import classify_morphology, measure_morphology

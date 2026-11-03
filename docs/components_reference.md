@@ -130,4 +130,9 @@ individually callable (manual mode).
   emits a runnable YAML (dot-nested key overrides).
 - `gl.mock(target, ...)` — the pre-built mock-closure pipeline select -> pick ->
   truth -> render -> make_arc -> mock_fit -> closure. The heavy stages need TNG
-  particle HDF5 + the SKIRT binary.
+  particle HDF5 + the SKIRT binary. truth / render / arc are validated
+  end-to-end on real TNG particles + SKIRT v9.0 (subhalo 348489: truth
+  reproduces the MF ground truth exactly, arc M* self-check 1.000); fit +
+  closure still need a real Nautilus run. The arc front end
+  `mock_pipeline.lensing.mge.fit_light_mge` fits the light MGE from the mock
+  image (mgefit); a runnable mock recipe is `configs/fit/j2141_mock.yaml`.

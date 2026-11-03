@@ -22,7 +22,7 @@ J1630_F814 = f"{_BASE}/J1630+4520/v2_psf_epsf/j1630+4520_f814w_sci.fits"
 
 def test_morphology_disk():
     m = measure_morphology(J2141_F814)
-    assert m["C"] < 3.1, f"J2141 C={m['C']:.2f} 应判盘"
+    assert m["C"] < 3.1, f"J2141 C={m['C']:.2f} expected disk"
     lt, basis = classify_morphology(m)
     assert lt == "disk", basis
     print(f"[morph] J2141 C={m['C']:.2f} q={m['q']:.2f} -> disk ({basis})")
@@ -30,7 +30,7 @@ def test_morphology_disk():
 
 def test_morphology_elliptical():
     m = measure_morphology(J1630_F814)
-    assert m["C"] > 3.4, f"J1630 C={m['C']:.2f} 应判椭圆"
+    assert m["C"] > 3.4, f"J1630 C={m['C']:.2f} expected elliptical"
     lt, basis = classify_morphology(m)
     assert lt == "elliptical", basis
     print(f"[morph] J1630 C={m['C']:.2f} q={m['q']:.2f} -> elliptical ({basis})")
@@ -44,7 +44,7 @@ def test_identify_from_image():
     p2 = gl.identify_from_image(J2141_F814, name="J2141-0001")
     assert p2.lens_type == "disk"
     assert p2.template_yaml == "configs/fit/j2141_barnabe.yaml"
-    print("[morph] identify_from_image -> 正确 LensPlan（椭圆/盘各自模板）")
+    print("[morph] identify_from_image -> correct LensPlan (ellip/disk templates)")
 
 
 if __name__ == "__main__":

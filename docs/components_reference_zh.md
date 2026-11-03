@@ -114,3 +114,7 @@ K'-band 构建器是两侧桥：`StellarTemplate.calibration` 是动力学面密
 - `gl.identify(name)` — 透镜识别：读样本 catalog，推断透镜类型（盘/椭圆）+ 约束（弧/四重像），返回 `LensPlan`（类型 + 建模模块 + `template_yaml`）。`write_recipe(plan, params)` 产出可跑 YAML（点号嵌套键覆盖）。
 - `gl.mock(target, ...)` — 预置的 mock 闭合流水线 select → pick → truth →
   render → make_arc → mock_fit → closure。重步骤需 TNG 粒子 HDF5 + SKIRT 二进制。
+  truth / render / arc 已用真实 TNG 粒子 + SKIRT v9.0 端到端验证（348489：
+  truth 精确复现 MF 真值，arc M* 自检 1.000）；fit + closure 仍需跑真实
+  Nautilus。arc 前置 `mock_pipeline.lensing.mge.fit_light_mge` 从 mock 图拟合
+  光 MGE（mgefit）；可跑 mock 配方 `configs/fit/j2141_mock.yaml`。

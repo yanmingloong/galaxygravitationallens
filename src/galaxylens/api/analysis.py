@@ -176,9 +176,9 @@ def analyze(
         for k, e in edges.items():
             flag = ""
             if e["hits_lower"]:
-                flag += " 贴下界"
+                flag += " hits_lower"
             if e["hits_upper"]:
-                flag += " 贴上界"
+                flag += " hits_upper"
             print(f"  {k:10s} {e['prior']}  ->  [{e['q025']:.3g}, {e['q975']:.3g}]{flag or '  OK'}")
 
     if corner:

@@ -1,24 +1,29 @@
-"""Image morphology measurement for lens identification (图像形状识别).
+"""Image morphology measurement for lens identification.
 
-从 FITS 图像直接测形态学参数，判断盘/椭圆。当 catalog 参数（lens_type_label /
-n_sersic）缺失或不可靠时，作为识别层的图像兜底。纯 numpy + astropy（惰性 import），
-不依赖 mgefit / autolens。
+Measure morphological parameters directly from a FITS image and classify the
+lens as disk or elliptical. This is the image-level fallback for the
+identification layer, used when catalog morphology fields (``lens_type_label``
+/ ``n_sersic``) are missing or unreliable. Pure numpy + astropy (lazy import),
+no mgefit / autolens dependency.
 
-判据（阈值经真实样本标定，2026-11-03）：
-  C = 5 * log10(r80 / r20)  —— 光集中度（主判据，最稳健）
-      J2141 edge-on S0 盘 C = 1.58；J1630 SLACS 椭圆 C = 4.21
-      阈值：C < 3.1 判盘、C > 3.4 判椭圆，中间区间回落轴比
-  q = b / a                  —— 轴比（光度二阶矩，辅助）
-      注意：透镜弧 + PSF 会把 q 拉圆（J2141/J1630 都测到 q≈0.89，不可靠），
-      故 q 只在 C 中间区间作辅助，不作主判据
+Criteria (thresholds calibrated on real samples, 2026-11-03):
+  C = 5 * log10(r80 / r20)  -- light concentration (primary, most robust)
+      J2141 edge-on S0 disk C = 1.58; J1630 SLACS elliptical C = 4.21
+      thresholds: C < 3.1 -> disk, C > 3.4 -> elliptical, between -> fall back
+      to axis ratio
+  q = b / a                  -- axis ratio (photometric 2nd moment, auxiliary)
+      NOTE: the lens arc + PSF drag q round (J2141/J1630 both measure q~0.89,
+      unreliable), so q is only used as a tie-breaker in the C gap, never as
+      the primary criterion
 
-方法：
-  - 背景：外圈 annulus 中值估计 + 减除
-  - 中心：光重心（一阶矩）
-  - C：圆形孔径累积通量 20% / 80% 半径
-  - q/PA：光度二阶矩（惯性张量）特征值比 / 特征向量方向
+Method:
+  - background: outer-annulus median estimate + subtract
+  - centre: light centroid (1st moment)
+  - C: circular-aperture cumulative-flux 20% / 80% radii
+  - q/PA: photometric 2nd moment (inertia tensor) eigenvalue ratio /
+    eigenvector direction
 
-用法：
+Usage:
   morph = measure_morphology("xxx_f814w_sci.fits")
   lens_type, basis = classify_morphology(morph)
 """
@@ -30,9 +35,10 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-# 光集中度阈值（需真实样本标定；初始值按 Sérsic n 的典型 C 区间）
-C_DISK_MAX = 3.1      # C 低于此判盘
-C_ELLIP_MIN = 3.4     # C 高于此判椭圆；中间用轴比辅助
+# Light-concentration thresholds (calibrated on real samples; initial values
+# from the typical C range of a Sersic index).
+C_DISK_MAX = 3.1      # C below this -> disk
+C_ELLIP_MIN = 3.4     # C above this -> elliptical; in between use axis ratio
 
 
 def measure_morphology(
@@ -40,12 +46,13 @@ def measure_morphology(
     center=None,
     rmax_pix: Optional[float] = None,
 ) -> dict:
-    """从 FITS 图像测形态学参数，返回 dict。
+    """Measure morphology parameters from a FITS image, return a dict.
 
-    参数：
-      fits_path: 科学图像 FITS 路径（sci 帧）
-      center:    透镜中心 (x, y)，缺省用光重心
-      rmax_pix:  测光半径上限（像素），缺省 = min(shape)/2 * 0.8（避开弧/外围）
+    Args:
+      fits_path: science-image FITS path (sci frame).
+      center:    lens centre (x, y); defaults to the light centroid.
+      rmax_pix:  photometric radius cap (pixels); defaults to
+                 ``min(shape)/2 * 0.8`` (avoid the arc / outer halo).
     """
     from astropy.io import fits
 
@@ -81,7 +88,7 @@ def measure_morphology(
 
 
 def classify_morphology(morph: dict) -> Tuple[str, str]:
-    """C + q -> ``(lens_type, basis)``（disk / elliptical）。"""
+    """C + q -> ``(lens_type, basis)`` (disk / elliptical)."""
     C = morph["C"]
     q = morph.get("q", 1.0)
 
@@ -90,14 +97,14 @@ def classify_morphology(morph: dict) -> Tuple[str, str]:
     if C > C_ELLIP_MIN:
         return "elliptical", f"C={C:.2f}_bulge_like"
 
-    # 中间区间：用轴比辅助（edge-on 盘很扁）
+    # In the C gap: use axis ratio (edge-on disks are very flat).
     if q < 0.5:
         return "disk", f"C={C:.2f}_q={q:.2f}_edge_on_disk"
     return "elliptical", f"C={C:.2f}_q={q:.2f}_ambiguous_ellip"
 
 
 def _estimate_background(data: np.ndarray) -> float:
-    """外圈 annulus（外 10%）中值作背景。"""
+    """Outer-annulus (outer 10%) median as the background."""
     r = _radial_grid(data)
     rmax = r.max()
     annulus = data[(r > 0.85 * rmax) & (r <= rmax)]
@@ -111,7 +118,7 @@ def _radial_grid(data: np.ndarray) -> np.ndarray:
 
 
 def _centroid(img: np.ndarray) -> Tuple[float, float]:
-    """光重心（一阶矩）。"""
+    """Light centroid (1st moment)."""
     ny, nx = img.shape
     yy, xx = np.indices((ny, nx))
     w = img.sum()
@@ -123,7 +130,7 @@ def _centroid(img: np.ndarray) -> Tuple[float, float]:
 
 
 def _concentration(img: np.ndarray, center, rmax_pix: float) -> Tuple[float, float, float]:
-    """圆形孔径累积通量 -> (r20, r80, C)。"""
+    """Circular-aperture cumulative flux -> (r20, r80, C)."""
     ny, nx = img.shape
     yy, xx = np.indices((ny, nx))
     r = np.sqrt((xx - center[0]) ** 2 + (yy - center[1]) ** 2)
@@ -144,7 +151,7 @@ def _concentration(img: np.ndarray, center, rmax_pix: float) -> Tuple[float, flo
 
 
 def _axis_ratio(img: np.ndarray, center, rmax_pix: float) -> Tuple[float, float]:
-    """光度二阶矩（惯性张量）-> (q=b/a, PA_deg)。"""
+    """Photometric 2nd moment (inertia tensor) -> (q=b/a, PA_deg)."""
     ny, nx = img.shape
     yy, xx = np.indices((ny, nx))
     dx = xx - center[0]

@@ -1,25 +1,28 @@
 """Enrich the elliptical sample library into a modelable subset.
 
-椭圆库升级：把 modeling_input_elliptical.csv（614 个 DEV 的"排除名单"，只有
-name/z/mag）升级成"可建模椭圆样本表" modeling_input_elliptical_modeling.csv。
+Upgrade ``modeling_input_elliptical.csv`` (a 614-DEV "exclusion list" with only
+name/z/mag) into the modelable elliptical table
+``modeling_input_elliptical_modeling.csv``.
 
-数据源（都在 GalaxyGravLens 项目内、本地）：
-  - SLACS_all_params.csv   Dinos 3 个：zl/zs/sigma/theta_E/γ/Re/n（完整）
-  - SLACS_light_params.csv Dinos 3 个：q(=qL) / PA(=phi_L) / amp_sersic_1
-  - slacs_kcwi_kinematics_table.csv  KCWI 14 个：sigma_ap(=VD_reff) / reff / ellipticity
+Data sources (all local, inside the GalaxyGravLens project):
+  - SLACS_all_params.csv     Dinos 3: zl/zs/sigma/theta_E/gamma/Re/n (complete)
+  - SLACS_light_params.csv   Dinos 3: q(=qL) / PA(=phi_L) / amp_sersic_1
+  - slacs_kcwi_kinematics_table.csv  KCWI 14: sigma_ap(=VD_reff) / reff / ellipticity
 
-字段对齐 j1630_ellip.yaml 的输入（z_lens/z_source/sigma_km_s/theta_E_arcsec/
-gamma/re_arcsec/n_sersic/q/pa_deg）。sigma_ap 取 KCWI 的 VD_reff（j1630_ellip.yaml
-的 aperture_vrms=267 即此来源，非 Dinos 的 sigma_v=283）。
+Fields align with j1630_ellip.yaml's inputs (z_lens/z_source/sigma_km_s/
+theta_E_arcsec/gamma/re_arcsec/n_sersic/q/pa_deg). sigma_ap takes the KCWI
+VD_reff (j1630_ellip.yaml's aperture_vrms=267 comes from here, NOT Dinos'
+sigma_v=283).
 
-data_complete 标注参数完整度：
-  full       = Dinos 3 个（theta_E/γ/n/q/PA 全齐，可直接生成配方）
-  sigma_only = KCWI-only 11 个（有 sigma_ap/Re/q，缺 theta_E/γ/n——theta_E 缺失
-               意味着无法钉住内区质量，需从 SLACS Einstein 半径文献另补）
+data_complete marks parameter completeness:
+  full       = Dinos 3 (theta_E/gamma/n/q/PA all present, recipe-ready)
+  sigma_only = KCWI-only 11 (has sigma_ap/Re/q, missing theta_E/gamma/n -- a
+               missing theta_E cannot pin the inner mass, needs the SLACS
+               Einstein-radius literature)
 
-用法：
+Usage:
   python -m galaxylens.sample_library.enrich_elliptical
-  或指定数据源/输出： enrich_elliptical(dinos_dir=..., kcwi_path=..., out_path=...)
+  or with explicit sources/output: enrich_elliptical(dinos_dir=..., kcwi_path=..., out_path=...)
 """
 
 from __future__ import annotations
@@ -30,7 +33,7 @@ from typing import Optional
 
 import pandas as pd
 
-# 输出列（对齐 j1630_ellip.yaml 的输入字段）
+# Output columns (aligned with j1630_ellip.yaml's input fields)
 OUTPUT_COLUMNS = [
     "name", "lens_type_label", "z_lens", "z_source",
     "sigma_km_s", "sigma_err",
@@ -62,7 +65,7 @@ def enrich_elliptical(
     kcwi_path: Optional[Path] = None,
     out_path: Optional[Path] = None,
 ) -> pd.DataFrame:
-    """组装可建模椭圆表，返回 DataFrame 并写 CSV。"""
+    """Assemble the modelable elliptical table, return the DataFrame and write CSV."""
     dinos_dir, kcwi_path, out_path = (
         (dinos_dir, kcwi_path, out_path)
         if dinos_dir and kcwi_path and out_path
@@ -74,7 +77,7 @@ def enrich_elliptical(
     light = pd.read_csv(dinos_dir / "SLACS_light_params.csv")
     kcwi = pd.read_csv(kcwi_path)
 
-    # Dinos 3 个：按 normalize 名字建 dict（避免 merge 列名冲突）
+    # Dinos 3: index by normalized name via a dict (avoid merge column clashes)
     allp_by_name = {_norm(r["name"]): r for _, r in allp.iterrows()}
     light_by_name = {_norm(r["lens_name"]): r for _, r in light.iterrows()}
 
@@ -89,10 +92,10 @@ def enrich_elliptical(
 
         row = {
             "name": name,
-            "lens_type_label": "DEV",           # 椭圆（识别层据此判 elliptical）
+            "lens_type_label": "DEV",           # elliptical (identification keys on it)
             "z_lens": float(k["zlens"]),
             "z_source": float(d_all["z_source"]) if has_dinos else None,
-            "sigma_km_s": float(k["VD\\_reff"]),       # KCWI Re 孔径弥散
+            "sigma_km_s": float(k["VD\\_reff"]),       # KCWI Re-aperture dispersion
             "sigma_err": float(k["dVD\\_reff"]),
             "theta_E_arcsec": float(d_all["theta_E"]) if has_dinos else None,
             "gamma": float(d_all["gamma"]) if has_dinos else None,
@@ -113,9 +116,9 @@ def enrich_elliptical(
 
     n_full = (df["data_complete"] == "full").sum()
     n_sig = (df["data_complete"] == "sigma_only").sum()
-    print(f"可建模椭圆：{len(df)} 个（{n_full} 个完整 Dinos + {n_sig} 个 KCWI-only）")
-    print(f"完整（thetaE/γ/n/q/PA 全）：{', '.join(df[df['data_complete']=='full']['name'])}")
-    print(f"缺 thetaE/γ（sigma_only）：{', '.join(df[df['data_complete']=='sigma_only']['name'])}")
+    print(f"modelable ellipticals: {len(df)} ({n_full} full Dinos + {n_sig} KCWI-only)")
+    print(f"complete (thetaE/gamma/n/q/PA all): {', '.join(df[df['data_complete']=='full']['name'])}")
+    print(f"missing thetaE/gamma (sigma_only): {', '.join(df[df['data_complete']=='sigma_only']['name'])}")
     print(f"Saved: {out_path}")
     return df
 

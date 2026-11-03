@@ -16,6 +16,10 @@
 
 # %%
 import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))  # repo root/src
 
 import numpy as np
 from astropy.io import fits
@@ -66,12 +70,10 @@ print("J1331 observation:", [(b.label, b.skirt_name) for b in j1331_obs.bands])
 # Results are not committed to the repo; they land at `OUTPUT_ROOT/catalog.csv`.
 
 # %%
-_key = os.environ.get("TNG_API_KEY") or (
-    "file" if os.path.exists(os.path.expanduser("~/.tng_api_key")) else ""
-)
+_key = os.environ.get("TNG_API_KEY", "")
 if not _key:
-    print("⚠ No TNG API key detected, skipping selection (§2).")
-    print("  Get one: register at tng-project.org → API docs; store it in the TNG_API_KEY env var or ~/.tng_api_key.")
+    print("⚠ TNG_API_KEY not set, skipping selection (§2).")
+    print("  Get one: register at tng-project.org → API docs; export TNG_API_KEY=... to run this.")
     rows = []
 else:
     rows = run_selection(
@@ -160,11 +162,16 @@ else:
 print("fake HST image shape:", img_hst.shape)
 
 try:
+    import matplotlib
+    matplotlib.use("Agg")
     import matplotlib.pyplot as plt
     plt.imshow(img_hst, origin="lower", cmap="gray_r")
     plt.title(f"fake HST {J2141_BANDS[0].skirt_name}")
     plt.colorbar(label="e-/s")
-    plt.show()
+    out_png = os.path.join(OUTPUT_ROOT, "fake_hst.png")
+    plt.savefig(out_png, dpi=100)
+    plt.close()
+    print(f"fake HST plot saved: {out_png}")
 except ImportError:
     print("(matplotlib not installed, skipping plot)")
 

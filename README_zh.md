@@ -115,6 +115,14 @@ print(plan.lens_type, plan.constraint, plan.template_yaml)
 
 `gl.Pipeline` / `gl.Stage` 把可插拔组件串成有序运行，支持全自动、部分（`run(only=...)`）与区间（`run(start=..., stop=...)`）三种粒度，每步仍可独立调用。`gl.mock` 是预置的 mock 闭合流水线（select → truth → render → arc → fit → closure）；见 [docs/usage_guide.md](docs/usage_guide.md) Step 4。
 
+### 教程（可跑 notebook）
+
+`notebooks/` 下三个 `# %%` notebook 走通主链路——见 [docs/README_zh.md](docs/README_zh.md#教程notebooks-下的可跑--notebook)：
+
+- `identify_demo.py` — 识别 → 配方（全离线）
+- `fit_demo.py` — 配方 → 拟合 → 分析（合成 FITS smoke，离线）
+- `mock_pipeline_demo.py` — TNG 选样 → SKIRT → fake HST
+
 ## 噪声方法（data_pipeline/imaging）
 
 `preprocess_master.py --noise-method` 为每个透镜系统一次生成三个噪声版本，三个版本共用同一套 science / PSF / starmask，仅噪声图不同：

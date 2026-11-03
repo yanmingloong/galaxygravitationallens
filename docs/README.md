@@ -14,6 +14,19 @@
 | [../lensfit/README.md](../lensfit/README.md) | lensfit engine guide (PSF/MGE/lens, reference table + pitfall list) |
 | [README.md](../README.md) | project overview + architecture |
 
+## Tutorials (runnable `# %%` notebooks under `notebooks/`)
+
+| Notebook | Content | Offline? |
+|---|---|---|
+| [identify_demo.py](../notebooks/identify_demo.py) | lens identification: name -> LensPlan -> recipe -> image-shape fallback | fully offline |
+| [fit_demo.py](../notebooks/fit_demo.py) | recipe -> fit -> analyse (synthetic-FITS smoke + heavy part marked) | offline smoke + heavy part marked |
+| [mock_pipeline_demo.py](../notebooks/mock_pipeline_demo.py) | mock end-to-end: TNG selection -> SKIRT -> fake HST | offline part + heavy part marked |
+
+Each notebook is `# %%` (jupytext-light) Python: runnable as a script, openable
+as an interactive notebook in VS Code. Offline sections run out of the box;
+heavy sections (TNG download, SKIRT render, Nautilus fit) mark their
+prerequisites and skip gracefully when absent.
+
 ## Environment quick reference
 
 ```bash

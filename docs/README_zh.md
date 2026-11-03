@@ -14,6 +14,18 @@
 | [../lensfit/README_zh.md](../lensfit/README_zh.md) | lensfit 拟合引擎指引（PSF/MGE/透镜，引用表 + 坑清单） |
 | [README_zh.md](../README_zh.md) | 项目总览 + 架构 |
 
+## 教程（`notebooks/` 下的可跑 `# %%` notebook）
+
+| Notebook | 内容 | 是否离线 |
+|---|---|---|
+| [identify_demo.py](../notebooks/identify_demo.py) | 透镜识别：名字 -> LensPlan -> 配方 -> 图像形状兜底 | 全离线 |
+| [fit_demo.py](../notebooks/fit_demo.py) | 配方 -> 拟合 -> 分析（合成 FITS smoke + 重活段标注） | 离线 smoke + 重活段标注 |
+| [mock_pipeline_demo.py](../notebooks/mock_pipeline_demo.py) | mock 端到端：TNG 选样 -> SKIRT -> fake HST | 离线段 + 重活段标注 |
+
+每个 notebook 是 `# %%`（jupytext-light）Python：可直接当脚本跑，也可在 VS Code
+里当交互 notebook 打开。离线段开箱即跑；重活段（TNG 下载、SKIRT 渲染、Nautilus
+拟合）标注前置条件、缺时优雅跳过。
+
 ## 环境配置速查
 
 ```bash

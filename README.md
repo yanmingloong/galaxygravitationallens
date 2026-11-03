@@ -134,6 +134,15 @@ stop=...)`) modes, while every stage stays individually callable. `gl.mock`
 is the pre-built mock-closure pipeline (select -> truth -> render -> arc ->
 fit -> closure); see [docs/usage_guide.md](docs/usage_guide.md) Step 4.
 
+### Tutorials (runnable notebooks)
+
+Three `# %%` notebooks under `notebooks/` walk the main chains end-to-end —
+see [docs/README.md](docs/README.md#tutorials-runnable--notebooks-under-notebooks):
+
+- `identify_demo.py` — identify -> recipe (fully offline)
+- `fit_demo.py` — recipe -> fit -> analyse (synthetic-FITS smoke, offline)
+- `mock_pipeline_demo.py` — TNG selection -> SKIRT -> fake HST
+
 ## Noise methods (data_pipeline/imaging)
 
 `preprocess_master.py --noise-method` generates three noise versions per lens

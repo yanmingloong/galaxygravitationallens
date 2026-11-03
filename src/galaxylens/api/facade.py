@@ -1,4 +1,4 @@
-"""Facade: the user-facing entry points (``gl.fit`` / ``gl.load_config`` / ``gl.load_dataset``).
+"""Facade: the user-facing entry points (``gl.fit`` / ``gl.analyze`` / ``gl.identify`` / ``gl.mock``).
 
 "Core is the engine, facade is the handle": this module only wires the core
 layer together; all physics lives in ``lensfit``. The heavy dependencies
@@ -268,3 +268,16 @@ def analyze(cfg: FitConfig, samples_csv=None, out_dir=None, corner: bool = True,
     from .analysis import analyze as _analyze
 
     return _analyze(cfg, samples_csv=samples_csv, out_dir=out_dir, corner=corner, verbose=verbose)
+
+
+def identify(name: str, catalog=None):
+    """识别透镜类型 + 建模方案（识别层入口，可独立调用）。
+
+    ``gl.identify("J2141-0001")`` -> :class:`~galaxylens.sample_library.identify.LensPlan`
+    包含 ``lens_type`` / ``constraint`` / 建模模块选择 / ``template_yaml``。这是
+    "识别 -> 建模 -> 拟合" 全自动链路的第一环：拿 ``LensPlan.template_yaml`` 填参数
+    生成配方，再交给 ``gl.fit``。
+    """
+    from ..sample_library.identify import identify as _identify
+
+    return _identify(name, catalog=catalog)

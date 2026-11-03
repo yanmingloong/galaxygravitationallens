@@ -124,6 +124,10 @@ individually callable (manual mode).
   quantities (beta_z / M* / f_dm at median / theta_E / gamma_tot), a prior-edge
   check, and the corner plot. `f_dm` is evaluated at the median parameters (the
   `Result.f_dm` per-sample loop is O(N) and slow).
+- `gl.identify(name)` — lens identification: reads the sample catalog, infers
+  lens type (disk/elliptical) + constraint (arc/quad), returns a `LensPlan`
+  (type + modeling modules + `template_yaml`). `write_recipe(plan, params)`
+  emits a runnable YAML (dot-nested key overrides).
 - `gl.mock(target, ...)` — the pre-built mock-closure pipeline select -> pick ->
   truth -> render -> make_arc -> mock_fit -> closure. The heavy stages need TNG
   particle HDF5 + the SKIRT binary.

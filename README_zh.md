@@ -32,7 +32,7 @@ galaxygravitationallens/
 │   │   ├── lens/                #     透镜模型 builder（盘 / 椭圆两套）
 │   │   ├── plotting/            #     统一绘图（论文风格）
 │   │   └── validation/          #     ground-truth 对照（mock 验证）
-│   ├── api/                     #   门面层：gl.fit / gl.analyze / gl.mock / gl.load_config / gl.load_dataset
+│   ├── api/                     #   门面层：gl.fit / gl.analyze / gl.identify / gl.mock / gl.load_config / gl.load_dataset
 │   └── sample_library/          #   观测样本库访问
 ├── configs/                     # 各透镜 YAML（disk/ + slacs/）
 ├── sample_library/              # 观测样本库数据
@@ -100,6 +100,15 @@ gl.analyze(cfg)                         # 一键拟合后分析 + corner 图
 ```
 
 完整拟合流程见 [docs/usage_guide.md](docs/usage_guide.md) Step 3。
+
+### 识别（透镜类型 → 建模方案）
+
+```python
+plan = gl.identify("J2141-0001")     # LensPlan：disk / imaging / jampy_kdc
+print(plan.lens_type, plan.constraint, plan.template_yaml)
+```
+
+`gl.identify` 读样本 catalog，推断透镜类型（盘/椭圆）与约束（弧/四重像），映射到建模模块 + 配方模板——"识别 → 建模 → 拟合"链的第一环。
 
 ### 编排（自动 + 人工）
 

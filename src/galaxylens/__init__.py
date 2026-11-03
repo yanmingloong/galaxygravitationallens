@@ -19,6 +19,7 @@ from galaxylens.api import (
     fit,
     fit_mein,
     fit_positions,
+    identify,
     load_config,
     load_dataset,
 )
@@ -33,6 +34,7 @@ __all__ = [
     "load_config",
     "load_dataset",
     "analyze",
+    "identify",
     "mock",
     "Pipeline",
     "Stage",

@@ -111,5 +111,6 @@ K'-band 构建器是两侧桥：`StellarTemplate.calibration` 是动力学面密
 - `gl.analyze(cfg)` — 一键拟合后分析：六质量参数、派生量（βz / M* / median
   参数处 f_dm / θ_E / γ_tot）、先验贴边检查、corner 图。`f_dm` 在 median
   参数处算（`Result.f_dm` 的逐样本循环是 O(N)、慢）。
+- `gl.identify(name)` — 透镜识别：读样本 catalog，推断透镜类型（盘/椭圆）+ 约束（弧/四重像），返回 `LensPlan`（类型 + 建模模块 + `template_yaml`）。`write_recipe(plan, params)` 产出可跑 YAML（点号嵌套键覆盖）。
 - `gl.mock(target, ...)` — 预置的 mock 闭合流水线 select → pick → truth →
   render → make_arc → mock_fit → closure。重步骤需 TNG 粒子 HDF5 + SKIRT 二进制。

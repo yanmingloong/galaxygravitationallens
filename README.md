@@ -37,7 +37,7 @@ galaxygravitationallens/
 │   │   ├── lens/                #     lens model builder (disk / elliptical)
 │   │   ├── plotting/            #     unified plotting (paper style)
 │   │   └── validation/          #     ground-truth comparison (mock validation)
-│   ├── api/                     #   Facade layer: gl.fit / gl.analyze / gl.mock / gl.load_config / gl.load_dataset
+│   ├── api/                     #   Facade layer: gl.fit / gl.analyze / gl.identify / gl.mock / gl.load_config / gl.load_dataset
 │   └── sample_library/          #   Observational sample library access
 ├── configs/                     # per-lens YAML (disk/ + slacs/)
 ├── sample_library/              # observational sample data
@@ -111,6 +111,17 @@ gl.analyze(cfg)                         # one-call post-fit summary + corner plo
 ```
 
 See [docs/usage_guide.md](docs/usage_guide.md) Step 3 for the full fitting flow.
+
+### Identify (lens type -> modeling plan)
+
+```python
+plan = gl.identify("J2141-0001")     # LensPlan: disk / imaging / jampy_kdc
+print(plan.lens_type, plan.constraint, plan.template_yaml)
+```
+
+`gl.identify` reads the sample catalog, infers lens type (disk/elliptical) and
+constraint (arc/quad), and maps to modeling modules + a recipe template — the
+first link of the "identify -> model -> fit" chain.
 
 ### Orchestrate (auto + manual)
 

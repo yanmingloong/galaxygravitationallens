@@ -9,7 +9,7 @@ from .config_loader import DataSpec, FitConfig, SearchSpec, load_config
 from .derived import f_dm_of, m2d_within, m_star_total
 from .result import Result, weighted_percentile
 from .search import build_search
-from .facade import analyze, fit, fit_mein, fit_positions, load_dataset
+from .facade import analyze, fit, fit_mein, fit_positions, identify, load_dataset
 from .pipeline import Pipeline, Stage
 
 __all__ = [
@@ -22,6 +22,7 @@ __all__ = [
     "fit_mein",
     "fit_positions",
     "analyze",
+    "identify",
     "Result",
     "weighted_percentile",
     "f_dm_of",

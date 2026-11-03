@@ -24,7 +24,7 @@ Key conventions (same as ``mf1a_mge.py``, do NOT change):
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Tuple
 
 import numpy as np
 

@@ -59,6 +59,13 @@ class KinData:
     measured; ``vrms_err`` are the 1-sigma uncertainties. ``vcirc``/``vcirc_err``
     are an optional Halpha (or other tracer) circular-velocity constraint at
     ``2.2 * rd_arcsec`` (km/s).
+
+    For ELLIPTICAL lenses the kinematic observable is usually a SINGLE
+    luminosity-weighted aperture velocity dispersion ``sigma_ap`` (e.g. a
+    SDSS/SLACS fibre). The optional ``aperture_radius`` / ``aperture_vrms`` /
+    ``aperture_vrms_err`` / ``kin_psf_sigma`` fields carry it; the Jampy engine
+    computes the model ``sigma_ap`` inside that aperture via the ``pixsize`` +
+    ``sigmapsf`` convolution of ``jam.axi.proj``.
     """
 
     xbin: np.ndarray
@@ -67,12 +74,19 @@ class KinData:
     vrms_err: np.ndarray
     vcirc: Optional[float] = None
     vcirc_err: Optional[float] = None
+    # Elliptical-lens aperture dispersion (optional):
+    aperture_radius: Optional[float] = None  # circular aperture radius, arcsec
+    aperture_vrms: Optional[float] = None  # sigma_ap, km/s
+    aperture_vrms_err: Optional[float] = None  # km/s
+    kin_psf_sigma: Optional[float] = None  # kinematics PSF sigma, arcsec
 
     @property
     def n_points(self) -> int:
-        """Number of kinematic data points (v_rms + optional V_circ)."""
+        """Number of kinematic data points (v_rms + optional V_circ + aperture)."""
         n = len(self.vrms)
         if self.vcirc is not None:
+            n += 1
+        if self.aperture_vrms is not None:
             n += 1
         return n
 
@@ -121,6 +135,7 @@ class PriorSet:
     q_h: Tuple[float, float]
     ratio: Tuple[float, float]
     c_2: Optional[PriorSpec] = None
+    ml_img_spec: Optional[PriorSpec] = None  # Gaussian M/L prior (B9 K'-band: N(0.8, 0.3))
     v200: Optional[Tuple[float, float]] = None
     c200: Optional[Tuple[float, float]] = None
     beta_z: Optional[Tuple[float, float]] = None
@@ -153,6 +168,12 @@ class StellarTemplate:
     mge: MGE
     l2d_rel: float
     calibration: Calibration
+    # Optional SEPARATE imaging bridge: al.mp.Gaussian intensity = surf_rel *
+    # calibration_img (Sigma_crit-normalised). None means the two sides share
+    # `calibration` (the F814W convention). The B9 K'-band calibration splits
+    # them: `calibration` is the dynamics surface-density bridge (Msun/pc^2 per
+    # ml_img), `calibration_img` is the imaging intensity bridge.
+    calibration_img: Optional[Calibration] = None
 
 
 @dataclass(frozen=True)
@@ -195,10 +216,14 @@ class PipelineConfig:
     source: str  # "single_sersic" | ...
     dynamics: str  # "jampy" | "agama" | ...
     priors: PriorSet
+    dynamics_anisotropy: str = "ratio"  # jampy anisotropy param: "ratio" | "beta_z"
     stellar_template: Optional[StellarTemplate] = None
     stellar_radial: Optional[RadialStellarTemplate] = None
     lens_constraint: str = "imaging"  # "imaging" | "mein"
     mein: Optional[MeinSpec] = None
     source_priors: SourcePriors = field(default_factory=SourcePriors)
+    source_mesh_shape: Tuple[int, int] = (15, 15)  # pixelized source mesh (nx, ny)
+    source_reg: str = "constant"  # pixelized source regularization flavour
+    source_reg_coeff_bounds: Tuple[float, float] = (1e-6, 1e6)  # LogUniform
     noise_rescale: bool = True
     subtract_stellar: bool = True

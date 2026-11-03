@@ -17,6 +17,7 @@ from ..models.dm.nfw import NFW
 from ..models.stellar.mge_const_ml import MgeConstMl
 from ..models.stellar.mge_radial_ml import MgeRadialMl
 from ..models.source.single_sersic import SingleSersic
+from ..models.source.pixelized import PixelizedSource
 
 # name -> component class. Adding a component = add an import + a dict entry.
 _COMPONENT_REGISTRY = {
@@ -25,6 +26,7 @@ _COMPONENT_REGISTRY = {
     MgeConstMl.name: MgeConstMl,
     MgeRadialMl.name: MgeRadialMl,
     SingleSersic.name: SingleSersic,
+    PixelizedSource.name: PixelizedSource,
     JampyEngine.name: JampyEngine,
     JampyKdcEngine.name: JampyKdcEngine,
 }
@@ -90,6 +92,6 @@ def assemble(cfg, dataset, n_unmasked=None):
         cfg.geometry,
         cfg.kinematics,
         cfg.stellar_template.calibration,
-        source_component.n_free_params,
+        source_component.n_source,
     )
     return collection, analysis

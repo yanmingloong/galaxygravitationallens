@@ -12,7 +12,7 @@ sample_library   ->  data_pipeline   ->  mock_pipeline   ->  lensfit
 - `sample_library` — 从多巡天目录聚合 + 去重 + 分类透镜候选。
 - `data_pipeline` — 下载（外部）并处理 HST 成像：cutout、噪声、PSF、星掩模、inpaint。
 - `mock_pipeline` — 模拟盘透镜系统（TNG + SKIRT）用于 ground-truth 对照。
-- `lensfit` — 拟合引擎：可插拔模型组件 + 配置装配，通过 `api` 门面暴露（`gl.fit` / `gl.fit_positions` / `gl.fit_mein`）。
+- `lensfit` — 拟合引擎：可插拔模型组件 + 配置装配，通过 `api` 门面暴露（`gl.fit` / `gl.fit_positions` / `gl.fit_mein` / `gl.analyze` / `gl.mock`）。
 
 ## 环境变量
 
@@ -85,7 +85,9 @@ print(result.c_minus2, result.gamma, result.v_vir, result.q_h)
 print(result.c200)                            # c_200 = (2 - gamma) * c_-2
 print(result.m_star)                          # M* = ml_img × CALIB × L_2D_REL
 print(result.f_dm(2.2 * cfg.pipeline.geometry.rd_arcsec))
-result.plot_corner("j2141_corner.png")        # 加权 corner（Agg，无头安全）
+
+# 一键拟合后分析：后验摘要 + 派生量 + 先验贴边检查 + corner
+gl.analyze(cfg)
 
 # 3b. 逐点四重像拟合（D 系列 J1331）：scale-free 势
 sf = gl.fit_positions(theta_obs, err_arcsec=0.05, zlens=0.113, zsrc=0.254)
@@ -103,6 +105,21 @@ print(res["v200"], res["c200"], res["beta_z"], res["chi2_dyn"], res["chi2_lens"]
 
 对同一批盘透镜系统生成 TNG/SKIRT mock 观测，喂回 `lensfit` 与已知真相闭合检验。观测样本没有 ground truth；mock 有。这是验证 `lensfit` 通用性的方式。见 `docs/mock_pipeline.md`。
 
-## 一句话总括
+mock 闭合链已预串成 `Pipeline`（`gl.mock`），每步也可独立调用：
 
-寻找（sample_library）→ 下载（astroquery/MAST）→ 处理（data_pipeline/imaging）→ 拟合（lensfit 可插拔组件 + api 门面 gl.fit）。
+```python
+import galaxylens as gl
+
+p = gl.mock("j2141", data_root="/data/tng", outdir="mock_out",
+            star_h5="...stars.hdf5", dm_h5="...dm.hdf5", gas_h5="...gas.hdf5",
+            zlens=0.138, zsrc=1.0, inclination=78.5, mock_cfg_path="configs/fit/j2141_mock.yaml")
+
+p.run()                              # 全自动：select -> truth -> render -> arc -> fit -> closure
+p.run(only=["truth", "closure"])     # 部分：只重跑这两步
+```
+
+重步骤（`truth` / `render` / `arc` / `fit` / `closure`）需要 TNG 粒子 HDF5 + SKIRT 二进制，`ctx` 缺输入时会清晰报错。`gl.Pipeline` / `gl.Stage`（在 `api.pipeline`）是背后的通用编排层；任一步都可直接调底层模块手工跑。
+
+## 端到端一行
+
+寻找（sample_library）→ 下载（astroquery/MAST）→ 处理（data_pipeline/imaging）→ 拟合（gl.fit）→ 分析（gl.analyze）；mock 闭环（gl.mock）。

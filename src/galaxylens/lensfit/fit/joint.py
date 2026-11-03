@@ -61,6 +61,9 @@ def joint_analysis(
     )
 
     class _JointAnalysis(base):
+        __module__ = __name__
+        __qualname__ = "JointAnalysis"
+
         def __init__(
             self,
             lens_constraint,
@@ -108,8 +111,19 @@ def joint_analysis(
             )
 
             nu_lens = self.lens_constraint.n_data_points - self.n_source
-            nu_dyn = self.kinematics.n_points - self.n_mass_params
+            # A single aperture dispersion (elliptical, 1 point) is under-constrained
+            # by n_mass_params, so n_points - n_mass_params can be <= 0; a negative
+            # reduced-chi2 degree of freedom would flip the dynamics chi2 sign and
+            # blow up log L (J1630 first cluster run: log Z -> +18456). Clamp at 1.
+            nu_dyn = max(1, self.kinematics.n_points - self.n_mass_params)
             return -0.5 * (chi2_lens / nu_lens + chi2_dyn / nu_dyn)
+
+    # Give the class a stable module path so multiprocessing can pickle it
+    # (a local class has no importable ``module.qualname``). Register it in this
+    # module's namespace: on Linux (fork) workers inherit the registration; on
+    # spawn platforms the dynamic base + lazy import prevent a module-level
+    # definition, so single-core remains the fallback there.
+    globals()["JointAnalysis"] = _JointAnalysis
 
     return _JointAnalysis(
         lens_constraint,

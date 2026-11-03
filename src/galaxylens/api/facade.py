@@ -255,3 +255,16 @@ def fit_mein(
         "chi2_lens": float(chi2_lens),
         "neg_log_prob": float(res.fun),
     }
+
+
+def analyze(cfg: FitConfig, samples_csv=None, out_dir=None, corner: bool = True, verbose: bool = True):
+    """Analyze a finished fit: posterior summary + derived + prior-edge check + corner.
+
+    The post-fit "analyze" step, also callable on its own (manual mode). Reads the
+    weighted posterior off ``samples.csv`` (auto-located under the fit's output
+    dir if not given) and returns a dict with ``params`` / ``derived`` / ``edges``
+    (see :mod:`galaxylens.api.analysis`).
+    """
+    from .analysis import analyze as _analyze
+
+    return _analyze(cfg, samples_csv=samples_csv, out_dir=out_dir, corner=corner, verbose=verbose)

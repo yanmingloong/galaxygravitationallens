@@ -86,7 +86,9 @@ print(result.c_minus2, result.gamma, result.v_vir, result.q_h)
 print(result.c200)                            # c_200 = (2 - gamma) * c_-2
 print(result.m_star)                          # M* = ml_img x CALIB x L_2D_REL
 print(result.f_dm(2.2 * cfg.pipeline.geometry.rd_arcsec))
-result.plot_corner("j2141_corner.png")        # weighted corner (Agg, headless-safe)
+
+# one-call post-fit analysis: posterior summary + derived + prior-edge check + corner
+gl.analyze(cfg)
 
 # 3b. point-level quad-image fit (D-series J1331): scale-free potential
 sf = gl.fit_positions(theta_obs, err_arcsec=0.05, zlens=0.113, zsrc=0.254)
@@ -110,6 +112,26 @@ than a pixel-level arc. See `lensfit/README.md` for the full pitfall list and
 
 For the same disk-lens systems, generate TNG/SKIRT mock observations and feed them back through `lensfit` to close the loop against known truth. Observed samples have no ground truth; mocks do. This is how `lensfit` generality is validated. See `docs/mock_pipeline.md`.
 
+The mock-closure chain is pre-wired as a `Pipeline` (`gl.mock`); each stage is
+also callable on its own:
+
+```python
+import galaxylens as gl
+
+p = gl.mock("j2141", data_root="/data/tng", outdir="mock_out",
+            star_h5="...stars.hdf5", dm_h5="...dm.hdf5", gas_h5="...gas.hdf5",
+            zlens=0.138, zsrc=1.0, inclination=78.5, mock_cfg_path="configs/fit/j2141_mock.yaml")
+
+p.run()                              # full auto: select -> truth -> render -> arc -> fit -> closure
+p.run(only=["truth", "closure"])     # partial: re-run just these two stages
+```
+
+The heavy stages (`truth` / `render` / `arc` / `fit` / `closure`) need TNG
+particle HDF5 + the SKIRT binary and fail with a clear message when their
+`ctx` inputs are missing. `gl.Pipeline` / `gl.Stage` (in `api.pipeline`) are
+the generic orchestration layer behind this; any stage can be run by hand by
+calling the underlying module directly.
+
 ## End-to-end in one line
 
-find (sample_library) -> download (astroquery/MAST) -> reduce (data_pipeline/imaging) -> fit (lensfit components + api facade: gl.fit).
+find (sample_library) -> download (astroquery/MAST) -> reduce (data_pipeline/imaging) -> fit (gl.fit) -> analyze (gl.analyze); mock loop (gl.mock).

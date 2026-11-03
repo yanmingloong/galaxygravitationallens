@@ -1,0 +1,81 @@
+# Fit recipe: elliptical lens (SLACS-style) — template showing the single
+# aperture velocity dispersion sigma_ap entry point.
+#
+# This is a TEMPLATE, not a validated target. Elliptical lenses (SLACS/TDCOSMO)
+# differ from the disk lenses J2141/J1331 in one kinematic respect: their
+# observable is usually a SINGLE luminosity-weighted aperture velocity dispersion
+# sigma_ap (e.g. the SDSS 3"-diameter fibre), not a radial v_rms profile. That is
+# expressed here by OMITTING `v_rms` and setting the `aperture_*` fields instead.
+#
+# The components are the elliptical-native combination: jampy (JAM was designed
+# for ellipticals) + gnfw_virial (or nfw) + mge_const_ml + a source. The aperture
+# dispersion is computed by JampyEngine via jam.axi.proj's pixsize + sigmapsf
+# convolution (light-weighted sigma_ap inside the circular aperture).
+#
+# Fill in the per-target values (geometry, sigma_ap, stellar template, data
+# paths) to run a real elliptical lens. Not yet end-to-end validated.
+
+geometry:
+  zlens: 0.195          # example (SLACS SDSS J0037-0942); fill real z
+  zsrc: 0.632           # example
+  inclination_deg: 90.0 # face-on degeneracy: use q_obs from photometry
+  re_arcsec: 1.13       # Einstein radius
+  rd_arcsec: null       # no disk (elliptical)
+
+kinematics:
+  # Elliptical lens: single aperture dispersion, NO radial v_rms points.
+  # v_rms: []            # omitted — the engine skips the radial profile
+  aperture_radius: 1.5   # circular aperture radius, arcsec (SDSS fibre ~1.5")
+  aperture_vrms: 250.0   # sigma_ap, km/s (fill real)
+  aperture_vrms_err: 15.0
+  kin_psf_sigma: 0.7     # SDSS seeing sigma, arcsec (fill real)
+
+components:
+  dark: gnfw_virial      # or nfw (spherical, elliptical-native)
+  stellar: mge_const_ml  # constant M/L (elliptical convention)
+  source: single_sersic  # or pixelized (extended arc)
+  dynamics: jampy        # JAM is natively an elliptical-galaxy method
+
+priors:
+  ml_img: [2.0, 100.0]   # LogUniform
+  v_vir: [150.0, 350.0]
+  gamma: [0.3, 1.5]
+  q_h: [0.4, 1.0]
+  ratio: [0.5, 1.0]      # sqrt(1 - beta_z)
+  c_2:
+    kind: gaussian
+    mean: 5.9
+    sigma: 1.49
+    lower: 3.0
+    upper: 20.0
+
+stellar_template:
+  n_bulge: 4.0           # elliptical: Sersic index ~4 (de Vaucouleurs)
+  re_bulge: 1.5          # effective radius, arcsec (fill real)
+  q_bulge: 0.75          # observed axial ratio (fill real)
+  rd_disk: 1.51          # unused for ellipticals (kept for schema completeness)
+  q_disk: 0.31
+  disk_over_bulge: 0.0   # no disk: pure bulge
+  psf_sigma_arcsec: 0.1
+  bulge_i0: 957.0        # fill from the target photometry
+
+source_priors: {}
+
+data:
+  data_path: target_f814w_sci.fits
+  noise_map_path: target_f814w_noise.fits
+  psf_path: target_f814w_psf.fits
+  starmask_path: target_f814w_starmask.fits
+  pixel_scale: 0.05
+  mask_radius: 5.0
+  oversample: 1
+
+search:
+  backend: local
+  name: elliptical_template
+  n_live: 200
+  number_of_cores: 1
+  output_root: null
+
+noise_rescale: true
+subtract_stellar: true

@@ -12,8 +12,29 @@ Usage::
 
 from __future__ import annotations
 
-from galaxylens.api import fit, fit_mein, fit_positions, load_config, load_dataset
+from galaxylens.api import (
+    Pipeline,
+    Stage,
+    analyze,
+    fit,
+    fit_mein,
+    fit_positions,
+    load_config,
+    load_dataset,
+)
+from galaxylens.mock_pipeline import build_mock_pipeline as mock
 
 __version__ = "0.1.0"
 
-__all__ = ["fit", "fit_mein", "fit_positions", "load_config", "load_dataset", "__version__"]
+__all__ = [
+    "fit",
+    "fit_mein",
+    "fit_positions",
+    "load_config",
+    "load_dataset",
+    "analyze",
+    "mock",
+    "Pipeline",
+    "Stage",
+    "__version__",
+]

@@ -11,6 +11,12 @@ This package holds the pure physical/morphological computations that both
   extinction.
 - :mod:`~galaxylens.mock_pipeline.truth.cosmology` — Planck 2015 distances,
   SIS Einstein radius, cosmic time, TNG unit conversions.
+- :mod:`~galaxylens.mock_pipeline.truth.particles` — HDF5 particle loading
+  (physical units) + inertia-tensor mock-frame alignment.
+- :mod:`~galaxylens.mock_pipeline.truth.fdm` — dark-matter fraction ground
+  truth (spherical / cylindrical edge-on apertures).
+- :mod:`~galaxylens.mock_pipeline.truth.anisotropy` — velocity anisotropy
+  ``beta_z = 1 - sigma_z^2 / sigma_R^2``.
 """
 
 from .cosmology import (
@@ -30,6 +36,10 @@ from .measures import (
     half_mass_radius, projected_ellipticity, intrinsic_axis_ratios,
     extinction, major_axis_angle,
 )
+from .particles import load_particles, inertia_rotation
+from .fdm import surface_density, fit_exp_rd, f_dm_apertures
+from .anisotropy import beta_z
+from .halo import gnfw_log_density, solve_c_from_delta, fit_halo
 
 __all__ = [
     # cosmology
@@ -46,4 +56,12 @@ __all__ = [
     # measures
     "half_mass_radius", "projected_ellipticity", "intrinsic_axis_ratios",
     "extinction", "major_axis_angle",
+    # particles
+    "load_particles", "inertia_rotation",
+    # fdm
+    "surface_density", "fit_exp_rd", "f_dm_apertures",
+    # anisotropy
+    "beta_z",
+    # halo
+    "gnfw_log_density", "solve_c_from_delta", "fit_halo",
 ]

@@ -10,6 +10,9 @@ Usage:
     python DataPipeline/pipeline/tests/test_psf_selection.py
 """
 import numpy as np
+import pytest
+
+pytest.importorskip("photutils", reason="photutils (PSF-stage optional dep) not installed")
 
 from galaxylens.data_pipeline.imaging.stages.psf import psf_ee50, psf_ellipticity, filter_field_stars
 

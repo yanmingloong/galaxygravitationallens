@@ -37,7 +37,7 @@ galaxygravitationallens/
 │   │   ├── lens/                #     lens model builder (disk / elliptical)
 │   │   ├── plotting/            #     unified plotting (paper style)
 │   │   └── validation/          #     ground-truth comparison (mock validation)
-│   ├── api/                     #   Facade layer: gl.fit / gl.load_config / gl.load_dataset
+│   ├── api/                     #   Facade layer: gl.fit / gl.analyze / gl.mock / gl.load_config / gl.load_dataset
 │   └── sample_library/          #   Observational sample library access
 ├── configs/                     # per-lens YAML (disk/ + slacs/)
 ├── sample_library/              # observational sample data
@@ -58,9 +58,10 @@ Code is being migrated from the internal research project incrementally.
 | `sample_library` | ✅ migrated (build pipeline + access; 5 modeling_input CSVs) |
 | `data_pipeline/spectra` | ⏳ pending |
 | `data_pipeline/other_obs` | ⏳ pending |
-| `lensfit` (models/dynamics/fit/pipeline/data/mge/lens/plotting/validation) | ✅ migrated (pluggable model components + config assembly + JointAnalysis; gnfw_virial/nfw/mge_const_ml/mge_radial_ml/single_sersic components; jampy/jampy_kdc engines; LensingConstraint imaging/mein/scale-free; B7 joint fit + D-series pointwise fit reproduced) |
-| `api` (config_loader/dataset/search/result/derived/plotting/facade) | ✅ migrated (gl.fit / gl.fit_positions / gl.fit_mein / gl.load_config / gl.load_dataset) |
-| `mock_pipeline/truth` (kinematics/measures/cosmology) | ✅ migrated (pure functions + regression tests; 348489 f_disk=0.643 reproduced; `major_axis_angle` roll + `counter_rotation_angle` KDC added 2026-10-20) |
+| `lensfit` (models/dynamics/fit/pipeline/data/mge/lens/plotting/validation) | ✅ migrated (pluggable model components + config assembly + JointAnalysis; gnfw_virial/nfw/mge_const_ml/mge_radial_ml/single_sersic/pixelized components; jampy/jampy_kdc engines; LensingConstraint imaging/mein/scale-free; B7 joint fit + D-series pointwise fit reproduced; B9 AGN point-source subtraction + sky-RMS noise + pixelized source) |
+| `api` (config_loader/dataset/search/result/derived/plotting/facade + pipeline/analysis) | ✅ migrated (gl.fit / gl.fit_positions / gl.fit_mein / gl.analyze / gl.mock / gl.load_config / gl.load_dataset) |
+| `mock_pipeline/truth` (particles/fdm/anisotropy/halo + kinematics/measures/cosmology) | ✅ migrated (pure functions + regression tests; 348489 f_disk=0.643 reproduced; f_dm spherical/cylindrical three apertures + beta_z + gNFW halo fit added 2026-10-27) |
+| `mock_pipeline/lensing` (arc + dataset) | ✅ migrated (true-mass lens galaxy + Einstein radius + arc ray-tracing + dataset merge, 2026-10-27) |
 | `mock_pipeline/selection` (scan/filter/merger/download/verify/catalog) | ✅ migrated (per-target config; J2141 + J1331 built-in targets) |
 | `mock_pipeline/skirt` (convert/render/imaging) | ✅ migrated (inertia-tensor alignment + .ski generation + fake HST + single-scale multi-band dataset 2026-10-20) |
 
@@ -105,9 +106,19 @@ import galaxylens as gl
 cfg = gl.load_config("configs/fit/j2141_barnabe.yaml")
 result = gl.fit(cfg)                    # assemble -> Nautilus -> post-process
 print(result.beta_z, result.m_star, result.f_dm(2.2 * cfg.pipeline.geometry.rd_arcsec))
+
+gl.analyze(cfg)                         # one-call post-fit summary + corner plot
 ```
 
 See [docs/usage_guide.md](docs/usage_guide.md) Step 3 for the full fitting flow.
+
+### Orchestrate (auto + manual)
+
+`gl.Pipeline` / `gl.Stage` wire the pluggable components into an ordered run
+that supports full-auto, partial (`run(only=...)`) and range (`run(start=...,
+stop=...)`) modes, while every stage stays individually callable. `gl.mock`
+is the pre-built mock-closure pipeline (select -> truth -> render -> arc ->
+fit -> closure); see [docs/usage_guide.md](docs/usage_guide.md) Step 4.
 
 ## Noise methods (data_pipeline/imaging)
 

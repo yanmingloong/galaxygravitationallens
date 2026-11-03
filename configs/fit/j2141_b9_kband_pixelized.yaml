@@ -1,0 +1,98 @@
+# Fit recipe: B9 final — K'-band galaxy-subtracted joint fit with a pixelized source.
+#
+# This is the B9 recipe that reaches reduced chi2 = 1.08 (cluster job 132936):
+# K'-band data + sky-RMS noise + literature-MGE subtraction with a PSF-shaped AGN
+# point source (subtract_method: mge_agn) + a pixelized source (mesh 15x15).
+#
+# What IS wired and B9-validated here (all of it, 2026-11-01):
+#   - pixelized source (components.source: pixelized + source_pixelization block)
+#   - mge_agn subtraction (data.subtract_method: mge_agn — MGE + AGN point source,
+#     sky-RMS noise via estimate_sky_noise, no separate noise FITS needed)
+#   - Gaussian M/L prior (priors.ml_img_spec — K'-band Salpeter M/L ~ N(0.8, 0.3))
+#   - K'-band stellar-mass template (stellar_template type: mge_csv, built by
+#     stellar_mge_kband: mge_params.csv + mstar_ref/ml_ref Sigma_crit bridge)
+
+geometry:
+  zlens: 0.138
+  zsrc: 0.7127
+  inclination_deg: 78.5
+  re_arcsec: 0.88        # Einstein radius (SWELLS II circularised)
+  rd_arcsec: 1.51        # disk scale length (for V_circ(2.2 Rd) / f_dm apertures)
+
+kinematics:
+  # DEIMOS v_rms (Barnabe+2012 Fig 2): [x_arcsec, vrms, err]
+  v_rms:
+    - [0.4123, 236.2, 15.0]
+    - [0.9297, 231.4, 15.0]
+    - [1.4456, 211.4, 15.0]
+    - [1.9669, 164.2, 15.0]
+    - [2.4815, 168.9, 15.0]
+    - [3.0028, 178.8, 15.0]
+    - [3.5178, 171.0, 15.0]
+    - [4.0331, 158.8, 18.0]
+    - [4.5529, 180.3, 18.0]
+    - [5.0696, 209.0, 18.0]
+    - [5.5893, 227.5, 20.0]
+  vcirc: 289.0           # Halpha V_circ(2.2 Rd), beam-smearing corrected
+  vcirc_err: 15.0
+
+components:
+  dark: gnfw_virial
+  stellar: mge_const_ml
+  source: pixelized       # B8/B9 pixelized (inversion) source
+  dynamics: jampy
+
+priors:
+  ml_img: [0.1, 5.0]     # fallback LogUniform (unused when ml_img_spec is set)
+  ml_img_spec:           # B9 K'-band Salpeter M/L ~ N(0.8, 0.3), bounded [0.1, 5]
+    kind: gaussian
+    mean: 0.8
+    sigma: 0.3
+    lower: 0.1
+    upper: 5.0
+  v_vir: [150.0, 350.0]
+  gamma: [0.3, 1.5]       # gNFW inner slope
+  q_h: [0.4, 1.0]
+  ratio: [0.5, 1.0]       # sqrt(1 - beta_z)
+  c_2:                    # Dutton & Maccio 2014 c-M prior
+    kind: gaussian
+    mean: 5.9
+    sigma: 1.49
+    lower: 3.0
+    upper: 20.0
+
+source_pixelization:
+  mesh_shape: [15, 15]    # RectangularUniform mesh (B9; 20x20 blew past 64 GB)
+  reg: constant           # al.reg.Constant (only B9-validated flavour)
+  coeff_bounds: [1e-6, 1e6]  # LogUniform regularization coefficient
+
+# K'-band literature MGE, built by stellar_mge_kband (mstar_ref/ml_ref bridge).
+stellar_template:
+  type: mge_csv
+  mge_params_path: mge_params.csv        # K'-band literature MGE (L_k, sigma_arcsec, q)
+  pixel_scale: 0.039686
+  mstar_ref: 1.32e11
+  ml_ref: 0.8
+
+data:
+  data_path: mag09aug13_kp.fits          # K'-band science (relative to GALAXYLENS_DATA_ROOT)
+  noise_map_path: mag09aug13_kp.fits     # unused for mge_agn (sky RMS); DataSpec field only
+  psf_path: mag09aug13_kp_psf.fits       # Gaussian PSF, FWHM=0.15"
+  subtract_method: mge_agn               # B9: MGE + AGN point source + sky-RMS noise
+  mge_params_path: mge_params.csv        # K'-band literature MGE (L_k, sigma_arcsec, q)
+  badmask_path: mag09aug13_kp_badmask.fits  # KAI badmask (1 = good)
+  psf_sigma_px: 1.604                    # (0.15" / 2.355) / 0.039686
+  position_angle_deg: 90.0
+  pixel_scale: 0.039686                  # NIRC2 wide
+  mask_radius: 4.0
+  oversample: 1
+
+search:
+  backend: local          # local (laptop/workstation) | slurm (cluster)
+  name: j2141_b9_kband_pixelized
+  n_live: 150             # B9 (B7 used 200)
+  number_of_cores: 1
+  output_root: null       # null -> GALAXYLENS_OUTPUT_ROOT
+
+noise_rescale: true
+subtract_stellar: true

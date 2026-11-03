@@ -81,3 +81,17 @@ class SourceModel(ABC):
     @abstractmethod
     def n_free_params(self) -> int:
         """Number of free parameters this source model contributes."""
+
+    @property
+    def n_source(self) -> int:
+        """Source contribution to the imaging degrees of freedom (``nu_img``).
+
+        Defaults to :attr:`n_free_params` -- correct for PARAMETRIC sources,
+        where every explicit parameter is a source parameter. Pixelized sources
+        OVERRIDE this: their mesh pixels are latent inversion parameters that do
+        NOT enter ``n_free_params`` (the sampler only sees the regularization
+        coefficient) but DO reduce the imaging dof, so ``nu_img = n_unmasked -
+        n_source`` must subtract the mesh pixel count, not the explicit-parameter
+        count.
+        """
+        return self.n_free_params

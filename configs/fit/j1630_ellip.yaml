@@ -1,0 +1,85 @@
+# Fit recipe: SDSS J1630+4520 — elliptical lens (SLACS), joint lens + dynamics.
+#
+# The FIRST elliptical-lens recipe: MGE stellar mass + gNFW halo + jampy dynamics
+# constrained by a single aperture velocity dispersion sigma_ap (the elliptical
+# observable) + the pixel-level arc. J1630+4520 is a slow rotator
+# (V/sigma = 0.095, lambda_R = 0.088), so the near-isotropic (ratio ~ 1) prior is
+# the physical assumption.
+#
+# Data (all local):
+#   HST F814W : DataPipeline/processed/ellip/J1630+4520/ (sci/noise/psf/starmask)
+#   KCWI sigma: slacs_kcwi_kinematics_table.csv -> VD_reff = 267 +/- 9 km/s
+#   Dinos (Tan+2024) benchmark: theta_E = 1.791", gamma = 1.924 (power-law)
+#   Light: single Sersic n=4.0, Re=2.012", q=0.834 (SLACS_light_params.csv)
+
+geometry:
+  zlens: 0.248
+  zsrc: 0.793
+  inclination_deg: 90.0   # slow rotator ~spherical: face-on; inclination ~irrelevant
+  re_arcsec: 1.79         # Einstein radius (Dinos 1.791)
+  rd_arcsec: null         # no disk (elliptical)
+
+kinematics:
+  # Single aperture dispersion (elliptical observable); NO radial v_rms points.
+  aperture_radius: 2.01   # effective-radius aperture (Re), arcsec
+  aperture_vrms: 267.0    # VD_reff (KCWI), km/s
+  aperture_vrms_err: 9.0
+  kin_psf_sigma: 0.3      # KCWI seeing sigma (~0.7" FWHM / 2.355)
+
+components:
+  dark: gnfw_virial       # gNFW halo (same parametrization as the disk B series)
+  stellar: mge_const_ml   # constant M/L (elliptical convention)
+  source: single_sersic   # the extended arc
+  dynamics: jampy         # JAM is natively an elliptical-galaxy method
+
+priors:
+  ml_img: [2.0, 300.0]    # LogUniform; v2 贴上界 100 -> 放宽
+  v_vir: [150.0, 550.0]   # v2 贴上界 350 -> 放宽
+  gamma: [0.3, 2.0]       # gNFW inner slope; v2 贴上界 1.5 -> 放宽
+  q_h: [0.1, 1.0]         # v2 贴下界 0.4 -> 放宽
+  ratio: [0.3, 1.0]       # sqrt(1 - beta_z); v2 贴下界 0.8 -> 放宽(测试各向同性假设)
+  c_2:                    # Dutton & Maccio 2014 c-M prior
+    kind: gaussian
+    mean: 5.9
+    sigma: 1.49
+    lower: 3.0
+    upper: 20.0
+
+# Single Sersic (de Vaucouleurs n=4), no disk — built by stellar_mge_ellip.
+stellar_template:
+  type: ellip
+  n: 4.0
+  re_arcsec: 2.012
+  q: 0.834
+  psf_sigma_arcsec: 0.1   # HST F814W PSF sigma (Moffat FWHM 0.215" / 2.355)
+  bulge_i0: 232.0         # F814W central surface brightness I(0) = I_e*exp(b_n), counts/s/px,
+                          # from the engine's own single-Sersic subtraction
+                          # (n=4/Re=2.012"/q=0.834 fixed; see EllipticalLenses/AutoLensFit/j1630_photocal/)
+
+source_priors: {}
+
+data:
+  data_path: 1630+4520_f814w_sci.fits        # relative to GALAXYLENS_DATA_ROOT
+  noise_map_path: 1630+4520_f814w_noise.fits
+  psf_path: 1630+4520_f814w_psf.fits
+  starmask_path: 1630+4520_f814w_starmask.fits
+  pixel_scale: 0.05
+  mask_radius: 5.0
+  oversample: 1
+  subtract_method: sersic_single   # elliptical: single Sersic (no disk)
+  sersic_re_arcsec: 2.012          # SLACS_light_params Re
+  sersic_n: 4.0                    # de Vaucouleurs
+  sersic_q: 0.834                  # axial ratio
+  sersic_pa_deg: 18.68             # position angle (phi_L)
+
+search:
+  backend: local
+  name: j1630_ellip_v3   # v3: widened priors (v2 hit 5/6 prior edges)
+  n_live: 150
+  number_of_cores: 1       # single-core: the JointAnalysis is a factory-local class
+                          # that multiprocessing cannot pickle (see skill note);
+                          # the multi-core path needs it moved to module level
+  output_root: null
+
+noise_rescale: true
+subtract_stellar: true

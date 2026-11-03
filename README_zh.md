@@ -32,7 +32,7 @@ galaxygravitationallens/
 │   │   ├── lens/                #     透镜模型 builder（盘 / 椭圆两套）
 │   │   ├── plotting/            #     统一绘图（论文风格）
 │   │   └── validation/          #     ground-truth 对照（mock 验证）
-│   ├── api/                     #   门面层：gl.fit / gl.load_config / gl.load_dataset
+│   ├── api/                     #   门面层：gl.fit / gl.analyze / gl.mock / gl.load_config / gl.load_dataset
 │   └── sample_library/          #   观测样本库访问
 ├── configs/                     # 各透镜 YAML（disk/ + slacs/）
 ├── sample_library/              # 观测样本库数据
@@ -53,9 +53,10 @@ galaxygravitationallens/
 | `sample_library` | ✅ 已迁移（构建管线 + 访问；5 个 modeling_input CSV）|
 | `data_pipeline/spectra` | ⏳ 待完善后迁移 |
 | `data_pipeline/other_obs` | ⏳ 待完善后迁移 |
-| `lensfit` (models/dynamics/fit/pipeline/data/mge/lens/plotting/validation) | ✅ 已迁移（可插拔模型组件 + 配置装配 + JointAnalysis；gnfw_virial/nfw/mge_const_ml/mge_radial_ml/single_sersic 组件；jampy/jampy_kdc 引擎；LensingConstraint imaging/mein/scale-free；B7 联合拟合 + D 系列逐点拟合复现） |
-| `api` (config_loader/dataset/search/result/derived/plotting/facade) | ✅ 已迁移（gl.fit / gl.fit_positions / gl.fit_mein / gl.load_config / gl.load_dataset） |
-| `mock_pipeline/truth` (kinematics/measures/cosmology) | ✅ 已迁移（纯函数 + 回归测试，348489 f_disk=0.643 复现；`major_axis_angle` roll + `counter_rotation_angle` KDC 2026-10-20 新增） |
+| `lensfit` (models/dynamics/fit/pipeline/data/mge/lens/plotting/validation) | ✅ 已迁移（可插拔模型组件 + 配置装配 + JointAnalysis；gnfw_virial/nfw/mge_const_ml/mge_radial_ml/single_sersic/pixelized 组件；jampy/jampy_kdc 引擎；LensingConstraint imaging/mein/scale-free；B7 联合拟合 + D 系列逐点拟合复现；B9 AGN 点源减恒星 + sky RMS 噪声 + 像素化源） |
+| `api` (config_loader/dataset/search/result/derived/plotting/facade + pipeline/analysis) | ✅ 已迁移（gl.fit / gl.fit_positions / gl.fit_mein / gl.analyze / gl.mock / gl.load_config / gl.load_dataset） |
+| `mock_pipeline/truth` (particles/fdm/anisotropy/halo + kinematics/measures/cosmology) | ✅ 已迁移（纯函数 + 回归测试，348489 f_disk=0.643 复现；f_dm 球/柱三孔径 + βz + gNFW 晕拟合 2026-10-27 新增） |
+| `mock_pipeline/lensing` (arc + dataset) | ✅ 已迁移（真值质量透镜星系 + 爱因斯坦半径 + 弧光线追踪 + dataset 合并，2026-10-27） |
 | `mock_pipeline/selection` (scan/filter/merger/download/verify/catalog) | ✅ 已迁移（按目标配置，J2141 + J1331 内建目标） |
 | `mock_pipeline/skirt` (convert/render/imaging) | ✅ 已迁移（惯性张量对齐 + .ski 生成 + fake HST + 单尺度多波段 dataset 2026-10-20） |
 
@@ -94,9 +95,15 @@ import galaxylens as gl
 cfg = gl.load_config("configs/fit/j2141_barnabe.yaml")
 result = gl.fit(cfg)                    # 装配 -> Nautilus -> 后处理
 print(result.beta_z, result.m_star, result.f_dm(2.2 * cfg.pipeline.geometry.rd_arcsec))
+
+gl.analyze(cfg)                         # 一键拟合后分析 + corner 图
 ```
 
 完整拟合流程见 [docs/usage_guide.md](docs/usage_guide.md) Step 3。
+
+### 编排（自动 + 人工）
+
+`gl.Pipeline` / `gl.Stage` 把可插拔组件串成有序运行，支持全自动、部分（`run(only=...)`）与区间（`run(start=..., stop=...)`）三种粒度，每步仍可独立调用。`gl.mock` 是预置的 mock 闭合流水线（select → truth → render → arc → fit → closure）；见 [docs/usage_guide.md](docs/usage_guide.md) Step 4。
 
 ## 噪声方法（data_pipeline/imaging）
 

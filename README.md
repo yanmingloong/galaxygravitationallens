@@ -116,12 +116,15 @@ See [docs/usage_guide.md](docs/usage_guide.md) Step 3 for the full fitting flow.
 
 ```python
 plan = gl.identify("J2141-0001")     # LensPlan: disk / imaging / jampy_kdc
+plan = gl.identify_from_image("j1630_f814w_sci.fits")  # image fallback: C+q -> disk/elliptical
 print(plan.lens_type, plan.constraint, plan.template_yaml)
 ```
 
 `gl.identify` reads the sample catalog, infers lens type (disk/elliptical) and
-constraint (arc/quad), and maps to modeling modules + a recipe template — the
-first link of the "identify -> model -> fit" chain.
+constraint (arc/quad), and maps to modeling modules + a recipe template.
+`gl.identify_from_image` is the image-shape fallback — light concentration +
+axis ratio measured directly from a FITS when the catalog has no morphology —
+the first link of the "identify -> model -> fit" chain.
 
 ### Orchestrate (auto + manual)
 

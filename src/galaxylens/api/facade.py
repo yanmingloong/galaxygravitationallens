@@ -281,3 +281,20 @@ def identify(name: str, catalog=None):
     from ..sample_library.identify import identify as _identify
 
     return _identify(name, catalog=catalog)
+
+
+def identify_from_image(fits_path, name=None, center=None, rmax_pix=None):
+    """从图像测形态 -> 分类 -> :class:`LensPlan`（图像形状识别入口）。
+
+    当 catalog 参数（lens_type_label/n_sersic）缺失或不可靠时，直接对 FITS 图像
+    测光集中度 C + 轴比 q，判盘/椭圆（C < 3.1 盘、C > 3.4 椭圆）。返回 LensPlan，
+    ``constraint`` 默认 ``imaging``（延展弧）。这是识别层的图像兜底，不依赖 catalog。
+    """
+    from ..sample_library.identify import plan_modeling
+    from ..sample_library.morphology import classify_morphology, measure_morphology
+
+    morph = measure_morphology(fits_path, center=center, rmax_pix=rmax_pix)
+    lens_type, basis = classify_morphology(morph)
+    if name is None:
+        name = str(Path(fits_path).stem)
+    return plan_modeling(name, lens_type, "imaging", f"image_morphology:{basis}")

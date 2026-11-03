@@ -105,10 +105,11 @@ gl.analyze(cfg)                         # 一键拟合后分析 + corner 图
 
 ```python
 plan = gl.identify("J2141-0001")     # LensPlan：disk / imaging / jampy_kdc
+plan = gl.identify_from_image("j1630_f814w_sci.fits")  # 图像兜底：C+q -> 盘/椭圆
 print(plan.lens_type, plan.constraint, plan.template_yaml)
 ```
 
-`gl.identify` 读样本 catalog，推断透镜类型（盘/椭圆）与约束（弧/四重像），映射到建模模块 + 配方模板——"识别 → 建模 → 拟合"链的第一环。
+`gl.identify` 读样本 catalog，推断透镜类型（盘/椭圆）与约束（弧/四重像），映射到建模模块 + 配方模板。`gl.identify_from_image` 是图像形状兜底——catalog 无形态时直接从 FITS 测光集中度 + 轴比——"识别 → 建模 → 拟合"链的第一环。
 
 ### 编排（自动 + 人工）
 

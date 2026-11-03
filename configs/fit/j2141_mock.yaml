@@ -1,0 +1,92 @@
+# Fit recipe: mock-closure joint fit of TNG100-1 subhalo 348489 (J2141 analog).
+#
+# Mock data produced by the SKIRT pipeline (mock_observations/03_outputs/static_mock/
+# 348489_1e9/): F814W fake-HST data/noise/psf. The stellar template is the light
+# MGE fit from the mock image (configs/fit/j2141_mock_mge.csv, mge_csv type);
+# kinematics is the particle v_rms profile from truth_348489.json.
+#
+# NOTE (calibration convention, to be pinned by a fit): this recipe follows the
+# MF-mock F814W convention (sample_f_dm: calib=1, lg_ml = log10(ml_img * ml_to_dyn)
+# with ml_to_dyn = calib * pc_per_as^2 * Sigma_crit / 1e6, see mf2_joint_fit.py).
+# The mstar_ref/ml_ref here are the mock's M* / a nominal M/L; the exact bridge
+# is validated end-to-end when this recipe is fitted.
+#
+# geometry: re_arcsec=0.609 is the true-model Einstein radius (build_lens_galaxy);
+# rd_arcsec=2.894 = rd_kpc 7.0557 / kpc_per_arcsec 2.4377.
+
+geometry:
+  zlens: 0.138
+  zsrc: 0.7127
+  inclination_deg: 78.5
+  re_arcsec: 0.609       # true-model Einstein radius
+  rd_arcsec: 2.894       # disk scale length (particle fit)
+
+kinematics:
+  # particle v_rms (truth_348489.json), R_kpc / 2.4377 -> arcsec; err=5 km/s nominal
+  v_rms:
+    - [0.298, 123.58, 5.0]
+    - [0.893, 141.93, 5.0]
+    - [1.488, 148.95, 5.0]
+    - [2.084, 146.28, 5.0]
+    - [2.679, 138.46, 5.0]
+    - [3.274, 134.64, 5.0]
+    - [3.870, 135.15, 5.0]
+    - [4.465, 139.26, 5.0]
+    - [5.061, 143.70, 5.0]
+    - [5.656, 146.37, 5.0]
+    - [6.251, 148.88, 5.0]
+    - [6.847, 153.92, 5.0]
+    - [7.442, 155.38, 5.0]
+    - [8.038, 153.70, 5.0]
+    - [8.633, 157.85, 5.0]
+    - [9.228, 160.58, 5.0]
+    - [9.824, 164.49, 5.0]
+    - [10.419, 159.78, 5.0]
+    - [11.015, 153.82, 5.0]
+
+components:
+  dark: gnfw_virial
+  stellar: mge_const_ml
+  source: single_sersic
+  dynamics: jampy
+
+priors:
+  ml_img: [0.1, 100.0]   # LogUniform (mock M/L is in flux units, wide)
+  v_vir: [100.0, 400.0]
+  gamma: [0.3, 1.8]
+  q_h: [0.4, 1.0]
+  ratio: [0.5, 1.0]       # sqrt(1 - beta_z)
+  c_2:
+    kind: gaussian
+    mean: 5.9
+    sigma: 1.49
+    lower: 3.0
+    upper: 20.0
+
+stellar_template:
+  type: mge_csv
+  mge_params_path: /mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/galaxygravitationallens/configs/fit/j2141_mock_mge.csv
+  pixel_scale: 0.05
+  mstar_ref: 8.90e10      # mock true M* (particle)
+  ml_ref: 1.0             # nominal M/L anchor
+
+source_priors: {}
+
+data:
+  data_path: /mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/IllustrisTNG/mock_observations/03_outputs/static_mock/348489_1e9/348489_F814W_data.fits
+  noise_map_path: /mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/IllustrisTNG/mock_observations/03_outputs/static_mock/348489_1e9/348489_F814W_noise.fits
+  psf_path: /mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/IllustrisTNG/mock_observations/03_outputs/static_mock/348489_1e9/348489_F814W_psf.fits
+  starmask_path: ""
+  pixel_scale: 0.05
+  mask_radius: 5.0
+  oversample: 1
+
+search:
+  backend: local
+  name: j2141_mock_348489
+  n_live: 50              # quick smoke first
+  number_of_cores: 1
+  output_root: null
+
+noise_rescale: false
+subtract_stellar: false   # mock fits the galaxy itself (no galaxy-subtract)

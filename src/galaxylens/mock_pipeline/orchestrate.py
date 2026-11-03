@@ -78,8 +78,8 @@ def _truth(ctx: Dict[str, Any]):
     apertures = ctx.get("apertures") or {"2kpc": 2.0, "5kpc": 5.0}
     fdm = f_dm_apertures(pos_s_al, m_cur, pos_dm_al, m_dm, apertures)
     halo = fit_halo(pos_dm_al, m_dm, ctx["zlens"], ctx.get("zsrc", 0.0))
-    bz = beta_z(pos_s_al, vel_rel, m_cur, ctx.get("R_ap_kpc", 2.0))
-    return {"f_dm": fdm, "halo": halo, "beta_z": bz}
+    bz, n_star = beta_z(pos_s_al, vel_rel, m_cur, ctx.get("R_ap_kpc", 2.0))
+    return {"f_dm": fdm, "halo": halo, "beta_z": bz, "beta_z_n_star": n_star}
 
 
 def _render(ctx: Dict[str, Any]):
@@ -138,22 +138,28 @@ def _closure(ctx: Dict[str, Any]):
         raise RuntimeError("closure stage needs ctx['mock_fit'] and ctx['truth']")
 
     # theta = (lg_ml, v_vir, gamma, c_minus2, q_h, beta_z) from the fit samples.
-    # lg_ml convention: MF-mock bakes the Sigma_crit bridge into lg_ml (calib=1,
-    # lg_ml = log10(ml_img * ml_to_dyn)); see closure.sample_f_dm docstring. The
-    # exact ml_to_dyn factor is recipe-specific, so the caller may pre-supply
-    # ctx["theta"]/ctx["weights"] instead.
+    # lg_ml convention (closure.sample_f_dm): K'-band -> lg_ml = log10(ml_img) with
+    # calib = template.calibration.calib; F814W/MF-mock -> calib=1 and
+    # lg_ml = log10(ml_img * ml_to_dyn). The recipe-specific bridge is passed via
+    # ctx["ml_to_dyn"] (default 1.0 = K'-band), or pre-supply ctx["theta"]/["weights"].
     if "theta" in ctx and "weights" in ctx:
         theta, w = ctx["theta"], ctx["weights"]
     else:
         def col(key):
             return r.df[r._column(key)].to_numpy(dtype=float)
 
-        lg_ml = np.log10(col("ml_img"))
+        ml_to_dyn = ctx.get("ml_to_dyn", 1.0)
+        lg_ml = np.log10(col("ml_img") * ml_to_dyn)
         theta = np.column_stack([lg_ml, col("v_vir"), col("gamma"),
                                  col("c_minus2"), col("q_h"), 1.0 - col("ratio") ** 2])
         w = r.weights
 
-    return closure_f_dm(theta, w, r.template, r.geom, truth["f_dm"], ctx["apertures"])
+    # apertures: {name: R_as} in arcsec (closure_f_dm); truth["f_dm"] is the kpc
+    # aperture dict from f_dm_apertures ({name: {R_kpc, f_dm_spherical, f_dm_cyl_edgeon}}).
+    apertures_as = ctx.get("apertures")
+    if apertures_as is None:
+        raise RuntimeError("closure stage needs ctx['apertures'] ({name: R_as})")
+    return closure_f_dm(theta, w, r.template, r.geom, truth["f_dm"], apertures_as)
 
 
 def inertia_rotation_from(pos_rel: np.ndarray, mass: np.ndarray):

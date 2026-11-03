@@ -60,12 +60,30 @@ def test_identify_elliptical_branch():
     print(f"[identify] DEV row -> elliptical/jampy ({plan.basis})")
 
 
-def test_identify_j1630_honest_boundary():
-    # 诚实边界：catalog 里 J1630 的 type=None，自动识别落默认盘；
-    # 这是数据缺漏（椭圆库升级补 DEV 标签），不是识别层 bug。
+def test_identify_j1630_elliptical():
+    # 椭圆库升级后：J1630 在椭圆建模表里有 DEV 标签，自动识别为 elliptical
     p = gl.identify("J1630+4520")
-    assert "no_morphology_label_default_disk" in p.basis, p.basis
-    print(f"[identify] J1630 (catalog type=None) -> {p.lens_type} ({p.basis})")
+    assert p.lens_type == "elliptical", p.basis
+    assert p.constraint == "imaging"
+    assert p.template_yaml == "configs/fit/j1630_ellip.yaml"
+    assert p.subtract_method == "sersic_single"
+    print(f"[identify] J1630 -> elliptical/jampy ({p.basis})")
+
+
+def test_identify_elliptical_modeling_table():
+    # 椭圆建模表（enrich_elliptical 产物）里的样本都应识别为 elliptical
+    from galaxylens.sample_library.identify import load_catalog
+
+    cat = load_catalog()
+    modeling = cat[cat["lens_type_label"].astype(str) == "DEV"]
+    assert len(modeling) == 14, f"椭圆建模表应有 14 个 DEV，实际 {len(modeling)}"
+    # 抽样验证（3 个 Dinos 完整 + 2 个 KCWI-only）
+    n_ellip = 0
+    for nm in ["J1402+6321", "J1630+4520", "J2303+1422", "J0037-0942", "J0330-0020"]:
+        p = gl.identify(nm)
+        assert p.lens_type == "elliptical", f"{nm} -> {p.lens_type}"
+        n_ellip += 1
+    print(f"[identify] 椭圆建模表 {len(modeling)} 个 DEV，抽样 {n_ellip} 个全部识别为 elliptical")
 
 
 def test_write_recipe():
@@ -87,6 +105,7 @@ if __name__ == "__main__":
     test_identify_j2141_disk()
     test_identify_j1331_quad()
     test_identify_elliptical_branch()
-    test_identify_j1630_honest_boundary()
+    test_identify_j1630_elliptical()
+    test_identify_elliptical_modeling_table()
     test_write_recipe()
     print("ALL verify_identify checks passed")

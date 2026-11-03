@@ -54,10 +54,12 @@ DISK_LABELS = {"SER", "SERSIC", "EXP", "EXPONENTIAL", "DISKY", "S0"}
 QUAD_NAMES = ["J1331+3628"]
 
 # 仓库内 product CSV（README 声明这里是 modeling_input 产品位置）。
-# 读 full（覆盖全部 tier，含四重像/特殊样本）+ elliptical（补 DEV 椭圆标签）；
-# sample/tier01 是 full 的子集，不必重复读。
+# 读 full（覆盖全部 tier，含四重像/特殊样本）+ 椭圆建模表（enrich_elliptical
+# 产物，含 DEV 标签 + sigma/thetaE/Re 等建模参数，让识别层能判 elliptical）。
+# elliptical.csv（614 DEV 排除名单）与 sample/tier01 是 full 的子集，不必重复读。
 _CATALOG_FILES = [
     "modeling_input_full.csv",
+    "modeling_input_elliptical_modeling.csv",
     "modeling_input_elliptical.csv",
 ]
 
@@ -192,13 +194,20 @@ def load_catalog(catalog_dir=None) -> pd.DataFrame:
 
 
 def _lookup(catalog: pd.DataFrame, name: str) -> Optional[pd.Series]:
-    """按名字（normalize 后子串匹配）在 catalog 里找一行。"""
+    """按名字（normalize 后子串匹配）在 catalog 里找一行。
+
+    优先返回有形态学标签（DEV 椭圆建模表）的行，而非 full.csv 里 type=None 的
+    脏 cross_refs 行（否则 J1630 这类椭圆会落到默认盘）。
+    """
     target = _normalize_name(name)
     if not target:
         return None
     hits = catalog[catalog["_norm"].str.contains(target, regex=False, na=False)]
     if len(hits) == 0:
         return None
+    dev = hits[hits["lens_type_label"].astype(str).str.upper().isin(ELLIPTICAL_LABELS)]
+    if len(dev) > 0:
+        return dev.iloc[0]
     return hits.iloc[0]
 
 

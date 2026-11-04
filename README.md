@@ -192,6 +192,15 @@ see [docs/README.md](docs/README.md#tutorials-runnable--notebooks-under-notebook
 - `fit_demo.py` — recipe -> fit -> analyse (synthetic-FITS smoke, offline)
 - `mock_pipeline_demo.py` — TNG selection -> SKIRT -> fake HST
 
+### Agent skill
+
+A `galaxylens-pipeline` skill ships in
+[`.github/skills/galaxylens-pipeline/SKILL.md`](.github/skills/galaxylens-pipeline/SKILL.md)
+so an AI agent (e.g. Hermes, Claude Code) can operate this library: the facade
+API, environment variables, standard workflows, weighted-result reading, and
+operational pitfalls. Point your agent at that file to let it run
+`gl.fit` / `gl.analyze` / `gl.identify` / `gl.mock` and diagnose fit output.
+
 ## Noise methods (data_pipeline/imaging)
 
 `preprocess_master.py --noise-method` generates three noise versions per lens

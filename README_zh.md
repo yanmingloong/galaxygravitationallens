@@ -159,6 +159,14 @@ print(plan.lens_type, plan.constraint, plan.template_yaml)
 - `fit_demo.py` — 配方 → 拟合 → 分析（合成 FITS smoke，离线）
 - `mock_pipeline_demo.py` — TNG 选样 → SKIRT → fake HST
 
+### Agent 技能
+
+仓库内置 `galaxylens-pipeline` 技能
+（[`.github/skills/galaxylens-pipeline/SKILL.md`](.github/skills/galaxylens-pipeline/SKILL.md)），
+让 AI agent（如 Hermes、Claude Code）能够操作本库：门面 API、环境变量、
+标准工作流、加权结果读取与操作坑。把 agent 指向该文件即可让它运行
+`gl.fit` / `gl.analyze` / `gl.identify` / `gl.mock` 并诊断拟合结果。
+
 ## 噪声方法（data_pipeline/imaging）
 
 `preprocess_master.py --noise-method` 为每个透镜系统一次生成三个噪声版本，三个版本共用同一套 science / PSF / starmask，仅噪声图不同：

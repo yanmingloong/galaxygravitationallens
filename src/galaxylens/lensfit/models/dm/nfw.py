@@ -14,7 +14,7 @@ References
 ----------
 - Navarro, Frenk & White 1997, ApJ 490, 493 (NFW profile)
 - Wright & Brainerd 2000, ApJ 534, 34 (analytic projected NFW mass)
-- Trick, van de Ven & Dutton 2016, MNRAS 463, 4594 / arXiv:1609.05477
+- Trick, van de Ven & Dutton 2016, MNRAS 463, 3151 / arXiv:1609.05477
   (v200 + c200, WMAP5 H0=71.9)
 """
 

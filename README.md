@@ -8,6 +8,17 @@ observations, test simulation predictions, and constrain dark matter models and
 the nature of dark matter particles. Elliptical galaxies serve as the
 comparison sample.
 
+The library provides a joint lensing + dynamics fitting pipeline. Gravitational
+lens models (a mass model plus a source model, ray-traced and fitted against
+the imaging data) are constructed with PyAutoLens, while stellar dynamical
+models are built with jampy (Jeans Anisotropic MGE), which solves the
+axisymmetric Jeans equations for a multi-Gaussian-expansion stellar
+distribution. The two are fitted jointly to constrain the stellar
+mass-to-light ratio, the dark-matter halo (gNFW / NFW) and the velocity
+anisotropy β_z, yielding the dark-matter fraction within the Einstein radius,
+f_DM. The methodological framework follows Barnabè et al. (2012, SWELLS IV);
+the implementation uses the independent software stack above.
+
 > Originating from the undergraduate innovation project
 > **"Disk-galaxy strong gravitational lensing research" (盘星系引力透镜研究)**.
 
@@ -187,24 +198,51 @@ macOS (CPU). Three honest boundaries:
 
 ## References
 
-Core methods reproduced and underlying this library:
+Methods and models this library builds upon.
 
-- Barnabè, M.; Dutton, A.A.; Marshall, P.J.; et al. 2012, MNRAS, 423, 1073 — the disk-galaxy lens+dynamics method this library reproduces.
-- Treu, T.; Dutton, A.A.; Auger, M.W.; et al. 2011, MNRAS, 417, 1601 — the SWELLS survey.
-- Trick, W.H.; van de Ven, G.; Dutton, A.A. 2016, MNRAS, 463, 3151 — the quadruply-imaged disk lens J1331+3628.
-- Cappellari, M. 2002, MNRAS, 333, 400 — multi-Gaussian expansion (MGE).
-- Dutton, A.A.; Macciò, A.V. 2014, MNRAS, 441, 3359 — the concentration–mass prior.
-- Camps, P.; Baes, M. 2020, A&C, 31, 100381 — SKIRT radiative transfer.
-- Nelson, D.; Pillepich, A.; Springel, V.; et al. 2019, MNRAS, 490, 3234 — the IllustrisTNG simulations.
-- Nightingale, J.W.; Dye, S.; Massey, R.J. 2018, MNRAS, 478, 4738 — PyAutoLens.
+### Methods and models
+
+| Reference | DOI |
+|---|---|
+| Barnabè, M.; Dutton, A.A.; Marshall, P.J.; et al. 2012, MNRAS, 423, 1073 | [10.1111/j.1365-2966.2012.20934.x](https://doi.org/10.1111/j.1365-2966.2012.20934.x) |
+| Treu, T.; Dutton, A.A.; Auger, M.W.; et al. 2011, MNRAS, 417, 1601 | [10.1111/j.1365-2966.2011.19378.x](https://doi.org/10.1111/j.1365-2966.2011.19378.x) |
+| Trick, W.H.; van de Ven, G.; Dutton, A.A. 2016, MNRAS, 463, 3151 | [10.1093/mnras/stw2142](https://doi.org/10.1093/mnras/stw2142) |
+| Cappellari, M. 2002, MNRAS, 333, 400 | [10.1046/j.1365-8711.2002.05412.x](https://doi.org/10.1046/j.1365-8711.2002.05412.x) |
+| Cappellari, M. 2020, MNRAS, 494, 4819 | [10.1093/mnras/staa1128](https://doi.org/10.1093/mnras/staa1128) |
+| Wyithe, J.S.B.; Turner, E.L.; Spergel, D.N. 2001, ApJ, 555, 504 | [10.1086/321437](https://doi.org/10.1086/321437) |
+| Navarro, J.F.; Frenk, C.S.; White, S.D.M. 1997, ApJ, 490, 493 | [10.1086/304888](https://doi.org/10.1086/304888) |
+| Dutton, A.A.; Macciò, A.V. 2014, MNRAS, 441, 3359 | [10.1093/mnras/stu742](https://doi.org/10.1093/mnras/stu742) |
+| Wright, C.O.; Brainerd, T.G. 2000, ApJ, 534, 34 | [10.1086/308744](https://doi.org/10.1086/308744) |
+| Evans, N.W.; Witt, H.J. 2003, MNRAS, 345, 1351 | [10.1046/j.1365-2966.2003.07057.x](https://doi.org/10.1046/j.1365-2966.2003.07057.x) |
+| Kochanek, C.S. 1991, ApJ, 373, 354 | [10.1086/170057](https://doi.org/10.1086/170057) |
+| Vasiliev, E. 2019, MNRAS, 482, 1525 | [10.1093/mnras/sty2672](https://doi.org/10.1093/mnras/sty2672) |
+| Nightingale, J.W.; Dye, S.; Massey, R.J. 2018, MNRAS, 478, 4738 | [10.1093/mnras/sty1264](https://doi.org/10.1093/mnras/sty1264) |
+| Stetson, P.B. 1987, PASP, 99, 191 | [10.1086/131977](https://doi.org/10.1086/131977) |
+
+### Mock-image pipeline
+
+| Reference | DOI |
+|---|---|
+| Camps, P.; Baes, M. 2020, A&C, 31, 100381 | [10.1016/j.ascom.2020.100381](https://doi.org/10.1016/j.ascom.2020.100381) |
+| Jones, A.P.; Köhler, M.; Ysard, N.; et al. 2017, A&A, 602, A46 | [10.1051/0004-6361/201630225](https://doi.org/10.1051/0004-6361/201630225) |
+| Bruzual, G.; Charlot, S. 2003, MNRAS, 344, 1000 | [10.1046/j.1365-8711.2003.06897.x](https://doi.org/10.1046/j.1365-8711.2003.06897.x) |
+| Chabrier, G. 2003, PASP, 115, 763 | [10.1086/376392](https://doi.org/10.1086/376392) |
+| Nelson, D.; Pillepich, A.; Springel, V.; et al. 2019, MNRAS, 490, 3234 | [10.1093/mnras/stz2306](https://doi.org/10.1093/mnras/stz2306) |
+| The Astropy Collaboration; Price-Whelan, A.M.; et al. 2022, ApJ, 935, 167 | [10.3847/1538-4357/ac7c74](https://doi.org/10.3847/1538-4357/ac7c74) |
 
 The complete reference list (34 entries, DOI-verified) accompanies the research
 project from which this library originates.
 
-## Acknowledgments
+## AI usage statement
 
-This repository was organized with assistance from Hermes Agent (Nous Research).
+This repository was organized with assistance from Hermes Agent. Large language
+model: deepseek-v4.1-flash.
+
+## Contributing
+
+Issues (feature requests, bug reports) and pull requests are welcome on the
+hosting platform (Gitee / GitHub). See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-MIT
+MIT License — see [LICENSE](LICENSE).

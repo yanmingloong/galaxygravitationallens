@@ -4,6 +4,8 @@
 
 核心科学目标：利用星系形成的流体数值模拟结果，研究盘星系的强引力透镜效应，与空间望远镜（HST）观测结果比较，检验数值模拟预言，限制暗物质模型与暗物质粒子性质；椭圆星系作为对比样本。
 
+本库提供引力透镜 + 动力学的联合拟合管线：引力透镜模型（质量模型 + 光源模型，经光线追踪后与成像数据拟合）由 PyAutoLens 构建，恒星动力学模型由 jampy（Jeans Anisotropic MGE，对多高斯展开的恒星分布求解轴对称 Jeans 方程）构建，二者联合拟合以约束恒星质光比、暗物质晕（gNFW / NFW）与速度各向异性 β_z，进而得到爱因斯坦半径内的暗物质比例 f_DM。方法框架参考 Barnabè et al.（2012，SWELLS IV），实现上采用上述独立软件栈。
+
 > 源自本科大学生创新项目**「盘星系引力透镜研究」**。
 
 > **状态**：pre-alpha。
@@ -153,23 +155,48 @@ jampy / mgefit / nautilus），Windows、WSL、Linux、macOS（CPU）均可运�
 
 ## 参考文献
 
-本库复现的核心方法与所依托文献：
+本库所依托的方法与模型。
 
-- Barnabè, M.; Dutton, A.A.; Marshall, P.J.; et al. 2012, MNRAS, 423, 1073 — 本库复现的盘星系引力透镜+动力学方法。
-- Treu, T.; Dutton, A.A.; Auger, M.W.; et al. 2011, MNRAS, 417, 1601 — SWELLS 巡天。
-- Trick, W.H.; van de Ven, G.; Dutton, A.A. 2016, MNRAS, 463, 3151 — 四重像盘透镜 J1331+3628。
-- Cappellari, M. 2002, MNRAS, 333, 400 — 多高斯展开（MGE）。
-- Dutton, A.A.; Macciò, A.V. 2014, MNRAS, 441, 3359 — 浓度–质量先验。
-- Camps, P.; Baes, M. 2020, A&C, 31, 100381 — SKIRT 辐射转移。
-- Nelson, D.; Pillepich, A.; Springel, V.; et al. 2019, MNRAS, 490, 3234 — IllustrisTNG 模拟。
-- Nightingale, J.W.; Dye, S.; Massey, R.J. 2018, MNRAS, 478, 4738 — PyAutoLens。
+### 方法与模型
+
+| 文献 | DOI |
+|---|---|
+| Barnabè, M.; Dutton, A.A.; Marshall, P.J.; et al. 2012, MNRAS, 423, 1073 | [10.1111/j.1365-2966.2012.20934.x](https://doi.org/10.1111/j.1365-2966.2012.20934.x) |
+| Treu, T.; Dutton, A.A.; Auger, M.W.; et al. 2011, MNRAS, 417, 1601 | [10.1111/j.1365-2966.2011.19378.x](https://doi.org/10.1111/j.1365-2966.2011.19378.x) |
+| Trick, W.H.; van de Ven, G.; Dutton, A.A. 2016, MNRAS, 463, 3151 | [10.1093/mnras/stw2142](https://doi.org/10.1093/mnras/stw2142) |
+| Cappellari, M. 2002, MNRAS, 333, 400 | [10.1046/j.1365-8711.2002.05412.x](https://doi.org/10.1046/j.1365-8711.2002.05412.x) |
+| Cappellari, M. 2020, MNRAS, 494, 4819 | [10.1093/mnras/staa1128](https://doi.org/10.1093/mnras/staa1128) |
+| Wyithe, J.S.B.; Turner, E.L.; Spergel, D.N. 2001, ApJ, 555, 504 | [10.1086/321437](https://doi.org/10.1086/321437) |
+| Navarro, J.F.; Frenk, C.S.; White, S.D.M. 1997, ApJ, 490, 493 | [10.1086/304888](https://doi.org/10.1086/304888) |
+| Dutton, A.A.; Macciò, A.V. 2014, MNRAS, 441, 3359 | [10.1093/mnras/stu742](https://doi.org/10.1093/mnras/stu742) |
+| Wright, C.O.; Brainerd, T.G. 2000, ApJ, 534, 34 | [10.1086/308744](https://doi.org/10.1086/308744) |
+| Evans, N.W.; Witt, H.J. 2003, MNRAS, 345, 1351 | [10.1046/j.1365-2966.2003.07057.x](https://doi.org/10.1046/j.1365-2966.2003.07057.x) |
+| Kochanek, C.S. 1991, ApJ, 373, 354 | [10.1086/170057](https://doi.org/10.1086/170057) |
+| Vasiliev, E. 2019, MNRAS, 482, 1525 | [10.1093/mnras/sty2672](https://doi.org/10.1093/mnras/sty2672) |
+| Nightingale, J.W.; Dye, S.; Massey, R.J. 2018, MNRAS, 478, 4738 | [10.1093/mnras/sty1264](https://doi.org/10.1093/mnras/sty1264) |
+| Stetson, P.B. 1987, PASP, 99, 191 | [10.1086/131977](https://doi.org/10.1086/131977) |
+
+### mock 图像管线
+
+| 文献 | DOI |
+|---|---|
+| Camps, P.; Baes, M. 2020, A&C, 31, 100381 | [10.1016/j.ascom.2020.100381](https://doi.org/10.1016/j.ascom.2020.100381) |
+| Jones, A.P.; Köhler, M.; Ysard, N.; et al. 2017, A&A, 602, A46 | [10.1051/0004-6361/201630225](https://doi.org/10.1051/0004-6361/201630225) |
+| Bruzual, G.; Charlot, S. 2003, MNRAS, 344, 1000 | [10.1046/j.1365-8711.2003.06897.x](https://doi.org/10.1046/j.1365-8711.2003.06897.x) |
+| Chabrier, G. 2003, PASP, 115, 763 | [10.1086/376392](https://doi.org/10.1086/376392) |
+| Nelson, D.; Pillepich, A.; Springel, V.; et al. 2019, MNRAS, 490, 3234 | [10.1093/mnras/stz2306](https://doi.org/10.1093/mnras/stz2306) |
+| The Astropy Collaboration; Price-Whelan, A.M.; et al. 2022, ApJ, 935, 167 | [10.3847/1538-4357/ac7c74](https://doi.org/10.3847/1538-4357/ac7c74) |
 
 完整参考文献（34 条，DOI 已核实）随本库来源的研究项目一同存放。
 
-## 致谢
+## AI 使用情况说明
 
-本仓库由 Hermes Agent（Nous Research）协助整理。
+本仓库使用 Hermes Agent 协助整理，大模型：deepseek-v4.1-flash。
+
+## 参与贡献
+
+欢迎在托管平台（Gitee / GitHub）提交 Issue（功能需求、bug 报告）与 Pull Request。参见 [CONTRIBUTING_zh.md](CONTRIBUTING_zh.md)。
 
 ## 许可
 
-MIT
+MIT 许可 — 见 [LICENSE](LICENSE)。

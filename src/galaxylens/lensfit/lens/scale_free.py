@@ -9,9 +9,9 @@ positions, not a pixel-level arc. The fit yields the Einstein radius
 
 References
 ----------
-- Evans & Witt 2003, MNRAS 343, 1356 (scale-free potential)
+- Evans & Witt 2003, MNRAS 345, 1351 (scale-free potential)
 - Kochanek 1991, ApJ 373, 354 (source-plane chi2 with magnification weighting)
-- Trick, van de Ven & Dutton 2016, MNRAS 463, 4594 / arXiv:1609.05477
+- Trick, van de Ven & Dutton 2016, MNRAS 463, 3151 / arXiv:1609.05477
   (WMAP5 cosmology, Table 4 image positions, Table 5 results)
 """
 

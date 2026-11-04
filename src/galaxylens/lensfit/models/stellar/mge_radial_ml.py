@@ -12,7 +12,7 @@ deflection (``attach``) is not validated and raises ``NotImplementedError``.
 References
 ----------
 - Cappellari 2002, MNRAS 333, 400 (MGE)
-- Trick, van de Ven & Dutton 2016, MNRAS 463, 4594 / arXiv:1609.05477
+- Trick, van de Ven & Dutton 2016, MNRAS 463, 3151 / arXiv:1609.05477
   (Salpeter bulge/disk M/L, Table 7)
 """
 

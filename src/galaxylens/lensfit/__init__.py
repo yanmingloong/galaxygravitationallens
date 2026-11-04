@@ -41,8 +41,8 @@ The canonical method sources used across this package:
   galaxy-subtracted modelling)
 - Wyithe, Turner & Spergel 2001, ApJ 555, 504 (gNFW)
 - Navarro, Frenk & White 1997, ApJ 490, 493 (NFW)
-- Evans & Witt 2003, MNRAS 343, 1356 (scale-free potential, quad image positions)
-- Trick, van de Ven & Dutton 2016, MNRAS 463, 4594 / arXiv:1609.05477 (J1331 quad)
+- Evans & Witt 2003, MNRAS 345, 1351 (scale-free potential, quad image positions)
+- Trick, van de Ven & Dutton 2016, MNRAS 463, 3151 / arXiv:1609.05477 (J1331 quad)
 - Ludlow et al. 2016, MNRAS 460, 1214 (concentration-mass relation)
 - Vasiliev 2019, MNRAS 482, 1525 (AGAMA)
 """

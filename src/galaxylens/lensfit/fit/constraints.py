@@ -29,7 +29,7 @@ pixel-level fit.
 References
 ----------
 - Barnabe, Dutton, Marshall et al. 2012, MNRAS 423, 1073 (arc imaging fit)
-- Trick, van de Ven & Dutton 2016, MNRAS 463, 4594 / arXiv:1609.05477
+- Trick, van de Ven & Dutton 2016, MNRAS 463, 3151 / arXiv:1609.05477
   (quad image positions + Einstein mass)
 """
 

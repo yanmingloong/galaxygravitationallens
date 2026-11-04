@@ -14,7 +14,7 @@ ways, all of which this engine encodes:
 References
 ----------
 - Cappellari 2020, MNRAS 494, 4819 (jampy)
-- Trick, van de Ven & Dutton 2016, MNRAS 463, 4594 / arXiv:1609.05477
+- Trick, van de Ven & Dutton 2016, MNRAS 463, 3151 / arXiv:1609.05477
   (counter-rotating core, tangential beta_z = -0.4)
 """
 

@@ -39,7 +39,7 @@ galaxygravitationallens/
 │   │   ├── lens/                #     lens model builder (disk / elliptical)
 │   │   ├── plotting/            #     unified plotting (paper style)
 │   │   └── validation/          #     ground-truth comparison (mock validation)
-│   ├── api/                     #   Facade layer: gl.fit / gl.analyze / gl.identify / gl.mock / gl.load_config / gl.load_dataset
+│   ├── api/                     #   High-level API: gl.fit / gl.analyze / gl.identify / gl.mock / gl.load_config / gl.load_dataset
 │   └── sample_library/          #   Observational sample library access
 ├── configs/                     # per-lens YAML (disk/ + slacs/)
 ├── sample_library/              # observational sample data
@@ -51,7 +51,7 @@ galaxygravitationallens/
 
 ## Capabilities
 
-| Module | What it does |
+| Module | Description |
 |---|---|
 | `data_pipeline/imaging` | HST FLC/FLT preprocessing -> sci/noise/psf/starmask (SExtractor + TinyTim) |
 | `config` (YAML + dataclass) | YAML -> dataclass config loading (16 lens YAMLs under configs/) |
@@ -59,7 +59,7 @@ galaxygravitationallens/
 | `data_pipeline/spectra` | spectra (SDSS / KCWI / DEIMOS) — planned |
 | `data_pipeline/other_obs` | other observations (NIRC2 K'-band) — planned |
 | `lensfit` | pluggable fitting engine: gnfw_virial / nfw / mge_const_ml / mge_radial_ml / single_sersic / pixelized components; jampy / jampy_kdc dynamics; LensingConstraint imaging / mein / scale-free; joint fit + D-series pointwise fit |
-| `api` | facade: gl.fit / gl.fit_positions / gl.fit_mein / gl.analyze / gl.mock / gl.load_config / gl.load_dataset |
+| `api` | high-level API: gl.fit / gl.fit_positions / gl.fit_mein / gl.analyze / gl.mock / gl.load_config / gl.load_dataset |
 | `mock_pipeline/truth` | ground-truth extraction: f_disk / f_dm (spherical + cylindrical) / beta_z / gNFW halo fit |
 | `mock_pipeline/lensing` | true-mass lens galaxy + Einstein radius + arc ray-tracing + dataset merge |
 | `mock_pipeline/selection` | TNG disk-lens analog selection (J2141 + J1331 built-in targets) |
@@ -184,6 +184,26 @@ macOS (CPU). Three honest boundaries:
    on a Linux cluster; the `backend: local` backend runs everywhere. The CI
    matrix (`.github/workflows/ci.yml`) runs core + pure-python on Windows and
    Linux, and the full fitting stack on Linux only.
+
+## References
+
+Core methods reproduced and underlying this library:
+
+- Barnabè, M.; Dutton, A.A.; Marshall, P.J.; et al. 2012, MNRAS, 423, 1073 — the disk-galaxy lens+dynamics method this library reproduces.
+- Treu, T.; Dutton, A.A.; Auger, M.W.; et al. 2011, MNRAS, 417, 1601 — the SWELLS survey.
+- Trick, W.H.; van de Ven, G.; Dutton, A.A. 2016, MNRAS, 463, 3151 — the quadruply-imaged disk lens J1331+3628.
+- Cappellari, M. 2002, MNRAS, 333, 400 — multi-Gaussian expansion (MGE).
+- Dutton, A.A.; Macciò, A.V. 2014, MNRAS, 441, 3359 — the concentration–mass prior.
+- Camps, P.; Baes, M. 2020, A&C, 31, 100381 — SKIRT radiative transfer.
+- Nelson, D.; Pillepich, A.; Springel, V.; et al. 2019, MNRAS, 490, 3234 — the IllustrisTNG simulations.
+- Nightingale, J.W.; Dye, S.; Massey, R.J. 2018, MNRAS, 478, 4738 — PyAutoLens.
+
+The complete reference list (34 entries, DOI-verified) accompanies the research
+project from which this library originates.
+
+## Acknowledgments
+
+This repository was organized with assistance from Hermes Agent (Nous Research).
 
 ## License
 

@@ -34,7 +34,7 @@ galaxygravitationallens/
 │   │   ├── lens/                #     透镜模型 builder（盘 / 椭圆两套）
 │   │   ├── plotting/            #     统一绘图（论文风格）
 │   │   └── validation/          #     ground-truth 对照（mock 验证）
-│   ├── api/                     #   门面层：gl.fit / gl.analyze / gl.identify / gl.mock / gl.load_config / gl.load_dataset
+│   ├── api/                     #   高层 API：gl.fit / gl.analyze / gl.identify / gl.mock / gl.load_config / gl.load_dataset
 │   └── sample_library/          #   观测样本库访问
 ├── configs/                     # 各透镜 YAML（disk/ + slacs/）
 ├── sample_library/              # 观测样本库数据
@@ -54,7 +54,7 @@ galaxygravitationallens/
 | `data_pipeline/spectra` | 光谱（SDSS / KCWI / DEIMOS）——规划中 |
 | `data_pipeline/other_obs` | 其他观测（NIRC2 K'-band 等）——规划中 |
 | `lensfit` | 可插拔拟合引擎：gnfw_virial / nfw / mge_const_ml / mge_radial_ml / single_sersic / pixelized 组件；jampy / jampy_kdc 动力学；LensingConstraint imaging / mein / scale-free；联合拟合 + D 系列逐点拟合 |
-| `api` | 门面：gl.fit / gl.fit_positions / gl.fit_mein / gl.analyze / gl.mock / gl.load_config / gl.load_dataset |
+| `api` | 高层 API：gl.fit / gl.fit_positions / gl.fit_mein / gl.analyze / gl.mock / gl.load_config / gl.load_dataset |
 | `mock_pipeline/truth` | ground-truth 提取：f_disk / f_dm（球 + 柱）/ beta_z / gNFW 晕拟合 |
 | `mock_pipeline/lensing` | 真值质量透镜星系 + 爱因斯坦半径 + 弧光线追踪 + dataset 合并 |
 | `mock_pipeline/selection` | TNG 盘透镜类似物筛选（J2141 + J1331 内建目标） |
@@ -150,6 +150,25 @@ jampy / mgefit / nautilus），Windows、WSL、Linux、macOS（CPU）均可运�
    在 Linux 集群提交 SBATCH 作业；`backend: local` 后端到处可跑。CI 矩阵
    （`.github/workflows/ci.yml`）在 Windows + Linux 跑核心 + 纯 Python 测试，
    完整拟合栈只在 Linux 跑。
+
+## 参考文献
+
+本库复现的核心方法与所依托文献：
+
+- Barnabè, M.; Dutton, A.A.; Marshall, P.J.; et al. 2012, MNRAS, 423, 1073 — 本库复现的盘星系引力透镜+动力学方法。
+- Treu, T.; Dutton, A.A.; Auger, M.W.; et al. 2011, MNRAS, 417, 1601 — SWELLS 巡天。
+- Trick, W.H.; van de Ven, G.; Dutton, A.A. 2016, MNRAS, 463, 3151 — 四重像盘透镜 J1331+3628。
+- Cappellari, M. 2002, MNRAS, 333, 400 — 多高斯展开（MGE）。
+- Dutton, A.A.; Macciò, A.V. 2014, MNRAS, 441, 3359 — 浓度–质量先验。
+- Camps, P.; Baes, M. 2020, A&C, 31, 100381 — SKIRT 辐射转移。
+- Nelson, D.; Pillepich, A.; Springel, V.; et al. 2019, MNRAS, 490, 3234 — IllustrisTNG 模拟。
+- Nightingale, J.W.; Dye, S.; Massey, R.J. 2018, MNRAS, 478, 4738 — PyAutoLens。
+
+完整参考文献（34 条，DOI 已核实）随本库来源的研究项目一同存放。
+
+## 致谢
+
+本仓库由 Hermes Agent（Nous Research）协助整理。
 
 ## 许可
 

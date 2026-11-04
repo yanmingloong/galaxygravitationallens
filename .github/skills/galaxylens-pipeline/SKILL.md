@@ -1,9 +1,23 @@
 ---
 name: galaxylens-pipeline
 description: "Use when operating the galaxylens lens-analysis pipeline."
+version: 0.1.0
+author: Yanming Long
+license: MIT
+metadata:
+  hermes:
+    tags: [galaxylens, gravitational-lensing, fitting, operations]
+    related_skills: [galaxygravitationallens-migration]
 ---
 
 # galaxylens Pipeline Skill (Operations)
+
+## When to Use
+
+Load this skill when the user asks to run or operate the galaxylens package —
+run a fit, analyze a result, identify a lens, produce mock images, submit a
+cluster job, or read/diagnose fit output. Do NOT load it for extending the
+package (adding models/engines) — that is galaxygravitationallens-migration.
 
 ## Purpose
 

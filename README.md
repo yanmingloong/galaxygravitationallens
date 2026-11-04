@@ -26,6 +26,13 @@ the implementation uses the independent software stack above.
 
 > **Status**: pre-alpha.
 
+## Repository
+
+- Gitee: <https://gitee.com/longym8/galaxygravitationallens>
+- GitHub: <https://github.com/yanmingloong/galaxygravitationallens>
+
+Both hosts mirror the same repository and are kept in sync.
+
 中文文档见 [README_zh.md](README_zh.md).
 
 ## Architecture

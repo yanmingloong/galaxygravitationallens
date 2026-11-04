@@ -10,6 +10,13 @@
 
 > **状态**：pre-alpha。
 
+## 仓库
+
+- Gitee: <https://gitee.com/longym8/galaxygravitationallens>
+- GitHub: <https://github.com/yanmingloong/galaxygravitationallens>
+
+两个平台镜像同一仓库，保持同步。
+
 English docs: [README.md](README.md).
 
 ## 架构

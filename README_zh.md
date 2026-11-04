@@ -205,6 +205,10 @@ jampy / mgefit / nautilus），Windows、WSL、Linux、macOS（CPU）均可运�
    （`.github/workflows/ci.yml`）在 Windows + Linux 跑核心 + 纯 Python 测试，
    完整拟合栈只在 Linux 跑。
 
+## AI 使用情况说明
+
+本仓库使用 **Hermes Agent** 协助整理，大模型：**DeepSeek-V4-Flash**。
+
 ## 参考文献
 
 本库所依托的方法与模型。
@@ -241,10 +245,6 @@ jampy / mgefit / nautilus），Windows、WSL、Linux、macOS（CPU）均可运�
 | Chabrier, G. 2003, PASP, 115, 763 | [10.1086/376392](https://doi.org/10.1086/376392) | Chabrier IMF |
 | Nelson, D.; Pillepich, A.; Springel, V.; et al. 2019, MNRAS, 490, 3234 | [10.1093/mnras/stz2306](https://doi.org/10.1093/mnras/stz2306) | IllustrisTNG 模拟 |
 | The Astropy Collaboration; Price-Whelan, A.M.; et al. 2022, ApJ, 935, 167 | [10.3847/1538-4357/ac7c74](https://doi.org/10.3847/1538-4357/ac7c74) | Astropy 软件 |
-
-## AI 使用情况说明
-
-本仓库使用 Hermes Agent 协助整理，大模型：deepseek-v4.1-flash。
 
 ## 参与贡献
 

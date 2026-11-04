@@ -253,6 +253,11 @@ macOS (CPU). Three honest boundaries:
    matrix (`.github/workflows/ci.yml`) runs core + pure-python on Windows and
    Linux, and the full fitting stack on Linux only.
 
+## AI usage statement
+
+This repository was organized with assistance from **Hermes Agent**. Large
+language model: **DeepSeek-V4-Flash**.
+
 ## References
 
 Methods and models this library builds upon.
@@ -289,11 +294,6 @@ Methods and models this library builds upon.
 | Chabrier, G. 2003, PASP, 115, 763 | [10.1086/376392](https://doi.org/10.1086/376392) | Chabrier IMF |
 | Nelson, D.; Pillepich, A.; Springel, V.; et al. 2019, MNRAS, 490, 3234 | [10.1093/mnras/stz2306](https://doi.org/10.1093/mnras/stz2306) | IllustrisTNG simulations |
 | The Astropy Collaboration; Price-Whelan, A.M.; et al. 2022, ApJ, 935, 167 | [10.3847/1538-4357/ac7c74](https://doi.org/10.3847/1538-4357/ac7c74) | Astropy software |
-
-## AI usage statement
-
-This repository was organized with assistance from Hermes Agent. Large language
-model: deepseek-v4.1-flash.
 
 ## Contributing
 

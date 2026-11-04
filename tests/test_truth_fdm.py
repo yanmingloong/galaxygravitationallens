@@ -85,8 +85,7 @@ def test_beta_z_tangential():
 # ---------------------------------------------------------------------------
 # data regression (skip if the particle HDF5 is unavailable)
 # ---------------------------------------------------------------------------
-RAW = ("/mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/"
-       "IllustrisTNG/mock_observations/01_data")
+RAW = os.environ.get("GALAXYLENS_TEST_RAW_DATA", "")
 
 
 def _aligned(sim, snap, sid):

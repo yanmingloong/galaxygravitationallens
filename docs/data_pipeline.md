@@ -26,7 +26,7 @@ data_pipeline/
 ### 2.1 Data root directory (required)
 
 ```bash
-export GALAXYLENS_DATA_ROOT=/path/to/DataPipeline
+export GALAXYLENS_DATA_ROOT=/path/to/observations
 ```
 
 Points to the directory containing `raw/` (MAST downloads) and `processed_v2/` (processed products). If unset, `find_source_files` raises a RuntimeError with a hint.
@@ -120,7 +120,7 @@ Automatic selection strategy: ePSF and TinyTim each generate candidates → EE50
 
 ```python
 import os
-os.environ["GALAXYLENS_DATA_ROOT"] = "/path/to/DataPipeline"
+os.environ["GALAXYLENS_DATA_ROOT"] = "/path/to/observations"
 
 from galaxylens.data_pipeline.imaging.paths import get_raw_root, get_processed_root
 from galaxylens.data_pipeline.imaging.io.file_discovery import find_source_files

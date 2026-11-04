@@ -4,7 +4,7 @@ Upgrade ``modeling_input_elliptical.csv`` (a 614-DEV "exclusion list" with only
 name/z/mag) into the modelable elliptical table
 ``modeling_input_elliptical_modeling.csv``.
 
-Data sources (all local, inside the GalaxyGravLens project):
+Data sources (provided by the user via GALAXYLENS_SAMPLE_LIB or explicit args):
   - SLACS_all_params.csv     Dinos 3: zl/zs/sigma/theta_E/gamma/Re/n (complete)
   - SLACS_light_params.csv   Dinos 3: q(=qL) / PA(=phi_L) / amp_sersic_1
   - slacs_kcwi_kinematics_table.csv  KCWI 14: sigma_ap(=VD_reff) / reff / ellipticity
@@ -27,6 +27,7 @@ Usage:
 
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 from typing import Optional
@@ -52,10 +53,17 @@ def _norm(name) -> str:
 
 
 def _default_paths():
+    root = os.environ.get("GALAXYLENS_SAMPLE_LIB")
+    if not root:
+        raise RuntimeError(
+            "GALAXYLENS_SAMPLE_LIB is not set. Point it to the sample-library root "
+            "containing dinos_params/ and slacs_kcwi_kinematics_table.csv, or pass "
+            "dinos_dir / kcwi_path / out_path explicitly."
+        )
+    root = Path(root)
+    dinos = root / "dinos_params"
+    kcwi = root / "slacs_kcwi_kinematics_table.csv"
     repo = Path(__file__).resolve().parents[3]          # galaxygravitationallens/
-    proj = repo.parent                                   # GalaxyGravLens/
-    dinos = proj / "EllipticalLenses" / "dinos_params"
-    kcwi = proj / "SpectraPipeline" / "03_catalogs" / "slacs_kcwi_kinematics_table.csv"
     out = repo / "sample_library" / "modeling_input_elliptical_modeling.csv"
     return dinos, kcwi, out
 

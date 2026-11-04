@@ -194,7 +194,7 @@ def load_config(path) -> FitConfig:
 
         mge_path = Path(st["mge_params_path"])
         if not mge_path.is_absolute():
-            mge_path = get_data_root() / mge_path
+            mge_path = Path(path).resolve().parent / mge_path
         Ls, sigs, qs = _load_mge_csv(mge_path)
         hc = halo_cosmo(geom.zlens, geom.zsrc)
         sigma_crit_as2 = hc.sigma_crit * hc.kpc_per_arcsec ** 2

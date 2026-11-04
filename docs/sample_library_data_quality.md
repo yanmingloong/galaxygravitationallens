@@ -34,7 +34,7 @@ Different lenses have different redshifts, hence different kpc/″ factors (Plan
 
 ## 4. Copy-sync rule
 
-The modeling_input CSVs under `DiskLenses/SampleLibrary/05_exports/` have copies in `galaxygravitationallens/sample_library/` (which go into git). **When the source file changes, the copy must be synced**, otherwise the repo data silently falls behind (this happened once: an early θE patch only changed the DiskLenses source, and the copy stayed at the old value until it was caught weeks later).
+The modeling_input CSVs under the authoritative sample-library root (`GALAXYLENS_SAMPLE_LIB/05_exports/`) have copies in `galaxygravitationallens/sample_library/` (which go into git). **When the source file changes, the copy must be synced**, otherwise the repo data silently falls behind.
 
 ## 5. Data fixes must be logged
 

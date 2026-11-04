@@ -5,6 +5,7 @@ Run with autolens_jax. Verifies build_lens_model produces a 12-parameter model
 with the v_vir-normalized GNFWVirialVelocity halo: prior_count=12, shared M/L
 across 16 Gaussians, GNFWVirialVelocity dark + Sersic source.
 """
+import os
 import sys
 from pathlib import Path
 
@@ -16,10 +17,10 @@ import numpy as np
 from galaxylens.lensfit.lens import build_lens_model
 from galaxylens.lensfit.mge import load_mge
 
-MGE_CSV = Path(
-    "/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/DiskLenses/AutoLensFit/B_series/"
-    "outputs/b2_mge/mge_params.csv"
-)
+MGE_CSV = Path(os.environ.get("GALAXYLENS_TEST_MGE_CSV", ""))
+if not MGE_CSV.is_file():
+    print("SKIP: GALAXYLENS_TEST_MGE_CSV not set")
+    sys.exit(0)
 
 mge = load_mge(MGE_CSV)
 model = build_lens_model(zlens=0.138, zsrc=0.7127, mge=mge)

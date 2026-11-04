@@ -49,6 +49,5 @@ Re-run the MF mock with the B9 improvements. Fork to resolve first:
 ## Data pipeline pending
 
 - `data_pipeline/spectra`: DEIMOS reduction + pPXF extraction not yet in place
-  (research scripts live in SpectraPipeline; E-MILES templates in
-  SpectraPipeline/03_catalogs/miles_templates/).
+  (reduction + pPXF scripts and E-MILES templates are user-provided).
 - `data_pipeline/other_obs`: empty.

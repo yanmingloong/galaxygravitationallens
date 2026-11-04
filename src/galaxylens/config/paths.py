@@ -26,7 +26,7 @@ def get_data_root() -> Path:
     if not root:
         raise RuntimeError(
             "GALAXYLENS_DATA_ROOT is not set. Point it to a directory containing raw/ and processed_v2/, e.g.:\n"
-            "  export GALAXYLENS_DATA_ROOT=/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/DataPipeline"
+            "  export GALAXYLENS_DATA_ROOT=/path/to/observations"
         )
     return Path(root)
 
@@ -47,7 +47,7 @@ def get_sample_library_root() -> Path:
     if not root:
         raise RuntimeError(
             "GALAXYLENS_SAMPLE_LIB is not set. Point it to the sample library root directory (containing 01_raw~05_exports), e.g.:\n"
-            "  export GALAXYLENS_SAMPLE_LIB=/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/DiskLenses/SampleLibrary"
+            "  export GALAXYLENS_SAMPLE_LIB=/path/to/sample_library"
         )
     return Path(root)
 

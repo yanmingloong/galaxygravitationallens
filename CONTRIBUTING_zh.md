@@ -12,17 +12,14 @@
   - `README_zh.md` — 中文。
   - 每份文件在头部链接到另一份。
 
-## 从研究管线同步
+## 参与贡献
 
-仓库（`src/galaxylens/`）是研究管线（位于 `DataPipeline/` 下）的版本化形态。当研究管线发生变化时，把增量同步进仓库：
+欢迎在托管平台（Gitee / GitHub）提交 Issue（bug 报告、功能需求）与 Pull Request。
 
-1. 找出 `DataPipeline/pipeline/` 中变更的文件。
-2. 映射到 `src/galaxylens/data_pipeline/imaging/`（或对应的模块）。
-3. 应用功能性变更（按语言政策，用英文 docstring）。
-4. 若变更影响用法或设计，更新 `README.md` 和 `README_zh.md`。
-5. 用描述变更的提交信息提交；推送到两个远端（`git push origin` → GitHub + Gitee）。
-
-研究项目本身（`GalaxyGravLens/`）**不**纳入 git；只有本仓库纳入。
+1. 在托管平台 Fork 本仓库。
+2. 创建功能分支（`git checkout -b feature-xxx`），修改、提交并推送到你的 fork。
+3. 针对 `main` 分支发起 Pull Request，说明改了什么、为什么改。
+4. 维护者审查后合并（或要求修改）。
 
 ## 仓库布局
 

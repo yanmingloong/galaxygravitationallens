@@ -14,11 +14,12 @@ import pytest
 from galaxylens.mock_pipeline.lensing import build_lens_galaxy, einstein_radius
 from galaxylens.lensfit.models.dm.gnfw_virial import halo_cosmo
 
-MF = ("/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/DiskLenses/"
-      "AutoLensFit/MF_series")
+MF = os.environ.get("GALAXYLENS_MF_ROOT", "")
 
 
 def test_348489_theta_e_regression():
+    if not MF:
+        pytest.skip("GALAXYLENS_MF_ROOT not set (MF-series test data)")
     mge_path = f"{MF}/outputs/J2141/mge/348489_mge.npz"
     halo_path = f"{MF}/data/J2141/truth_halo_348489.json"
     truth_path = f"{MF}/data/J2141/truth_348489.json"

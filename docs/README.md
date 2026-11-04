@@ -30,7 +30,7 @@ prerequisites and skip gracefully when absent.
 
 ```bash
 # data root (required)
-export GALAXYLENS_DATA_ROOT=/path/to/DataPipeline
+export GALAXYLENS_DATA_ROOT=/path/to/observations
 
 # results output root (keep out of the repo)
 export GALAXYLENS_OUTPUT_ROOT=/path/to/results
@@ -39,7 +39,7 @@ export GALAXYLENS_OUTPUT_ROOT=/path/to/results
 export SEXTRACTOR_BIN=/path/to/sex
 
 # sample library root (sample_library module)
-export GALAXYLENS_SAMPLE_LIB=/path/to/SampleLibrary
+export GALAXYLENS_SAMPLE_LIB=/path/to/sample_library
 
 # TNG API key (for mock_pipeline.selection/skirt downloads)
 export TNG_API_KEY=...

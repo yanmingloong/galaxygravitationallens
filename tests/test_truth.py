@@ -163,9 +163,7 @@ def test_disk_kinematics_random_system():
 
 def test_disk_kinematics_348489_regression():
     """Regression against the known J2141 analog 348489 (f_disk=0.643, B/D=0.55)."""
-    path = ("/mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/"
-            "IllustrisTNG/disk_lens_analogs/01_data/analogs/J2141/stars_l3/"
-            "TNG100-1_snap88_id348489_stars.hdf5")
+    path = os.environ.get("GALAXYLENS_TEST_STARS_348489", "")
     if not os.path.exists(path):
         pytest.skip("348489 particle HDF5 not available")
     import h5py
@@ -240,9 +238,7 @@ def test_counter_rotation_angle_co_rotating():
 
 def test_counter_rotation_angle_342537_regression():
     """Regression: 342537 weak counter-rotation bias -> angle ~ 115.7 deg."""
-    path = ("/mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/"
-            "IllustrisTNG/disk_lens_analogs/01_data/analogs/J1331/stars_l3/"
-            "TNG100-1_snap90_id342537_stars.hdf5")
+    path = os.environ.get("GALAXYLENS_TEST_STARS_342537", "")
     if not os.path.exists(path):
         pytest.skip("342537 particle HDF5 not available")
     import h5py
@@ -262,9 +258,7 @@ def test_counter_rotation_angle_342537_regression():
 
 def test_major_axis_angle_342537_regression():
     """Regression: 342537 F814W roll-0 image -> major axis ~ -21.32 deg."""
-    path = ("/mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/"
-            "IllustrisTNG/mock_observations/03_outputs/static_mock/"
-            "342537_1e6/342537_F814W_F814W_total.fits")
+    path = os.environ.get("GALAXYLENS_TEST_MOCK_FITS_342537", "")
     if not os.path.exists(path):
         pytest.skip("342537 F814W mock FITS not available")
     from astropy.io import fits

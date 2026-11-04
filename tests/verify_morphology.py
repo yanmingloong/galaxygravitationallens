@@ -7,6 +7,7 @@ alone, independent of the catalog. Calibration anchors (measured 2026-11-03):
 """
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -15,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import galaxylens as gl
 from galaxylens.sample_library.morphology import classify_morphology, measure_morphology
 
-_BASE = "/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/DataPipeline/archive/psf_comparisons"
+_BASE = os.environ.get("GALAXYLENS_TEST_MORPH_DATA", "")
 J2141_F814 = f"{_BASE}/J2141-0001/v2_psf_epsf/j2141-0001_f814w_sci.fits"
 J1630_F814 = f"{_BASE}/J1630+4520/v2_psf_epsf/j1630+4520_f814w_sci.fits"
 

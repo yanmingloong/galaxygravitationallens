@@ -98,8 +98,7 @@ K'-band 构建器是两侧桥：`StellarTemplate.calibration` 是动力学面密
   改动）。椭圆透镜可复用 `jampy` + `gnfw_virial` + `mge_const_ml` + `imaging`
   （jampy 本就是椭圆星系方法）；单值孔径速度弥散入口（`KinData.aperture_*` +
   `JampyEngine` sigma_ap）已在 J1630 上验证，但单值孔径弥散打不破
-  mass-anisotropy 简并，椭圆 βz/M* 受先验限制（见
-  `EllipticalLenses/AutoLensFit/j1630_joint/README.md`）。
+  mass-anisotropy 简并，椭圆 βz/M* 受先验限制。
 
 ## 6. 编排层（`api.pipeline` + `api.analysis` + `mock_pipeline.orchestrate`）
 

@@ -6,6 +6,7 @@ in the combo dir, so this smoke uses an all-good mask (the point of the check is
 that the detection/classification code path runs end-to-end, not to reproduce
 B1's exact catalog).
 """
+import os
 import sys
 from pathlib import Path
 
@@ -17,10 +18,10 @@ from astropy.io import fits
 
 from galaxylens.lensfit.psf import find_field_stars
 
-SCI = Path(
-    "/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/ObservationalPipeline/"
-    "NIRC2/J2141-0001/kai_work/combo/mag09aug13_kp.fits"
-)
+SCI = Path(os.environ.get("GALAXYLENS_TEST_NIRC2_SCI", ""))
+if not SCI.is_file():
+    print("SKIP: GALAXYLENS_TEST_NIRC2_SCI not set")
+    sys.exit(0)
 
 sci = fits.getdata(SCI).astype(float)
 goodmask = np.ones(sci.shape, dtype=bool)

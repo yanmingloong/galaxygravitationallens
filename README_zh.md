@@ -2,7 +2,7 @@
 
 **盘星系与椭圆星系的强引力透镜建模。**
 
-核心科学目标：利用星系形成的流体数值模拟结果，研究盘星系的强引力透镜效应，与空间望远镜（HST）观测结果比较，检验数值模拟预言，限制暗物质模型与暗物质粒子性质；椭圆星系作为对比样本。
+核心科学目标：对盘星系与椭圆星系开展强引力透镜与恒星动力学的联合建模，约束其总质量分布、暗物质晕与恒星质光比，进而限制暗物质模型；并通过 mock 观测，将建模方法与宇宙学流体数值模拟（IllustrisTNG）的预言同空间望远镜（HST）实测对比加以检验。椭圆星系作为对比样本。
 
 本库提供引力透镜 + 动力学的联合拟合管线：引力透镜模型（质量模型 + 光源模型，经光线追踪后与成像数据拟合）由 PyAutoLens 构建，恒星动力学模型由 jampy（Jeans Anisotropic MGE，对多高斯展开的恒星分布求解轴对称 Jeans 方程）构建，二者联合拟合以约束恒星质光比、暗物质晕（gNFW / NFW）与速度各向异性 β_z，进而得到爱因斯坦半径内的暗物质比例 f_DM。方法框架参考 Barnabè et al.（2012，SWELLS IV），实现上采用上述独立软件栈。
 
@@ -55,7 +55,7 @@ galaxygravitationallens/
 | `sample_library` | 观测样本库访问（5 个 modeling_input CSV） |
 | `data_pipeline/spectra` | 光谱（SDSS / KCWI / DEIMOS）——规划中 |
 | `data_pipeline/other_obs` | 其他观测（NIRC2 K'-band 等）——规划中 |
-| `lensfit` | 可插拔拟合引擎：gnfw_virial / nfw / mge_const_ml / mge_radial_ml / single_sersic / pixelized 组件；jampy / jampy_kdc 动力学；LensingConstraint imaging / mein / scale-free；联合拟合 + D 系列逐点拟合 |
+| `lensfit` | 可插拔拟合引擎：gnfw_virial / nfw / mge_const_ml / mge_radial_ml / single_sersic / pixelized 组件；jampy / jampy_kdc 动力学；LensingConstraint imaging / mein / scale-free；联合拟合 + Trick+2016 逐点拟合 |
 | `api` | 高层 API：gl.fit / gl.fit_positions / gl.fit_mein / gl.analyze / gl.mock / gl.load_config / gl.load_dataset |
 | `mock_pipeline/truth` | ground-truth 提取：f_disk / f_dm（球 + 柱）/ beta_z / gNFW 晕拟合 |
 | `mock_pipeline/lensing` | 真值质量透镜星系 + 爱因斯坦半径 + 弧光线追踪 + dataset 合并 |
@@ -80,7 +80,7 @@ pip install -e ".[dynamics]" # + AGAMA / jampy / mgefit
 
 ```bash
 # 指向含 raw/ 和 processed_v2/ 的目录
-export GALAXYLENS_DATA_ROOT=/path/to/DataPipeline
+export GALAXYLENS_DATA_ROOT=/path/to/observations
 
 # 预处理一个透镜
 python -m galaxylens.data_pipeline.imaging.preprocess_master \
@@ -159,35 +159,33 @@ jampy / mgefit / nautilus），Windows、WSL、Linux、macOS（CPU）均可运�
 
 ### 方法与模型
 
-| 文献 | DOI |
-|---|---|
-| Barnabè, M.; Dutton, A.A.; Marshall, P.J.; et al. 2012, MNRAS, 423, 1073 | [10.1111/j.1365-2966.2012.20934.x](https://doi.org/10.1111/j.1365-2966.2012.20934.x) |
-| Treu, T.; Dutton, A.A.; Auger, M.W.; et al. 2011, MNRAS, 417, 1601 | [10.1111/j.1365-2966.2011.19378.x](https://doi.org/10.1111/j.1365-2966.2011.19378.x) |
-| Trick, W.H.; van de Ven, G.; Dutton, A.A. 2016, MNRAS, 463, 3151 | [10.1093/mnras/stw2142](https://doi.org/10.1093/mnras/stw2142) |
-| Cappellari, M. 2002, MNRAS, 333, 400 | [10.1046/j.1365-8711.2002.05412.x](https://doi.org/10.1046/j.1365-8711.2002.05412.x) |
-| Cappellari, M. 2020, MNRAS, 494, 4819 | [10.1093/mnras/staa1128](https://doi.org/10.1093/mnras/staa1128) |
-| Wyithe, J.S.B.; Turner, E.L.; Spergel, D.N. 2001, ApJ, 555, 504 | [10.1086/321437](https://doi.org/10.1086/321437) |
-| Navarro, J.F.; Frenk, C.S.; White, S.D.M. 1997, ApJ, 490, 493 | [10.1086/304888](https://doi.org/10.1086/304888) |
-| Dutton, A.A.; Macciò, A.V. 2014, MNRAS, 441, 3359 | [10.1093/mnras/stu742](https://doi.org/10.1093/mnras/stu742) |
-| Wright, C.O.; Brainerd, T.G. 2000, ApJ, 534, 34 | [10.1086/308744](https://doi.org/10.1086/308744) |
-| Evans, N.W.; Witt, H.J. 2003, MNRAS, 345, 1351 | [10.1046/j.1365-2966.2003.07057.x](https://doi.org/10.1046/j.1365-2966.2003.07057.x) |
-| Kochanek, C.S. 1991, ApJ, 373, 354 | [10.1086/170057](https://doi.org/10.1086/170057) |
-| Vasiliev, E. 2019, MNRAS, 482, 1525 | [10.1093/mnras/sty2672](https://doi.org/10.1093/mnras/sty2672) |
-| Nightingale, J.W.; Dye, S.; Massey, R.J. 2018, MNRAS, 478, 4738 | [10.1093/mnras/sty1264](https://doi.org/10.1093/mnras/sty1264) |
-| Stetson, P.B. 1987, PASP, 99, 191 | [10.1086/131977](https://doi.org/10.1086/131977) |
+| 文献 | DOI | 参考内容 |
+|---|---|---|
+| Barnabè, M.; Dutton, A.A.; Marshall, P.J.; et al. 2012, MNRAS, 423, 1073 | [10.1111/j.1365-2966.2012.20934.x](https://doi.org/10.1111/j.1365-2966.2012.20934.x) | 透镜 + 动力学联合拟合方法（galaxy-subtracted） |
+| Treu, T.; Dutton, A.A.; Auger, M.W.; et al. 2011, MNRAS, 417, 1601 | [10.1111/j.1365-2966.2011.19378.x](https://doi.org/10.1111/j.1365-2966.2011.19378.x) | SWELLS 巡天（盘透镜样本） |
+| Trick, W.H.; van de Ven, G.; Dutton, A.A. 2016, MNRAS, 463, 3151 | [10.1093/mnras/stw2142](https://doi.org/10.1093/mnras/stw2142) | 四重像盘透镜 J1331+3628 |
+| Cappellari, M. 2002, MNRAS, 333, 400 | [10.1046/j.1365-8711.2002.05412.x](https://doi.org/10.1046/j.1365-8711.2002.05412.x) | 多高斯展开（MGE） |
+| Cappellari, M. 2020, MNRAS, 494, 4819 | [10.1093/mnras/staa1128](https://doi.org/10.1093/mnras/staa1128) | jampy Jeans 各向异性动力学 |
+| Wyithe, J.S.B.; Turner, E.L.; Spergel, D.N. 2001, ApJ, 555, 504 | [10.1086/321437](https://doi.org/10.1086/321437) | gNFW 密度轮廓 |
+| Navarro, J.F.; Frenk, C.S.; White, S.D.M. 1997, ApJ, 490, 493 | [10.1086/304888](https://doi.org/10.1086/304888) | NFW 密度轮廓 |
+| Dutton, A.A.; Macciò, A.V. 2014, MNRAS, 441, 3359 | [10.1093/mnras/stu742](https://doi.org/10.1093/mnras/stu742) | 浓度–质量先验 |
+| Wright, C.O.; Brainerd, T.G. 2000, ApJ, 534, 34 | [10.1086/308744](https://doi.org/10.1086/308744) | 解析投影 NFW 质量 |
+| Evans, N.W.; Witt, H.J. 2003, MNRAS, 345, 1351 | [10.1046/j.1365-2966.2003.07057.x](https://doi.org/10.1046/j.1365-2966.2003.07057.x) | scale-free 透镜势 |
+| Kochanek, C.S. 1991, ApJ, 373, 354 | [10.1086/170057](https://doi.org/10.1086/170057) | 源平面 χ² + 放大加权 |
+| Vasiliev, E. 2019, MNRAS, 482, 1525 | [10.1093/mnras/sty2672](https://doi.org/10.1093/mnras/sty2672) | AGAMA 动力学（交叉验证） |
+| Nightingale, J.W.; Dye, S.; Massey, R.J. 2018, MNRAS, 478, 4738 | [10.1093/mnras/sty1264](https://doi.org/10.1093/mnras/sty1264) | PyAutoLens 透镜成像 |
+| Stetson, P.B. 1987, PASP, 99, 191 | [10.1086/131977](https://doi.org/10.1086/131977) | DAOStarFinder 点源探测 |
 
 ### mock 图像管线
 
-| 文献 | DOI |
-|---|---|
-| Camps, P.; Baes, M. 2020, A&C, 31, 100381 | [10.1016/j.ascom.2020.100381](https://doi.org/10.1016/j.ascom.2020.100381) |
-| Jones, A.P.; Köhler, M.; Ysard, N.; et al. 2017, A&A, 602, A46 | [10.1051/0004-6361/201630225](https://doi.org/10.1051/0004-6361/201630225) |
-| Bruzual, G.; Charlot, S. 2003, MNRAS, 344, 1000 | [10.1046/j.1365-8711.2003.06897.x](https://doi.org/10.1046/j.1365-8711.2003.06897.x) |
-| Chabrier, G. 2003, PASP, 115, 763 | [10.1086/376392](https://doi.org/10.1086/376392) |
-| Nelson, D.; Pillepich, A.; Springel, V.; et al. 2019, MNRAS, 490, 3234 | [10.1093/mnras/stz2306](https://doi.org/10.1093/mnras/stz2306) |
-| The Astropy Collaboration; Price-Whelan, A.M.; et al. 2022, ApJ, 935, 167 | [10.3847/1538-4357/ac7c74](https://doi.org/10.3847/1538-4357/ac7c74) |
-
-完整参考文献（34 条，DOI 已核实）随本库来源的研究项目一同存放。
+| 文献 | DOI | 参考内容 |
+|---|---|---|
+| Camps, P.; Baes, M. 2020, A&C, 31, 100381 | [10.1016/j.ascom.2020.100381](https://doi.org/10.1016/j.ascom.2020.100381) | SKIRT 辐射转移 |
+| Jones, A.P.; Köhler, M.; Ysard, N.; et al. 2017, A&A, 602, A46 | [10.1051/0004-6361/201630225](https://doi.org/10.1051/0004-6361/201630225) | THEMIS 尘埃模型 |
+| Bruzual, G.; Charlot, S. 2003, MNRAS, 344, 1000 | [10.1046/j.1365-8711.2003.06897.x](https://doi.org/10.1046/j.1365-8711.2003.06897.x) | 星族合成（BC03） |
+| Chabrier, G. 2003, PASP, 115, 763 | [10.1086/376392](https://doi.org/10.1086/376392) | Chabrier IMF |
+| Nelson, D.; Pillepich, A.; Springel, V.; et al. 2019, MNRAS, 490, 3234 | [10.1093/mnras/stz2306](https://doi.org/10.1093/mnras/stz2306) | IllustrisTNG 模拟 |
+| The Astropy Collaboration; Price-Whelan, A.M.; et al. 2022, ApJ, 935, 167 | [10.3847/1538-4357/ac7c74](https://doi.org/10.3847/1538-4357/ac7c74) | Astropy 软件 |
 
 ## AI 使用情况说明
 

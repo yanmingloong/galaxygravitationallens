@@ -34,7 +34,7 @@
 
 ## 4. 副本同步铁律
 
-`DiskLenses/SampleLibrary/05_exports/` 的 modeling_input CSV 有副本在 `galaxygravitationallens/sample_library/`（进 git）。**改源文件必须同步副本**，否则仓库数据悄悄落后（曾发生：早期 θE patch 只改了 DiskLenses 源，副本停在旧值，直到几周后才被发现）。
+权威样本库根（`GALAXYLENS_SAMPLE_LIB/05_exports/`）的 modeling_input CSV 有副本在 `galaxygravitationallens/sample_library/`（进 git）。**改源文件必须同步副本**，否则仓库数据悄悄落后。
 
 ## 5. 数据修正要留记录
 

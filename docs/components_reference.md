@@ -109,8 +109,7 @@ See section 2.
   galaxy method); the single-aperture velocity-dispersion entry point
   (`KinData.aperture_*` + `JampyEngine` sigma_ap) was validated on J1630, but
   a single aperture dispersion cannot break the mass-anisotropy degeneracy, so
-  the elliptical beta_z / M* are prior-limited (see
-  `EllipticalLenses/AutoLensFit/j1630_joint/README.md`).
+  the elliptical beta_z / M* are prior-limited.
 
 ## 6. Orchestration layer (`api.pipeline` + `api.analysis` + `mock_pipeline.orchestrate`)
 

@@ -10,6 +10,7 @@ Checks:
   3. fit_mge_1d with rbounds reproduces the B2 bulge (sigma_min == PSF sigma)
   4. deproject/project_back round-trips exactly
 """
+import os
 import sys
 from pathlib import Path
 
@@ -21,10 +22,7 @@ import numpy as np
 from galaxylens.lensfit.mge import deproject, fit_mge_1d, load_mge, project_back
 from galaxylens.lensfit.lens.rescale import noise_rescale_factor
 
-MGE_CSV = Path(
-    "/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/DiskLenses/AutoLensFit/B_series/"
-    "outputs/b2_mge/mge_params.csv"
-)
+MGE_CSV = Path(os.environ.get("GALAXYLENS_TEST_MGE_CSV", ""))
 
 # --- 1. rescale factor ---
 f = noise_rescale_factor(824219.3, 31389)
@@ -32,6 +30,9 @@ print(f"[1] noise_rescale_factor(824219.3, 31389) = {f:.4f}  (expect 5.124)")
 assert abs(f - 5.124) < 0.01
 
 # --- 2. load_mge (bulge/disk labels preserved) ---
+if not MGE_CSV.is_file():
+    print("SKIP: GALAXYLENS_TEST_MGE_CSV not set")
+    sys.exit(0)
 mge = load_mge(MGE_CSV)
 n = len(mge)
 bulge = [g for g in mge if g.component == "bulge"]

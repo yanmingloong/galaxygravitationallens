@@ -5,7 +5,7 @@ criteria. Criteria are *data, not code*: switching target must never require
 editing the pipeline. A YAML loader can populate the same dataclass later;
 for now the default J2141 target is built in.
 
-Selection thresholds (project-convention, see the disk_lens_analogs reports):
+Selection thresholds (convention from the disk-lens-analog study):
 
 - L1 (API): field center + stellar mass window + sigma(total) floor. The
   sigma floor is 140 km/s (relaxed) — a 170 km/s floor biases toward
@@ -79,7 +79,7 @@ J2141 = TargetConfig(
 #
 # J1331 differs from J2141 in three ways that live OUTSIDE this dataclass:
 # - sigma_min=190 (not 140): the L1 sigma floor is the calibrated bulge
-#   sigma0~200, NOT the relaxed 140 (see disk_lens_analogs/J1331/README.md).
+#   sigma0~200, NOT the relaxed 140.
 # - L2 merger judgment is REVERSED: J1331 keeps "recent merger" systems
 #   (counter-rotating core = merger relic), unlike J2141's "quiet" criterion.
 #   This is a standalone merger.check_merger call, not in the run chain.

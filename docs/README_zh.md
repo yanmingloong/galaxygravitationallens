@@ -29,7 +29,7 @@
 
 ```bash
 # 数据根目录（必需）
-export GALAXYLENS_DATA_ROOT=/path/to/DataPipeline
+export GALAXYLENS_DATA_ROOT=/path/to/observations
 
 # 结果输出根（结果不进仓库，统一放这里）
 export GALAXYLENS_OUTPUT_ROOT=/path/to/results
@@ -38,7 +38,7 @@ export GALAXYLENS_OUTPUT_ROOT=/path/to/results
 export SEXTRACTOR_BIN=/path/to/sex
 
 # 样本库根（sample_library 模块）
-export GALAXYLENS_SAMPLE_LIB=/path/to/SampleLibrary
+export GALAXYLENS_SAMPLE_LIB=/path/to/sample_library
 
 # TNG API key（mock_pipeline.selection/skirt 下载用）
 export TNG_API_KEY=...

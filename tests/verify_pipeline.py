@@ -5,6 +5,7 @@ real fit's samples.csv if present, else skips.
 """
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -58,18 +59,13 @@ def test_analyze():
     from galaxylens.api.facade import analyze, load_config
 
     # prefer the archived J1630 v2 fit; fall back to any samples.csv in outputs.
-    candidates = [
-        Path("/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/EllipticalLenses/AutoLensFit/j1630_joint/4b8a6a7c1cbfc161e06543457345c30f/files/samples.csv"),
-        Path("/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/galaxygravitationallens/outputs/j2141_b7_joint"),
-    ]
+    candidates = [Path(p) for p in os.environ.get("GALAXYLENS_TEST_SAMPLES_CSV", "").split(":") if p]
     csv = next((c for c in candidates if c.exists()), None)
     if csv is None:
         print("[2] analyze SKIPPED (no samples.csv on disk)")
         return
 
-    cfg = load_config(
-        "/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/galaxygravitationallens/configs/fit/j1630_ellip.yaml"
-    )
+    cfg = load_config(Path(__file__).resolve().parents[1] / "configs/fit/j1630_ellip.yaml")
     out = analyze(cfg, samples_csv=str(csv), corner=False, verbose=False)
     assert set(out) == {"params", "derived", "edges"}, set(out)
     assert set(out["params"]) == {"ml_img", "v_vir", "c_minus2", "gamma", "q_h", "ratio"}

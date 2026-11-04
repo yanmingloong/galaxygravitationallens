@@ -26,7 +26,7 @@ data_pipeline/
 ### 2.1 数据根目录（必需）
 
 ```bash
-export GALAXYLENS_DATA_ROOT=/path/to/DataPipeline
+export GALAXYLENS_DATA_ROOT=/path/to/observations
 ```
 
 指向含 `raw/`（MAST 下载）和 `processed_v2/`（处理产物）的目录。未设置时，`find_source_files` 会抛出 RuntimeError 提示。
@@ -120,7 +120,7 @@ python -m galaxylens.data_pipeline.imaging.preprocess_master \
 
 ```python
 import os
-os.environ["GALAXYLENS_DATA_ROOT"] = "/path/to/DataPipeline"
+os.environ["GALAXYLENS_DATA_ROOT"] = "/path/to/observations"
 
 from galaxylens.data_pipeline.imaging.paths import get_raw_root, get_processed_root
 from galaxylens.data_pipeline.imaging.io.file_discovery import find_source_files

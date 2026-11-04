@@ -41,6 +41,5 @@ truth（particles/fdm/anisotropy/halo）、validation（closure 等）、弧合�
 
 ## 数据管线待扩展
 
-- `data_pipeline/spectra`：DEIMOS 归约 + pPXF 提取尚未就位（研究脚本在
-  SpectraPipeline；E-MILES 模板在 SpectraPipeline/03_catalogs/miles_templates/）。
+- `data_pipeline/spectra`：DEIMOS 归约 + pPXF 提取尚未就位（归约 + pPXF 脚本与 E-MILES 模板由使用者自备）。
 - `data_pipeline/other_obs`：空。

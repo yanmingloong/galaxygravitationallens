@@ -22,15 +22,15 @@
 | modeling_input_tier0.csv | Tier 0（确认盘） | 1.4K |
 | modeling_input_tier01.csv | Tier 0+1 | 14K |
 
-`modeling_input_elliptical_modeling.csv` 由 `sample_library/enrich_elliptical.py` 从本地 Dinos SLACS 参数（`EllipticalLenses/dinos_params/`，3 个完整）+ KCWI 运动学表（`SpectraPipeline/03_catalogs/`，14 个 sigma_ap/Re）组装，带排除名单缺少的建模参数（sigma/theta_E/γ/Re/n/q/PA），供 `gl.identify` 识别椭圆。3 个 `data_complete=full`、11 个 `sigma_only`（theta_E/γ 仍缺）。
+`modeling_input_elliptical_modeling.csv` 由 `sample_library/enrich_elliptical.py` 从使用者自备的 Dinos SLACS 参数（3 个完整）+ KCWI 运动学表（14 个 sigma_ap/Re）组装，带排除名单缺少的建模参数（sigma/theta_E/γ/Re/n/q/PA），供 `gl.identify` 识别椭圆。3 个 `data_complete=full`、11 个 `sigma_only`（theta_E/γ 仍缺）。
 
-**权威数据源**：`GALAXYLENS_SAMPLE_LIB` 指向的研究项目 SampleLibrary 目录（含 `01_raw`~`05_exports` 全量数据 + 原始巡天下载）。本目录只放「成品」，原始下载（505M）和中间产物（可重新生成）留在本地不进 git。
+**权威数据源**：`GALAXYLENS_SAMPLE_LIB` 指向的样本库根目录（含 `01_raw`~`05_exports` 全量数据 + 原始巡天下载）。本目录只放「成品」，原始下载和中间产物（可重新生成）留在本地不进 git。
 
 ## 重跑构建
 
 ```bash
 # 指向样本库根目录（含 01_raw ~ 05_exports）
-export GALAXYLENS_SAMPLE_LIB=/path/to/SampleLibrary
+export GALAXYLENS_SAMPLE_LIB=/path/to/sample_library
 
 # 完整重跑 B→C→D→E（无网络查询）
 python -m galaxylens.sample_library.pipeline

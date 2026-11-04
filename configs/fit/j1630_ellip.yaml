@@ -6,11 +6,11 @@
 # (V/sigma = 0.095, lambda_R = 0.088), so the near-isotropic (ratio ~ 1) prior is
 # the physical assumption.
 #
-# Data (all local):
-#   HST F814W : DataPipeline/processed/ellip/J1630+4520/ (sci/noise/psf/starmask)
-#   KCWI sigma: slacs_kcwi_kinematics_table.csv -> VD_reff = 267 +/- 9 km/s
+# Data (user-provided, via GALAXYLENS_DATA_ROOT):
+#   HST F814W : processed/ellip/J1630+4520/ (sci/noise/psf/starmask)
+#   KCWI sigma: VD_reff = 267 +/- 9 km/s
 #   Dinos (Tan+2024) benchmark: theta_E = 1.791", gamma = 1.924 (power-law)
-#   Light: single Sersic n=4.0, Re=2.012", q=0.834 (SLACS_light_params.csv)
+#   Light: single Sersic n=4.0, Re=2.012", q=0.834
 
 geometry:
   zlens: 0.248
@@ -54,7 +54,7 @@ stellar_template:
   psf_sigma_arcsec: 0.1   # HST F814W PSF sigma (Moffat FWHM 0.215" / 2.355)
   bulge_i0: 232.0         # F814W central surface brightness I(0) = I_e*exp(b_n), counts/s/px,
                           # from the engine's own single-Sersic subtraction
-                          # (n=4/Re=2.012"/q=0.834 fixed; see EllipticalLenses/AutoLensFit/j1630_photocal/)
+                          # (n=4/Re=2.012"/q=0.834 fixed)
 
 source_priors: {}
 

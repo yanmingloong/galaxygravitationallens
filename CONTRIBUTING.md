@@ -13,20 +13,16 @@ Conventions for maintaining the `galaxygravitationallens` repository.
   - `README_zh.md` — Chinese.
   - Each file links to the other in its header.
 
-## Synchronizing from the research pipeline
+## Contributing
 
-The repo (`src/galaxylens/`) is the versioned form of the research pipeline
-under `DataPipeline/`. When the research pipeline changes, sync the delta into
-the repo:
+Issues (bug reports, feature requests) and pull requests are welcome on the
+hosting platform (Gitee / GitHub).
 
-1. Identify the changed files in `DataPipeline/pipeline/`.
-2. Map them to `src/galaxylens/data_pipeline/imaging/` (or the matching module).
-3. Apply the functional changes (English docstrings, per the language policy).
-4. Update `README.md` and `README_zh.md` if the change affects usage or design.
-5. Commit with a message describing the change; push to both remotes
-   (`git push origin` → GitHub + Gitee).
-
-The research project itself (`GalaxyGravLens/`) is NOT under git; only this repo is.
+1. Fork the repository on the hosting platform.
+2. Create a feature branch (`git checkout -b feature-xxx`), make your change,
+   commit, and push to your fork.
+3. Open a pull request against `main`; describe what and why.
+4. A maintainer reviews and merges (or requests changes).
 
 ## Repository layout
 

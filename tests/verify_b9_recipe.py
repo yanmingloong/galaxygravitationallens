@@ -14,11 +14,10 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
 # The mge_csv stellar template reads mge_params.csv relative to GALAXYLENS_DATA_ROOT.
-_B2_MGE = Path(
-    "/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/DiskLenses/AutoLensFit"
-    "/B_series/outputs/b2_mge"
-)
-os.environ.setdefault("GALAXYLENS_DATA_ROOT", str(_B2_MGE))
+_B2_MGE = os.environ.get("GALAXYLENS_DATA_ROOT", "")
+if not _B2_MGE:
+    print("SKIP: GALAXYLENS_DATA_ROOT not set (mge_params.csv)")
+    sys.exit(0)
 
 from galaxylens.api.config_loader import load_config, _load_mge_csv
 from galaxylens.lensfit.pipeline.assemble import build_collection, _component

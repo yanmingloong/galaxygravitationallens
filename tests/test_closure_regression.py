@@ -19,12 +19,13 @@ from galaxylens.lensfit.structures import (
 from galaxylens.lensfit.validation import closure_f_dm
 from galaxylens.lensfit.models.dm.gnfw_virial import halo_cosmo
 
-MF = ("/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/DiskLenses/"
-      "AutoLensFit/MF_series")
+MF = os.environ.get("GALAXYLENS_MF_ROOT", "")
 G2_343259 = "eff3fedb2825cd0f190966bd62277db4"
 
 
 def test_343259_closure_regression():
+    if not MF:
+        pytest.skip("GALAXYLENS_MF_ROOT not set (MF-series test data)")
     samples_csv = (f"{MF}/outputs/J2141/fit/mf2_343259/{G2_343259}/files/"
                    "samples.csv")
     mge_path = f"{MF}/outputs/J2141/mge/343259_mge.npz"

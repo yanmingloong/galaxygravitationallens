@@ -5,9 +5,7 @@ Covers:
   2. filter_field_stars isolation filtering (KD-tree)
   3. filter_field_stars edge exclusion
 
-Usage:
-  cd GalaxyGravLens && PYTHONPATH="DataPipeline:$PYTHONPATH" \
-    python DataPipeline/pipeline/tests/test_psf_selection.py
+Run: pytest tests/test_psf_selection.py
 """
 import numpy as np
 import pytest

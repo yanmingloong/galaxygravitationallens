@@ -12,12 +12,8 @@ from galaxylens.mock_pipeline.skirt import (
 )
 from galaxylens.lensfit.psf import moffat_mge_psf, TRICK_2016_TABLE2
 
-RAW_STARS_348489 = ("/mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/"
-                    "IllustrisTNG/mock_observations/01_data/raw_stars/"
-                    "TNG100-1_snap88_id348489_stars.hdf5")
-RAW_GAS_348489 = ("/mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/"
-                  "IllustrisTNG/mock_observations/01_data/raw_gas/"
-                  "TNG100-1_snap88_id348489_gas.hdf5")
+RAW_STARS_348489 = os.environ.get("GALAXYLENS_TEST_RAW_STARS_348489", "")
+RAW_GAS_348489 = os.environ.get("GALAXYLENS_TEST_RAW_GAS_348489", "")
 
 
 def test_inertia_rotation_thin_disk():

@@ -2,11 +2,13 @@
 
 **Strong gravitational lens modeling for disk and elliptical galaxies.**
 
-Core scientific goal: use galaxy-formation hydrodynamical simulations to study
-strong lensing by disk galaxies, compare with space-telescope (HST)
-observations, test simulation predictions, and constrain dark matter models and
-the nature of dark matter particles. Elliptical galaxies serve as the
-comparison sample.
+Core scientific goal: jointly model the strong gravitational lensing and
+stellar dynamics of disk and elliptical galaxies to constrain their total mass
+distribution, dark-matter halo, and stellar mass-to-light ratio, and thereby
+constrain dark-matter models; and to validate the modeling method and the
+predictions of cosmological hydrodynamical simulations (IllustrisTNG) against
+space-telescope (HST) observations through mock observations. Elliptical
+galaxies serve as the comparison sample.
 
 The library provides a joint lensing + dynamics fitting pipeline. Gravitational
 lens models (a mass model plus a source model, ray-traced and fitted against
@@ -69,7 +71,7 @@ galaxygravitationallens/
 | `sample_library` | observational sample library access (5 modeling_input CSVs) |
 | `data_pipeline/spectra` | spectra (SDSS / KCWI / DEIMOS) — planned |
 | `data_pipeline/other_obs` | other observations (NIRC2 K'-band) — planned |
-| `lensfit` | pluggable fitting engine: gnfw_virial / nfw / mge_const_ml / mge_radial_ml / single_sersic / pixelized components; jampy / jampy_kdc dynamics; LensingConstraint imaging / mein / scale-free; joint fit + D-series pointwise fit |
+| `lensfit` | pluggable fitting engine: gnfw_virial / nfw / mge_const_ml / mge_radial_ml / single_sersic / pixelized components; jampy / jampy_kdc dynamics; LensingConstraint imaging / mein / scale-free; joint fit + Trick+2016 pointwise fit |
 | `api` | high-level API: gl.fit / gl.fit_positions / gl.fit_mein / gl.analyze / gl.mock / gl.load_config / gl.load_dataset |
 | `mock_pipeline/truth` | ground-truth extraction: f_disk / f_dm (spherical + cylindrical) / beta_z / gNFW halo fit |
 | `mock_pipeline/lensing` | true-mass lens galaxy + Einstein radius + arc ray-tracing + dataset merge |
@@ -100,7 +102,7 @@ pip install -e ".[dynamics]" # + AGAMA / jampy / mgefit
 
 ```bash
 # point to the directory containing raw/ and processed_v2/
-export GALAXYLENS_DATA_ROOT=/path/to/DataPipeline
+export GALAXYLENS_DATA_ROOT=/path/to/observations
 
 # preprocess one lens
 python -m galaxylens.data_pipeline.imaging.preprocess_master \
@@ -202,36 +204,33 @@ Methods and models this library builds upon.
 
 ### Methods and models
 
-| Reference | DOI |
-|---|---|
-| Barnabè, M.; Dutton, A.A.; Marshall, P.J.; et al. 2012, MNRAS, 423, 1073 | [10.1111/j.1365-2966.2012.20934.x](https://doi.org/10.1111/j.1365-2966.2012.20934.x) |
-| Treu, T.; Dutton, A.A.; Auger, M.W.; et al. 2011, MNRAS, 417, 1601 | [10.1111/j.1365-2966.2011.19378.x](https://doi.org/10.1111/j.1365-2966.2011.19378.x) |
-| Trick, W.H.; van de Ven, G.; Dutton, A.A. 2016, MNRAS, 463, 3151 | [10.1093/mnras/stw2142](https://doi.org/10.1093/mnras/stw2142) |
-| Cappellari, M. 2002, MNRAS, 333, 400 | [10.1046/j.1365-8711.2002.05412.x](https://doi.org/10.1046/j.1365-8711.2002.05412.x) |
-| Cappellari, M. 2020, MNRAS, 494, 4819 | [10.1093/mnras/staa1128](https://doi.org/10.1093/mnras/staa1128) |
-| Wyithe, J.S.B.; Turner, E.L.; Spergel, D.N. 2001, ApJ, 555, 504 | [10.1086/321437](https://doi.org/10.1086/321437) |
-| Navarro, J.F.; Frenk, C.S.; White, S.D.M. 1997, ApJ, 490, 493 | [10.1086/304888](https://doi.org/10.1086/304888) |
-| Dutton, A.A.; Macciò, A.V. 2014, MNRAS, 441, 3359 | [10.1093/mnras/stu742](https://doi.org/10.1093/mnras/stu742) |
-| Wright, C.O.; Brainerd, T.G. 2000, ApJ, 534, 34 | [10.1086/308744](https://doi.org/10.1086/308744) |
-| Evans, N.W.; Witt, H.J. 2003, MNRAS, 345, 1351 | [10.1046/j.1365-2966.2003.07057.x](https://doi.org/10.1046/j.1365-2966.2003.07057.x) |
-| Kochanek, C.S. 1991, ApJ, 373, 354 | [10.1086/170057](https://doi.org/10.1086/170057) |
-| Vasiliev, E. 2019, MNRAS, 482, 1525 | [10.1093/mnras/sty2672](https://doi.org/10.1093/mnras/sty2672) |
-| Nightingale, J.W.; Dye, S.; Massey, R.J. 2018, MNRAS, 478, 4738 | [10.1093/mnras/sty1264](https://doi.org/10.1093/mnras/sty1264) |
-| Stetson, P.B. 1987, PASP, 99, 191 | [10.1086/131977](https://doi.org/10.1086/131977) |
+| Reference | DOI | Used for |
+|---|---|---|
+| Barnabè, M.; Dutton, A.A.; Marshall, P.J.; et al. 2012, MNRAS, 423, 1073 | [10.1111/j.1365-2966.2012.20934.x](https://doi.org/10.1111/j.1365-2966.2012.20934.x) | joint lens + dynamics fitting method (galaxy-subtracted) |
+| Treu, T.; Dutton, A.A.; Auger, M.W.; et al. 2011, MNRAS, 417, 1601 | [10.1111/j.1365-2966.2011.19378.x](https://doi.org/10.1111/j.1365-2966.2011.19378.x) | SWELLS survey (disk-lens sample) |
+| Trick, W.H.; van de Ven, G.; Dutton, A.A. 2016, MNRAS, 463, 3151 | [10.1093/mnras/stw2142](https://doi.org/10.1093/mnras/stw2142) | quadruply-imaged disk lens J1331+3628 |
+| Cappellari, M. 2002, MNRAS, 333, 400 | [10.1046/j.1365-8711.2002.05412.x](https://doi.org/10.1046/j.1365-8711.2002.05412.x) | multi-Gaussian expansion (MGE) |
+| Cappellari, M. 2020, MNRAS, 494, 4819 | [10.1093/mnras/staa1128](https://doi.org/10.1093/mnras/staa1128) | jampy Jeans anisotropic dynamics |
+| Wyithe, J.S.B.; Turner, E.L.; Spergel, D.N. 2001, ApJ, 555, 504 | [10.1086/321437](https://doi.org/10.1086/321437) | gNFW density profile |
+| Navarro, J.F.; Frenk, C.S.; White, S.D.M. 1997, ApJ, 490, 493 | [10.1086/304888](https://doi.org/10.1086/304888) | NFW density profile |
+| Dutton, A.A.; Macciò, A.V. 2014, MNRAS, 441, 3359 | [10.1093/mnras/stu742](https://doi.org/10.1093/mnras/stu742) | concentration–mass prior |
+| Wright, C.O.; Brainerd, T.G. 2000, ApJ, 534, 34 | [10.1086/308744](https://doi.org/10.1086/308744) | analytic projected NFW mass |
+| Evans, N.W.; Witt, H.J. 2003, MNRAS, 345, 1351 | [10.1046/j.1365-2966.2003.07057.x](https://doi.org/10.1046/j.1365-2966.2003.07057.x) | scale-free lens potential |
+| Kochanek, C.S. 1991, ApJ, 373, 354 | [10.1086/170057](https://doi.org/10.1086/170057) | source-plane χ² with magnification weighting |
+| Vasiliev, E. 2019, MNRAS, 482, 1525 | [10.1093/mnras/sty2672](https://doi.org/10.1093/mnras/sty2672) | AGAMA dynamics (cross-check) |
+| Nightingale, J.W.; Dye, S.; Massey, R.J. 2018, MNRAS, 478, 4738 | [10.1093/mnras/sty1264](https://doi.org/10.1093/mnras/sty1264) | PyAutoLens lens imaging |
+| Stetson, P.B. 1987, PASP, 99, 191 | [10.1086/131977](https://doi.org/10.1086/131977) | DAOStarFinder point-source detection |
 
 ### Mock-image pipeline
 
-| Reference | DOI |
-|---|---|
-| Camps, P.; Baes, M. 2020, A&C, 31, 100381 | [10.1016/j.ascom.2020.100381](https://doi.org/10.1016/j.ascom.2020.100381) |
-| Jones, A.P.; Köhler, M.; Ysard, N.; et al. 2017, A&A, 602, A46 | [10.1051/0004-6361/201630225](https://doi.org/10.1051/0004-6361/201630225) |
-| Bruzual, G.; Charlot, S. 2003, MNRAS, 344, 1000 | [10.1046/j.1365-8711.2003.06897.x](https://doi.org/10.1046/j.1365-8711.2003.06897.x) |
-| Chabrier, G. 2003, PASP, 115, 763 | [10.1086/376392](https://doi.org/10.1086/376392) |
-| Nelson, D.; Pillepich, A.; Springel, V.; et al. 2019, MNRAS, 490, 3234 | [10.1093/mnras/stz2306](https://doi.org/10.1093/mnras/stz2306) |
-| The Astropy Collaboration; Price-Whelan, A.M.; et al. 2022, ApJ, 935, 167 | [10.3847/1538-4357/ac7c74](https://doi.org/10.3847/1538-4357/ac7c74) |
-
-The complete reference list (34 entries, DOI-verified) accompanies the research
-project from which this library originates.
+| Reference | DOI | Used for |
+|---|---|---|
+| Camps, P.; Baes, M. 2020, A&C, 31, 100381 | [10.1016/j.ascom.2020.100381](https://doi.org/10.1016/j.ascom.2020.100381) | SKIRT radiative transfer |
+| Jones, A.P.; Köhler, M.; Ysard, N.; et al. 2017, A&A, 602, A46 | [10.1051/0004-6361/201630225](https://doi.org/10.1051/0004-6361/201630225) | THEMIS dust model |
+| Bruzual, G.; Charlot, S. 2003, MNRAS, 344, 1000 | [10.1046/j.1365-8711.2003.06897.x](https://doi.org/10.1046/j.1365-8711.2003.06897.x) | stellar population synthesis (BC03) |
+| Chabrier, G. 2003, PASP, 115, 763 | [10.1086/376392](https://doi.org/10.1086/376392) | Chabrier IMF |
+| Nelson, D.; Pillepich, A.; Springel, V.; et al. 2019, MNRAS, 490, 3234 | [10.1093/mnras/stz2306](https://doi.org/10.1093/mnras/stz2306) | IllustrisTNG simulations |
+| The Astropy Collaboration; Price-Whelan, A.M.; et al. 2022, ApJ, 935, 167 | [10.3847/1538-4357/ac7c74](https://doi.org/10.3847/1538-4357/ac7c74) | Astropy software |
 
 ## AI usage statement
 

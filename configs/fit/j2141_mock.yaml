@@ -1,9 +1,9 @@
 # Fit recipe: mock-closure joint fit of TNG100-1 subhalo 348489 (J2141 analog).
 #
-# Mock data produced by the SKIRT pipeline (mock_observations/03_outputs/static_mock/
-# 348489_1e9/): F814W fake-HST data/noise/psf. The stellar template is the light
-# MGE fit from the mock image (configs/fit/j2141_mock_mge.csv, mge_csv type);
-# kinematics is the particle v_rms profile from truth_348489.json.
+# Mock data produced by the SKIRT pipeline (F814W fake-HST data/noise/psf). The
+# stellar template is the light MGE fit from the mock image
+# (configs/fit/j2141_mock_mge.csv, mge_csv type); kinematics is the particle
+# v_rms profile from the ground truth.
 #
 # NOTE (calibration convention, to be pinned by a fit): this recipe follows the
 # MF-mock F814W convention (sample_f_dm: calib=1, lg_ml = log10(ml_img * ml_to_dyn)
@@ -65,7 +65,7 @@ priors:
 
 stellar_template:
   type: mge_csv
-  mge_params_path: /mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/galaxygravitationallens/configs/fit/j2141_mock_mge.csv
+  mge_params_path: j2141_mock_mge.csv   # relative to this YAML's directory (configs/fit/)
   pixel_scale: 0.05
   mstar_ref: 8.90e10      # mock true M* (particle)
   ml_ref: 1.0             # nominal M/L anchor
@@ -73,9 +73,9 @@ stellar_template:
 source_priors: {}
 
 data:
-  data_path: /mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/IllustrisTNG/mock_observations/03_outputs/static_mock/348489_1e9/348489_F814W_data.fits
-  noise_map_path: /mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/IllustrisTNG/mock_observations/03_outputs/static_mock/348489_1e9/348489_F814W_noise.fits
-  psf_path: /mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/IllustrisTNG/mock_observations/03_outputs/static_mock/348489_1e9/348489_F814W_psf.fits
+  data_path: mock/348489_F814W_data.fits       # relative to GALAXYLENS_DATA_ROOT
+  noise_map_path: mock/348489_F814W_noise.fits
+  psf_path: mock/348489_F814W_psf.fits
   starmask_path: ""
   pixel_scale: 0.05
   mask_radius: 5.0

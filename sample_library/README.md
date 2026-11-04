@@ -23,20 +23,19 @@ Observational lens sample library for disk + elliptical galaxies. Data are **rea
 | modeling_input_tier01.csv | Tier 0+1 | 14K |
 
 `modeling_input_elliptical_modeling.csv` is built by
-`sample_library/enrich_elliptical.py` from the local Dinos SLACS params
-(`EllipticalLenses/dinos_params/`, 3 complete) + the KCWI kinematics table
-(`SpectraPipeline/03_catalogs/`, 14 sigma_ap/Re); it carries the modeling
-parameters (sigma/theta_E/gamma/Re/n/q/PA) the exclusion list lacks, so
-`gl.identify` can tag ellipticals. 3 are `data_complete=full`, 11 `sigma_only`
-(theta_E/gamma still missing).
+`sample_library/enrich_elliptical.py` from user-provided Dinos SLACS params
+(3 complete) + the KCWI kinematics table (14 sigma_ap/Re); it carries the
+modeling parameters (sigma/theta_E/gamma/Re/n/q/PA) the exclusion list lacks,
+so `gl.identify` can tag ellipticals. 3 are `data_complete=full`, 11
+`sigma_only` (theta_E/gamma still missing).
 
-**Authoritative source**: the research-project SampleLibrary directory pointed to by `GALAXYLENS_SAMPLE_LIB` (full `01_raw`~`05_exports` + raw survey downloads). This directory holds only products; raw downloads (505M) and regenerable intermediates stay local (not in git).
+**Authoritative source**: the sample-library root pointed to by `GALAXYLENS_SAMPLE_LIB` (full `01_raw`~`05_exports` + raw survey downloads). This directory holds only products; raw downloads and regenerable intermediates stay local (not in git).
 
 ## Rebuild
 
 ```bash
 # point to the sample library root (containing 01_raw ~ 05_exports)
-export GALAXYLENS_SAMPLE_LIB=/path/to/SampleLibrary
+export GALAXYLENS_SAMPLE_LIB=/path/to/sample_library
 
 # full rebuild B→C→D→E (no network)
 python -m galaxylens.sample_library.pipeline

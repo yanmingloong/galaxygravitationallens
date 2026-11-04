@@ -15,6 +15,7 @@ their research-project values:
      imaging dof subtract the mesh pixels, not the explicit params).
 """
 import csv
+import os
 import sys
 from pathlib import Path
 
@@ -43,18 +44,9 @@ assert abs(est - 3.5) < 0.5, est
 # ----------------------------------------------------------------------------
 # check 2: AGN point-source subtraction (data-dependent, skip if missing)
 # ----------------------------------------------------------------------------
-SCIP = Path(
-    "/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/ObservationalPipeline"
-    "/NIRC2/J2141-0001/kai_work/combo/mag09aug13_kp.fits"
-)
-BADMASKP = Path(
-    "/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/ObservationalPipeline"
-    "/NIRC2/J2141-0001/archive/selfsky_reduction_v1/mag09aug13_kp_badmask.fits"
-)
-MGEP = Path(
-    "/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/DiskLenses/AutoLensFit"
-    "/B_series/outputs/b2_mge/mge_params.csv"
-)
+SCIP = Path(os.environ.get("GALAXYLENS_TEST_NIRC2_SCI", ""))
+BADMASKP = Path(os.environ.get("GALAXYLENS_TEST_NIRC2_BADMASK", ""))
+MGEP = Path(os.environ.get("GALAXYLENS_TEST_MGE_CSV", ""))
 
 if SCIP.exists() and BADMASKP.exists() and MGEP.exists():
     from astropy.io import fits

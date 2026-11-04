@@ -1,7 +1,8 @@
-"""Regression tests for mock_pipeline.selection (against local project data).
+"""Regression tests for mock_pipeline.selection (against user-provided data).
 
-No network access: the L1 filter and L3 verify tests run against the
-project's existing catalog CSV and 348489 particle HDF5.
+No network access: the L1 filter and L3 verify tests run against a user-provided
+catalog CSV and 348489 particle HDF5 (via GALAXYLENS_TEST_CATALOG /
+GALAXYLENS_TEST_STARS_348489); skipped when those variables are unset.
 """
 
 import csv
@@ -14,12 +15,8 @@ from galaxylens.mock_pipeline.selection import (
     classify,
 )
 
-CATALOG_CSV = ("/mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/"
-               "IllustrisTNG/disk_lens_analogs/01_data/catalog/"
-               "tng100_1_snap88_full.csv")
-STARS_348489 = ("/mnt/d/HermesAgent/ResearchProjects/cosmology_simulations/"
-                "IllustrisTNG/disk_lens_analogs/01_data/analogs/J2141/stars_l3/"
-                "TNG100-1_snap88_id348489_stars.hdf5")
+CATALOG_CSV = os.environ.get("GALAXYLENS_TEST_CATALOG", "")
+STARS_348489 = os.environ.get("GALAXYLENS_TEST_STARS_348489", "")
 
 
 def _load_catalog():

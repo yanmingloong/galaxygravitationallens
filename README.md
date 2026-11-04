@@ -295,6 +295,13 @@ Methods and models this library builds upon.
 | Nelson, D.; Pillepich, A.; Springel, V.; et al. 2019, MNRAS, 490, 3234 | [10.1093/mnras/stz2306](https://doi.org/10.1093/mnras/stz2306) | IllustrisTNG simulations |
 | The Astropy Collaboration; Price-Whelan, A.M.; et al. 2022, ApJ, 935, 167 | [10.3847/1538-4357/ac7c74](https://doi.org/10.3847/1538-4357/ac7c74) | Astropy software |
 
+### Software & AI tools
+
+| Tool | Source | Used for |
+|---|---|---|
+| Hermes Agent (Nous Research) | [github.com/NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) | repository organization |
+| DeepSeek-V4-Flash (DeepSeek-AI 2026) | [arXiv:2606.19348](https://arxiv.org/abs/2606.19348) | large language model |
+
 ## Contributing
 
 Issues (feature requests, bug reports) and pull requests are welcome on the

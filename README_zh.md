@@ -246,6 +246,13 @@ jampy / mgefit / nautilus），Windows、WSL、Linux、macOS（CPU）均可运�
 | Nelson, D.; Pillepich, A.; Springel, V.; et al. 2019, MNRAS, 490, 3234 | [10.1093/mnras/stz2306](https://doi.org/10.1093/mnras/stz2306) | IllustrisTNG 模拟 |
 | The Astropy Collaboration; Price-Whelan, A.M.; et al. 2022, ApJ, 935, 167 | [10.3847/1538-4357/ac7c74](https://doi.org/10.3847/1538-4357/ac7c74) | Astropy 软件 |
 
+### 软件与 AI 工具
+
+| 工具 | 出处 | 用途 |
+|---|---|---|
+| Hermes Agent（Nous Research） | [github.com/NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) | 仓库整理 |
+| DeepSeek-V4-Flash（DeepSeek-AI 2026） | [arXiv:2606.19348](https://arxiv.org/abs/2606.19348) | 大模型 |
+
 ## 参与贡献
 
 欢迎在托管平台（Gitee / GitHub）提交 Issue（功能需求、bug 报告）与 Pull Request。参见 [CONTRIBUTING_zh.md](CONTRIBUTING_zh.md)。

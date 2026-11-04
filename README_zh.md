@@ -1,5 +1,8 @@
 # galaxylens — 引力透镜建模库
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+
 **盘星系与椭圆星系的强引力透镜建模。**
 
 核心科学目标：对盘星系与椭圆星系开展强引力透镜与恒星动力学的联合建模，约束其总质量分布、暗物质晕与恒星质光比，进而限制暗物质模型；并通过 mock 观测，将建模方法与宇宙学流体数值模拟（IllustrisTNG）的预言同空间望远镜（HST）实测对比加以检验。椭圆星系作为对比样本。
@@ -8,7 +11,7 @@
 
 > 源自本科大学生创新项目**「盘星系引力透镜研究」**。
 
-> **状态**：pre-alpha。
+> **状态**：alpha。
 
 ## 仓库
 
@@ -224,6 +227,9 @@ jampy / mgefit / nautilus），Windows、WSL、Linux、macOS（CPU）均可运�
 | Vasiliev, E. 2019, MNRAS, 482, 1525 | [10.1093/mnras/sty2672](https://doi.org/10.1093/mnras/sty2672) | AGAMA 动力学（交叉验证） |
 | Nightingale, J.W.; Dye, S.; Massey, R.J. 2018, MNRAS, 478, 4738 | [10.1093/mnras/sty1264](https://doi.org/10.1093/mnras/sty1264) | PyAutoLens 透镜成像 |
 | Stetson, P.B. 1987, PASP, 99, 191 | [10.1086/131977](https://doi.org/10.1086/131977) | DAOStarFinder 点源探测 |
+| Bertin, E.; Arnouts, S. 1996, A&AS, 117, 393 | [10.1051/aas:1996164](https://doi.org/10.1051/aas:1996164) | SExtractor 点源探测 |
+| Krist, J.E.; Hook, R.N.; Stoehr, F. 2011, Proc. SPIE, 8127, 81270J | [10.1117/12.892762](https://doi.org/10.1117/12.892762) | TinyTim HST PSF 生成 |
+| Lange, J.U. 2023, MNRAS, 525, 3181 | [10.1093/mnras/stad2441](https://doi.org/10.1093/mnras/stad2441) | Nautilus 嵌套采样 |
 
 ### mock 图像管线
 

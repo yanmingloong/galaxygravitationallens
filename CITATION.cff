@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Long
+    given-names: Yanming
+title: "galaxylens: strong gravitational lens modeling for disk and elliptical galaxies"
+version: 0.1.0
+date-released: 2026-11-04
+license: MIT
+repository-code: "https://github.com/yanmingloong/galaxygravitationallens"
+keywords:
+  - gravitational lensing
+  - strong lensing
+  - galaxy dynamics
+  - dark matter
+  - astronomy

@@ -1,5 +1,8 @@
 # galaxylens — Gravitational Lens Modeling Library
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+
 **Strong gravitational lens modeling for disk and elliptical galaxies.**
 
 Core scientific goal: jointly model the strong gravitational lensing and
@@ -24,7 +27,7 @@ the implementation uses the independent software stack above.
 > Originating from the undergraduate innovation project
 > **"Disk-galaxy strong gravitational lensing research" (盘星系引力透镜研究)**.
 
-> **Status**: pre-alpha.
+> **Status**: alpha.
 
 ## Repository
 
@@ -272,6 +275,9 @@ Methods and models this library builds upon.
 | Vasiliev, E. 2019, MNRAS, 482, 1525 | [10.1093/mnras/sty2672](https://doi.org/10.1093/mnras/sty2672) | AGAMA dynamics (cross-check) |
 | Nightingale, J.W.; Dye, S.; Massey, R.J. 2018, MNRAS, 478, 4738 | [10.1093/mnras/sty1264](https://doi.org/10.1093/mnras/sty1264) | PyAutoLens lens imaging |
 | Stetson, P.B. 1987, PASP, 99, 191 | [10.1086/131977](https://doi.org/10.1086/131977) | DAOStarFinder point-source detection |
+| Bertin, E.; Arnouts, S. 1996, A&AS, 117, 393 | [10.1051/aas:1996164](https://doi.org/10.1051/aas:1996164) | SExtractor source detection |
+| Krist, J.E.; Hook, R.N.; Stoehr, F. 2011, Proc. SPIE, 8127, 81270J | [10.1117/12.892762](https://doi.org/10.1117/12.892762) | TinyTim HST PSF generation |
+| Lange, J.U. 2023, MNRAS, 525, 3181 | [10.1093/mnras/stad2441](https://doi.org/10.1093/mnras/stad2441) | Nautilus nested sampling |
 
 ### Mock-image pipeline
 

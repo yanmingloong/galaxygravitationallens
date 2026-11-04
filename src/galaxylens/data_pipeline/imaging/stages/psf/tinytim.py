@@ -1,6 +1,8 @@
 """TinyTim PSF: Massey grid (ACS) + direct compilation (WFPC2, WFC3/IR).
 
-Reference: dinos_i pipeline: https://github.com/cytan1/dinos-i
+References:
+- Krist, Hook & Stoehr 2011, Proc. SPIE 8127, 81270J (TinyTim)
+- dinos_i pipeline: https://github.com/cytan1/dinos-i
 """
 from __future__ import annotations
 from typing import Optional, Tuple

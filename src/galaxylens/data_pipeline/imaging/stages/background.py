@@ -7,6 +7,9 @@ Features:
   1. Sigma-clipped edge-strip statistics to estimate the background level
   2. Background subtraction
 
+References:
+  - Bertin & Arnouts 1996, A&AS 117, 393 (SExtractor, used for background estimation)
+
 Methods:
   - estimate_background(): edge sigma-clipped median and RMS
   - subtract_background(): data - bg_median

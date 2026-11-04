@@ -3,12 +3,12 @@
 # 用法：bash examples/upload_j1630_cluster.sh
 # 注意：给用户的命令用花括号 {..} 展开（单行），别用 * 通配符（WSL 粘贴会吞）。
 
-CLUSTER="teamlwp_b@loong.ddog.host"
-REMOTE="/home/teamlwp_b/yanming/galaxylens"                    # 集群 galaxylens 仓库
-REMOTE_DATA="/Raid6/1b/teamlwp_b/ymdata/ellip/J1630+4520"      # 数据盘：HST FITS
+CLUSTER="<user>@<cluster-host>"  # edit
+REMOTE="/home/<user>/galaxylens"                               # 集群 galaxylens 仓库
+REMOTE_DATA="/path/to/cluster/data/J1630+4520"                 # 数据盘：HST FITS
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"                        # galaxylens 仓库根
-DATA_LOCAL="/mnt/d/HermesAgent/ResearchProjects/GalaxyGravLens/DataPipeline/processed/ellip/J1630+4520"
+DATA_LOCAL="/path/to/local/data/J1630+4520"                    # 本地 HST FITS
 
 set -e
 

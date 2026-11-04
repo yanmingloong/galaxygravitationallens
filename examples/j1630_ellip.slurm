@@ -13,7 +13,7 @@
 
 set -e
 
-CONDA_ENV="/home/teamlwp_b/.conda/envs/autolens_jax"
+CONDA_ENV="$HOME/.conda/envs/autolens_jax"  # edit to your env
 export PATH="$CONDA_ENV/bin:$PATH"
 export PYTHONNOUSERSITE=1
 export PIP_USER=false
@@ -27,11 +27,11 @@ export MKL_NUM_THREADS=1
 export VECLIB_MAXIMUM_THREADS=1
 export NUMEXPR_NUM_THREADS=1
 
-cd /home/teamlwp_b/yanming/galaxylens
+cd "$HOME/galaxylens"  # edit to your repo path
 
 export PYTHONPATH=$PWD/src
-export GALAXYLENS_DATA_ROOT=/Raid6/1b/teamlwp_b/ymdata/ellip/J1630+4520
-export GALAXYLENS_OUTPUT_ROOT=/home/teamlwp_b/yanming/galaxylens/outputs
+export GALAXYLENS_DATA_ROOT=/path/to/observations  # edit
+export GALAXYLENS_OUTPUT_ROOT="$HOME/galaxylens/outputs"
 
 PYTHON="$CONDA_ENV/bin/python"
 echo "=== python = $PYTHON ==="

@@ -92,11 +92,47 @@ galaxygravitationallens/
 
 ## Installation
 
+### Python package
+
 ```bash
 pip install -e .            # core (numpy/scipy/astropy/pyyaml/pandas)
 pip install -e ".[lens]"    # + PyAutoLens fitting stack
 pip install -e ".[dynamics]" # + AGAMA / jampy / mgefit
 ```
+
+### External tools (not pip-installable)
+
+| Tool | Purpose | Env var |
+|---|---|---|
+| PyAutoLens | lens imaging / ray-tracing / fitting | pip, `[lens]` extra |
+| jampy + mgefit | Jeans anisotropic dynamics | pip, `[dynamics]` extra |
+| Nautilus | nested sampling | pip, via PyAutoLens |
+| SKIRT | Monte Carlo radiative transfer (mock images) | `SKIRT_BIN` |
+| SExtractor | source detection / photometry | `SEXTRACTOR_BIN` |
+| TinyTim | HST PSF generation | `TINYTIM_BIN`, `TINYTIM_GRID_BASE` |
+
+### Environment variables
+
+| Variable | Points to | Needed by |
+|---|---|---|
+| `GALAXYLENS_DATA_ROOT` | observational data root (raw/ + processed_v2/) | data_pipeline, lensfit |
+| `GALAXYLENS_SAMPLE_LIB` | sample-library root (01_raw ~ 05_exports) | sample_library |
+| `GALAXYLENS_OUTPUT_ROOT` | results root (kept out of the repo) | facade / fits |
+| `GALAXYLENS_CONFIG_DIR` | configs/ dir (optional; defaults to repo configs/) | config loader |
+| `TNG_API_KEY` | IllustrisTNG download API key | mock_pipeline selection |
+| `SKIRT_BIN` | SKIRT executable | mock_pipeline skirt |
+| `SEXTRACTOR_BIN` | SExtractor binary | data_pipeline imaging |
+| `TINYTIM_BIN` / `TINYTIM_GRID_BASE` / `TINYTIM_BREATHING_CSV` | TinyTim paths | data_pipeline psf |
+
+### Data
+
+The repository contains no scientific data (`*.fits` / `*.hdf5` / `*.npz` are
+gitignored). You must provide:
+
+- **Observational data**: HST FITS from the MAST archive (or equivalent).
+- **Simulation data**: IllustrisTNG particle HDF5 (requires a TNG API key).
+- **Regression-test data** (optional): set `GALAXYLENS_MF_ROOT` /
+  `GALAXYLENS_TEST_*` to run the data-dependent tests; they skip otherwise.
 
 ## Quick start
 

@@ -31,8 +31,8 @@ set -e
 export PATH=$HOME/.conda/envs/autolens_jax/bin:$PATH
 
 # Data / output roots (edit to your cluster paths)
-export GALAXYLENS_DATA_ROOT=/Raid6/1b/teamlwp_b/ymdata/tng_census_catalog
-export GALAXYLENS_OUTPUT_ROOT=/Raid6/1b/teamlwp_b/ymdata/tng_census_catalog/out
+export GALAXYLENS_DATA_ROOT=/path/to/tng_census_catalog  # edit
+export GALAXYLENS_OUTPUT_ROOT=/path/to/tng_census_catalog/out  # edit
 
 # TNG API key (downloads; keep out of git)
 export TNG_API_KEY=...

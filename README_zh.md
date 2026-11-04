@@ -70,11 +70,45 @@ galaxygravitationallens/
 
 ## 安装
 
+### Python 包
+
 ```bash
 pip install -e .            # 核心 core（numpy/scipy/astropy/pyyaml/pandas）
 pip install -e ".[lens]"    # + PyAutoLens 拟合栈
 pip install -e ".[dynamics]" # + AGAMA / jampy / mgefit
 ```
+
+### 外部工具（非 pip 可装）
+
+| 工具 | 用途 | 环境变量 |
+|---|---|---|
+| PyAutoLens | 透镜成像 / 光线追踪 / 拟合 | pip，`[lens]` extra |
+| jampy + mgefit | Jeans 各向异性动力学 | pip，`[dynamics]` extra |
+| Nautilus | 嵌套采样 | pip，随 PyAutoLens |
+| SKIRT | 蒙特卡洛辐射转移（mock 图像） | `SKIRT_BIN` |
+| SExtractor | 点源探测 / 测光 | `SEXTRACTOR_BIN` |
+| TinyTim | HST PSF 生成 | `TINYTIM_BIN`、`TINYTIM_GRID_BASE` |
+
+### 环境变量
+
+| 变量 | 指向 | 用于 |
+|---|---|---|
+| `GALAXYLENS_DATA_ROOT` | 观测数据根（raw/ + processed_v2/） | data_pipeline、lensfit |
+| `GALAXYLENS_SAMPLE_LIB` | 样本库根（01_raw ~ 05_exports） | sample_library |
+| `GALAXYLENS_OUTPUT_ROOT` | 结果输出根（不进仓库） | facade / 拟合 |
+| `GALAXYLENS_CONFIG_DIR` | configs/ 目录（可选，默认仓库 configs/） | 配置加载 |
+| `TNG_API_KEY` | IllustrisTNG 下载 API key | mock_pipeline 筛选 |
+| `SKIRT_BIN` | SKIRT 可执行文件 | mock_pipeline skirt |
+| `SEXTRACTOR_BIN` | SExtractor 二进制 | data_pipeline imaging |
+| `TINYTIM_BIN` / `TINYTIM_GRID_BASE` / `TINYTIM_BREATHING_CSV` | TinyTim 路径 | data_pipeline psf |
+
+### 数据
+
+仓库不含任何科学数据（`*.fits` / `*.hdf5` / `*.npz` 已 gitignore），需自行准备：
+
+- **观测数据**：HST FITS（从 MAST 归档下载，或等价来源）。
+- **模拟数据**：IllustrisTNG 粒子 HDF5（需 TNG API key）。
+- **回归测试数据**（可选）：设 `GALAXYLENS_MF_ROOT` / `GALAXYLENS_TEST_*` 跑数据依赖测试，否则自动跳过。
 
 ## 快速开始
 

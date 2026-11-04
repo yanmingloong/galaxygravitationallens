@@ -21,7 +21,7 @@ from galaxylens.api.result import Result  # noqa: E402
 from galaxylens.api.plotting.corner import plot_corner  # noqa: E402
 
 # ---- paths (adjust samples_csv if you pulled the dir elsewhere) ----
-SAMPLES_CSV = REPO / "outputs/j2141_b7_joint/7d8a13fcfb80b5da8d5f50ea9c56d68b/files/samples.csv"
+SAMPLES_CSV = REPO / "outputs/j2141_b7_joint/<run_hash>/files/samples.csv"
 CONFIG = REPO / "configs/fit/j2141_barnabe.yaml"
 OUT_DIR = REPO / "outputs/j2141_b7_joint"
 

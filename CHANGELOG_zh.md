@@ -10,6 +10,8 @@
 
 ### 新增
 
+- **发布打磨 + alpha 状态**（2026-11-04）：状态由 pre-alpha 升为 alpha（README 中英 + pyproject classifier）。新增 `CITATION.cff`（引用文件格式）、`[project.urls]`（Homepage / Repository / Bug Tracker），README 加 License + Python 徽章。参考文献补齐三篇工具引用——SExtractor（Bertin & Arnouts 1996）、TinyTim（Krist, Hook & Stoehr 2011）、Nautilus（Lange 2023）——并新增「软件与 AI 工具」分组（Hermes Agent / DeepSeek-V4-Flash）。AI 使用说明移到参考文献前，工具与大模型名加粗，模型名统一为 DeepSeek-V4-Flash。README 新增双托管（Gitee + GitHub）说明。
+
 - **编排层：`Pipeline` + `Stage`、`gl.analyze` 与 `gl.mock`**（2026-11-03）：在可插拔组件之上加一层薄编排（自动模式），`api.pipeline` 提供 `Stage`（单个命名组件调用）+ `Pipeline`（有序步骤共享 `ctx` 字典），`run(start/stop/only)` 支持全自动/部分/区间运行；每步仍可独立调用（人工模式）。`api.analysis.analyze`（暴露为 `gl.analyze`）是一键拟合后分析：六质量参数加权后验、派生量（βz / M* / median 参数处 f_dm / θ_E / γ_tot）、先验贴边检查（2.5/97.5% 是否落进边界 1% 内）、corner 图。`mock_pipeline.orchestrate.build_mock_pipeline`（暴露为 `gl.mock`）把 mock 闭合链 select → pick → truth → render → make_arc → mock_fit → closure 串成 `Pipeline`，每步薄包装现有 `selection`/`skirt`/`lensing`/`validation` 模块并带清晰前置检查（重步骤需 TNG 数据 + SKIRT 二进制）。回归：verify_pipeline、verify_mock_orchestrate。注意：`analyze` 的 f_dm 用 median 参数算一次，不用 `Result.f_dm` 的 O(N) 逐样本循环（后者每样本重做晕 MGE 拟合，几千样本要几分钟）。
 
 - **透镜识别层：`gl.identify`**（2026-11-03）：`sample_library.identify` 补上缺失的"识别"一环——从 catalog 行推断透镜类型（盘/椭圆，靠 `lens_type_label` + `n_sersic` + `B_D_ratio`）与透镜约束（弧/四重像，靠 `n_images` + 已知四重像名单），再映射到建模模块 + 配方模板（`LensPlan`）。`gl.identify(name)` 是门面入口；`write_recipe(plan, params)` 复制模板 + 覆盖键（支持点号嵌套）产出可跑 YAML。锚点：J2141 → disk/jampy_kdc、J1331 → quad/positions、DEV 行 → elliptical/jampy。回归：verify_identify。
